@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit loyalty program form view to add bon_achat specific fields -->
+    <record id="loyalty_program_view_form_bon_achat" model="ir.ui.view">
+        <field name="name">loyalty.program.view.form.bon_achat</field>
+        <field name="model">loyalty.program</field>
+        <field name="inherit_id" ref="loyalty.loyalty_program_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add pos_only field (hidden) -->
+            <xpath expr="//field[@name='program_type']" position="after">
+                <field name="pos_only" invisible="1"/>
+                
+                <!-- Add specific help text for bon_achat programs -->
+                <p class="text-muted" invisible="program_type != 'bon_achat'" colspan="2">
+                    <strong>Bon d'achat - À usage unique</strong><br/>
+                    Les bons d'achat sont des coupons à usage unique utilisables uniquement au Point de Vente :
+                    • Chaque bon ne peut être utilisé qu'une seule fois
+                    • Le bon est entièrement consommé même si le montant de la commande est inférieur
+                    • Utilisable uniquement au Point de Vente (pas en ligne)
+                    • Le montant du bon correspond aux points accordés lors de la génération
+                </p>
+            </xpath>
+
+            <!-- Add dedicated generation button for bon d'achat programs -->
+            <xpath expr="(//header/button[@name='%(loyalty.loyalty_generate_wizard_action)d'])[1]" position="after">
+                <button name="%(loyalty.loyalty_generate_wizard_action)d"
+                    type="action"
+                    class="btn-primary"
+                    string="Générer des bons d'achat"
+                    invisible="program_type != 'bon_achat'"/>
+            </xpath>
+
+            <!-- Add fixed amount field for bon_achat programs -->
+            <xpath expr="//field[@name='currency_id']" position="after">
+                <field name="bon_achat_amount"
+                       invisible="program_type != 'bon_achat'"
+                       required="program_type == 'bon_achat'"
+                       placeholder="50.00"/>
+            </xpath>
+            
+            <!-- Hide point unit fields for bon_achat programs -->
+            <xpath expr="(//field[@name='portal_point_name'])[1]" position="attributes">
+                <attribute name="invisible">program_type in ('gift_card', 'ewallet', 'bon_achat')</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='portal_point_name'])[2]" position="attributes">
+                <attribute name="invisible">program_type in ('gift_card', 'ewallet', 'bon_achat')</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='portal_visible'])[2]" position="attributes">
+                <attribute name="invisible">program_type in ('gift_card', 'ewallet', 'bon_achat')</attribute>
+            </xpath>
+            
+            <!-- Make max_usage readonly for bon_achat as it's always 1 -->
+            <xpath expr="//field[@name='max_usage']" position="attributes">
+                <attribute name="readonly">program_type == 'bon_achat'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='limit_usage']" position="attributes">
+                <attribute name="readonly">program_type == 'bon_achat'</attribute>
+            </xpath>
+
+            <!-- Hide rules/rewards tabs for bon_achat programs -->
+            <xpath expr="//page[@name='rules_rewards']" position="attributes">
+                <attribute name="invisible">program_type in ('gift_card', 'ewallet', 'bon_achat')</attribute>
+            </xpath>
+            <xpath expr="//page[@name='rewards']" position="attributes">
+                <attribute name="invisible">program_type not in ('gift_card', 'ewallet')</attribute>
+            </xpath>
+
+            <!-- Add Bon d'achat label on the loyalty cards stat button -->
+            <xpath expr="//button[@name='action_open_loyalty_cards']/div" position="inside">
+                <span class="o_stat_text" invisible="program_type != 'bon_achat'">Bons d'achat</span>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add bon_achat filter to search view -->
+    <record id="loyalty_program_view_search_bon_achat" model="ir.ui.view">
+        <field name="name">loyalty.program.view.search.bon_achat</field>
+        <field name="model">loyalty.program</field>
+        <field name="inherit_id" ref="loyalty.loyalty_program_view_search"/>
+        <field name="arch" type="xml">
+            <!-- Add filter for bon_achat programs after the inactive filter -->
+            <filter name="inactive" position="after">
+                <separator/>
+                <filter string="Bons d'achat" name="bon_achat" 
+                        domain="[('program_type', '=', 'bon_achat')]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

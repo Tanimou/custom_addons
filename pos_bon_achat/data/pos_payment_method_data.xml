@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- BON ACHAT payment method - Users must configure journal and assign to POS configs -->
+        <record id="payment_method_bon_achat" model="pos.payment.method">
+            <field name="name">BON ACHAT</field>
+            <field name="is_bon_achat_method" eval="True"/>
+            <field name="split_transactions" eval="False"/>
+            <!-- Note: Users must:
+                 1. Set the appropriate journal (required)
+                 2. Assign it to their POS configuration(s)
+            -->
+        </record>
+    </data>
+</odoo>

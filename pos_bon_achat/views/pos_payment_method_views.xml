@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit POS payment method form view to add bon_achat checkbox -->
+    <record id="pos_payment_method_view_form_bon_achat" model="ir.ui.view">
+        <field name="name">pos.payment.method.view.form.bon_achat</field>
+        <field name="model">pos.payment.method</field>
+        <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add is_bon_achat_method field in the first group after split_transactions -->
+            <xpath expr="//group[@name='Payment methods']/group[1]/field[@name='split_transactions']" position="after">
+                <field name="is_bon_achat_method" string="Bon d'achat payment method"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

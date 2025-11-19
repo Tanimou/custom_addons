@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_loyalty_program_bon_achat_user,loyalty.program.bon_achat.user,loyalty.model_loyalty_program,base.group_user,1,0,0,0
+access_loyalty_program_bon_achat_manager,loyalty.program.bon_achat.manager,loyalty.model_loyalty_program,point_of_sale.group_pos_manager,1,1,1,1
+access_loyalty_card_bon_achat_user,loyalty.card.bon_achat.user,loyalty.model_loyalty_card,base.group_user,1,0,0,0
+access_loyalty_card_bon_achat_pos_user,loyalty.card.bon_achat.pos_user,loyalty.model_loyalty_card,point_of_sale.group_pos_user,1,1,1,0

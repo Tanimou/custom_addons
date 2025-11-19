@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit generation wizard to add bon_achat specific help text -->
+    <record id="loyalty_generate_wizard_view_form_bon_achat" model="ir.ui.view">
+        <field name="name">loyalty.generate.wizard.view.form.bon_achat</field>
+        <field name="model">loyalty.generate.wizard</field>
+        <field name="inherit_id" ref="loyalty.loyalty_generate_wizard_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add specific help text for bon_achat generation at start of sheet -->
+            <xpath expr="//sheet/group" position="before">
+                <div class="alert alert-info" role="alert" 
+                     invisible="program_type != 'bon_achat'">
+                    <strong>Génération de Bons d'achat</strong>
+                    <p>
+                        Vous êtes sur le point de générer des bons d'achat à usage unique.
+                        Chaque bon ne peut être utilisé qu'une seule fois au Point de Vente et sera entièrement consommé après utilisation.
+                    </p>
+                </div>
+            </xpath>
+
+            <!-- Show Montant du bon block with readonly value -->
+            <xpath expr="//label[@for='points_granted' and @invisible=&quot;program_type != 'ewallet'&quot;]" position="after">
+                <label string="Montant du bon d'achat" for="points_granted" invisible="program_type != 'bon_achat'"/>
+                <span class="d-inline-block" invisible="program_type != 'bon_achat'">
+                    <field name="points_granted" class="w-auto oe_inline me-1" readonly="program_type == 'bon_achat'"/>
+                    <field name="points_name" class="d-inline" no_label="1" readonly="1"/>
+                </span>
+            </xpath>
+
+            <!-- Lock fields that are controlled by the program configuration -->
+            <xpath expr="//field[@name='valid_until']" position="attributes">
+                <attribute name="readonly">program_type == 'bon_achat'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='description']" position="attributes">
+                <attribute name="readonly">program_type == 'bon_achat'</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
