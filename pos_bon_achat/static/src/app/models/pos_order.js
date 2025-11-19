@@ -75,7 +75,7 @@ patch(PosOrder.prototype, {
             reward_id: reward,
             is_reward_line: true,
             coupon_id,
-            points_cost: bonAchatAmount,
+            points_cost: 0, // Zero points - BON ACHAT uses payment method, not point deduction
             reward_identifier_code: rewardIdentifierCode,
             tax_ids: discountProduct.taxes_id,
             customer_note: coupon.code
@@ -94,7 +94,7 @@ patch(PosOrder.prototype, {
                 points: 0,
             });
 
-        couponChange.points = -bonAchatAmount;
+        couponChange.points = 0; // Zero points - BON ACHAT uses payment method flow, not point deduction
         couponChange.manual = true;
         couponChange.bon_achat_applied_amount = amountToApply;
         couponChange.bon_achat_original_amount = bonAchatAmount;
