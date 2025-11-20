@@ -86,4 +86,20 @@
             </filter>
         </field>
     </record>
+
+    <!-- Inherit loyalty rule form view to add per_product_mode field for buy_x_get_y -->
+    <record id="loyalty_rule_view_form_buy_x_get_y" model="ir.ui.view">
+        <field name="name">loyalty.rule.view.form.buy_x_get_y</field>
+        <field name="model">loyalty.rule</field>
+        <field name="inherit_id" ref="loyalty.loyalty_rule_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add per_product_mode field after minimum_qty -->
+            <xpath expr="//field[@name='minimum_qty']" position="after">
+                <field name="per_product_mode"
+                       invisible="program_type != 'buy_x_get_y' or reward_point_mode != 'unit'"
+                       string="Apply Per Product Line"
+                       help="Check this to apply the rule separately to each product line instead of the entire order"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

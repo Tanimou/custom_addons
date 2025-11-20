@@ -5,6 +5,8 @@ from . import (
     loyalty_card,
     loyalty_history,
     loyalty_program,
+    loyalty_reward,
+    loyalty_rule,
     pos_config,
     pos_order,
     pos_order_line,

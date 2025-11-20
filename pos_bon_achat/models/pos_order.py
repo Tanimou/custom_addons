@@ -51,6 +51,29 @@ class PosOrder(models.Model):
                     }
                 }
         
+        # Additional validation for buy_x_get_y programs with per_product_mode
+        # Get all programs involved in this order
+        all_coupons = self.env['loyalty.card'].browse(coupon_ids)
+        buy_x_get_y_programs = all_coupons.mapped('program_id').filtered(
+            lambda p: p.program_type == 'buy_x_get_y'
+        )
+        
+        for program in buy_x_get_y_programs:
+            # Check if this program uses per_product_mode
+            has_per_product_mode = any(rule.per_product_mode for rule in program.rule_ids)
+            
+            if has_per_product_mode:
+                # Validate that rules with per_product_mode have reward_point_mode='unit'
+                for rule in program.rule_ids:
+                    if rule.per_product_mode and rule.reward_point_mode != 'unit':
+                        return {
+                            'successful': False,
+                            'payload': {
+                                'message': _('Per-product mode requires reward point mode to be "unit paid".'),
+                                'removed_coupons': [],
+                            }
+                        }
+        
         return result
 
     def confirm_coupon_programs(self, coupon_data):
