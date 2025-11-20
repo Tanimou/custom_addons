@@ -46,7 +46,7 @@ class LoyaltyProgram(models.Model):
         res = super()._program_type_default_values()
         
         # Bon d'achat is similar to coupons but:
-        # - Single use (max_usage = 1)
+        # - Each voucher card is single-use (enforced at card level, not program level)
         # - POS only
         # - Monetary amount based
         res['bon_achat'] = {
@@ -54,8 +54,8 @@ class LoyaltyProgram(models.Model):
             'trigger': 'with_code',
             'portal_visible': False,
             'portal_point_name': self.env.company.currency_id.symbol,
-            'limit_usage': True,
-            'max_usage': 1,
+            'limit_usage': False,  # No program-level limit; each card is independently single-use
+            'max_usage': 0,  # Unlimited vouchers can be used from this program
             'pos_ok': True,  # Always available in POS
             'bon_achat_amount': 0.0,
             'rule_ids': [(5, 0, 0), (0, 0, {
@@ -111,18 +111,14 @@ class LoyaltyProgram(models.Model):
         return res
 
     def write(self, vals):
-        """Enforce max_usage=1 and pos_ok=True for bon_achat programs"""
+        """Ensure pos_ok=True for bon_achat programs"""
         res = super().write(vals)
         
-        # Ensure bon_achat programs always have max_usage = 1 and pos_ok = True
+        # Ensure bon_achat programs always have pos_ok = True
+        # Note: No program-level usage limits enforced; each voucher card is single-use at the card level
         for program in self:
             if program.program_type == 'bon_achat':
                 updates = {}
-                if not program.limit_usage or program.max_usage != 1:
-                    updates.update({
-                        'limit_usage': True,
-                        'max_usage': 1,
-                    })
                 if not program.pos_ok:
                     updates['pos_ok'] = True  # BON ACHAT programs are always available in POS
                 
@@ -132,11 +128,10 @@ class LoyaltyProgram(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Enforce max_usage=1 and pos_ok=True for bon_achat programs at creation"""
+        """Ensure pos_ok=True for bon_achat programs at creation"""
         for vals in vals_list:
             if vals.get('program_type') == 'bon_achat':
-                vals['limit_usage'] = True
-                vals['max_usage'] = 1
+                # No program-level usage limits; each voucher card is single-use at the card level
                 vals['pos_ok'] = True  # BON ACHAT programs are always available in POS
         
         return super().create(vals_list)
