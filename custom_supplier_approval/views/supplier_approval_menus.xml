@@ -87,13 +87,6 @@
               parent="purchase.menu_purchase_root"
               sequence="50"/>
 
-    <!-- Approval Requests Menu -->
-    <menuitem id="menu_supplier_approval_requests"
-              name="Demandes d'approbation"
-              parent="menu_supplier_approval_root"
-              action="action_supplier_approval_request"
-              sequence="10"/>
-
     <!-- My Requests Menu -->
     <menuitem id="menu_my_approval_requests"
               name="Mes demandes"
@@ -108,11 +101,18 @@
               action="action_supplier_evaluation"
               sequence="20"/>
 
-    <!-- Reports Menu (folder for analytical views) -->
+    <!-- Reports Menu - Top-level menu in Achats module (contains all analytical views) -->
     <menuitem id="menu_supplier_approval_reports"
-              name="Rapports"
-              parent="menu_supplier_approval_root"
-              sequence="30"/>
+              name="Rapports Fournisseurs"
+              parent="purchase.menu_purchase_root"
+              sequence="55"/>
+
+    <!-- Cohort Analysis Menu (under Reports) -->
+    <menuitem id="menu_supplier_evaluation_cohort"
+              name="Analyse de Cohorte"
+              parent="menu_supplier_approval_reports"
+              action="action_supplier_evaluation_cohort"
+              sequence="50"/>
 
     <!-- Configuration Menu -->
     <menuitem id="menu_supplier_approval_config"

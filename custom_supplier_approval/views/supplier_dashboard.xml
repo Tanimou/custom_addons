@@ -90,11 +90,8 @@
                                         <field name="name"/>
                                     </small>
                                 </div>
-                                <span class="badge float-end" 
-                                      t-attf-class="badge-#{record.state.raw_value === 'approved' ? 'success' : 
-                                                            record.state.raw_value === 'rejected' ? 'danger' :
-                                                            record.state.raw_value === 'pending' ? 'warning' : 'secondary'}">
-                                    <field name="state"/>
+                                <span class="float-end">
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'pending'" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'"/>
                                 </span>
                             </div>
                             
