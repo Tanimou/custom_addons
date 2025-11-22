@@ -1,4 +1,369 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Email Templates - Phase 9 implementation -->
+    <!-- Email Templates for Supplier Approval Workflow - Phase 9 -->
+
+    <!-- Template 1: New Approval Request Submission Notification (to Purchase Managers) -->
+    <record id="mail_template_approval_request_submitted" model="mail.template">
+        <field name="name">Demande d'Approbation Fournisseur: Nouvelle Soumission</field>
+        <field name="model_id" ref="model_supplier_approval_request"/>
+        <field name="subject">Nouvelle Demande d'Approbation: {{ object.partner_id.name }}</field>
+        <field name="email_from">{{ (object.requested_by.email_formatted or user.email_formatted) }}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family: Arial, sans-serif; color: #454748; width: 100%; border-collapse: separate;">
+        <tbody>
+            <tr>
+                <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: white; border: 1px solid #D9D9D9;">
+                        <tbody>
+                            <!-- Header -->
+                            <tr>
+                                <td style="padding: 20px 0px; background-color: #1F7EBD; text-align: center;">
+                                    <h2 style="margin: 0; color: white; font-size: 24px;">
+                                        🔔 Nouvelle Demande d'Approbation
+                                    </h2>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0 0 10px; font-size: 14px;">
+                                        Bonjour,
+                                    </p>
+                                    <p style="margin: 10px 0; font-size: 14px;">
+                                        Une nouvelle demande d'approbation de fournisseur a été soumise et nécessite votre validation.
+                                    </p>
+                                    
+                                    <!-- Request Details -->
+                                    <table border="0" cellpadding="8" cellspacing="0" width="100%" style="margin: 20px 0; border: 1px solid #E0E0E0;">
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold; width: 40%;">Numéro de demande:</td>
+                                            <td>{{ object.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Fournisseur:</td>
+                                            <td><strong>{{ object.partner_id.name }}</strong></td>
+                                        </tr>
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold;">Demandeur:</td>
+                                            <td>{{ object.requested_by.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Date de soumission:</td>
+                                            <td>{{ format_date(object.request_date) }}</td>
+                                        </tr>
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold;">Services:</td>
+                                            <td>{{ object.service_types or 'Non spécifié' }}</td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <!-- Action Button -->
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=supplier.approval.request&amp;view_type=form"
+                                           style="background-color: #1F7EBD; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                                            Examiner la Demande
+                                        </a>
+                                    </div>
+                                    
+                                    <p style="margin: 20px 0 0; font-size: 12px; color: #888;">
+                                        Veuillez examiner cette demande et procéder à son approbation ou son rejet dans les meilleurs délais.
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="padding: 10px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #E0E0E0;">
+                                    Cet email a été envoyé automatiquement depuis votre système Odoo.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+        </field>
+    </record>
+
+    <!-- Template 2: Approval Request Approved Notification (to Requester) -->
+    <record id="mail_template_approval_request_approved" model="mail.template">
+        <field name="name">Demande d'Approbation Fournisseur: Approuvée</field>
+        <field name="model_id" ref="model_supplier_approval_request"/>
+        <field name="subject">✅ Demande Approuvée: {{ object.partner_id.name }}</field>
+        <field name="email_from">{{ (object.approved_by.email_formatted or user.email_formatted) }}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family: Arial, sans-serif; color: #454748; width: 100%; border-collapse: separate;">
+        <tbody>
+            <tr>
+                <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: white; border: 1px solid #D9D9D9;">
+                        <tbody>
+                            <!-- Header -->
+                            <tr>
+                                <td style="padding: 20px 0px; background-color: #28A745; text-align: center;">
+                                    <h2 style="margin: 0; color: white; font-size: 24px;">
+                                        ✅ Demande Approuvée
+                                    </h2>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0 0 10px; font-size: 14px;">
+                                        Bonjour {{ object.requested_by.name }},
+                                    </p>
+                                    <p style="margin: 10px 0; font-size: 14px;">
+                                        Votre demande d'approbation de fournisseur a été <strong style="color: #28A745;">approuvée</strong>.
+                                    </p>
+                                    
+                                    <!-- Request Details -->
+                                    <table border="0" cellpadding="8" cellspacing="0" width="100%" style="margin: 20px 0; border: 1px solid #E0E0E0;">
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold; width: 40%;">Numéro de demande:</td>
+                                            <td>{{ object.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Fournisseur:</td>
+                                            <td><strong>{{ object.partner_id.name }}</strong></td>
+                                        </tr>
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold;">Approuvé par:</td>
+                                            <td>{{ object.approved_by.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Date d'approbation:</td>
+                                            <td>{{ format_date(object.approval_date) }}</td>
+                                        </tr>
+                                    </table>
+                                    
+                                    {% if object.comments %}
+                                    <div style="background-color: #F8F9FA; padding: 15px; margin: 20px 0; border-left: 4px solid #28A745;">
+                                        <strong>Commentaires du validateur:</strong><br/>
+                                        <p style="margin: 10px 0 0; white-space: pre-wrap;">{{ object.comments }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Action Button -->
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=supplier.approval.request&amp;view_type=form"
+                                           style="background-color: #28A745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                                            Voir la Demande
+                                        </a>
+                                    </div>
+                                    
+                                    <p style="margin: 20px 0 0; font-size: 14px;">
+                                        Le fournisseur <strong>{{ object.partner_id.name }}</strong> est maintenant approuvé et peut être utilisé pour vos bons de commande.
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="padding: 10px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #E0E0E0;">
+                                    Cet email a été envoyé automatiquement depuis votre système Odoo.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+        </field>
+    </record>
+
+    <!-- Template 3: Approval Request Rejected Notification (to Requester) -->
+    <record id="mail_template_approval_request_rejected" model="mail.template">
+        <field name="name">Demande d'Approbation Fournisseur: Rejetée</field>
+        <field name="model_id" ref="model_supplier_approval_request"/>
+        <field name="subject">❌ Demande Rejetée: {{ object.partner_id.name }}</field>
+        <field name="email_from">{{ (object.approved_by.email_formatted or user.email_formatted) }}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family: Arial, sans-serif; color: #454748; width: 100%; border-collapse: separate;">
+        <tbody>
+            <tr>
+                <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: white; border: 1px solid #D9D9D9;">
+                        <tbody>
+                            <!-- Header -->
+                            <tr>
+                                <td style="padding: 20px 0px; background-color: #DC3545; text-align: center;">
+                                    <h2 style="margin: 0; color: white; font-size: 24px;">
+                                        ❌ Demande Rejetée
+                                    </h2>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0 0 10px; font-size: 14px;">
+                                        Bonjour {{ object.requested_by.name }},
+                                    </p>
+                                    <p style="margin: 10px 0; font-size: 14px;">
+                                        Votre demande d'approbation de fournisseur a été <strong style="color: #DC3545;">rejetée</strong>.
+                                    </p>
+                                    
+                                    <!-- Request Details -->
+                                    <table border="0" cellpadding="8" cellspacing="0" width="100%" style="margin: 20px 0; border: 1px solid #E0E0E0;">
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold; width: 40%;">Numéro de demande:</td>
+                                            <td>{{ object.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Fournisseur:</td>
+                                            <td><strong>{{ object.partner_id.name }}</strong></td>
+                                        </tr>
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold;">Rejeté par:</td>
+                                            <td>{{ object.approved_by.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Date de rejet:</td>
+                                            <td>{{ format_date(object.approval_date) }}</td>
+                                        </tr>
+                                    </table>
+                                    
+                                    {% if object.rejection_reason %}
+                                    <div style="background-color: #FFF3CD; padding: 15px; margin: 20px 0; border-left: 4px solid #DC3545;">
+                                        <strong style="color: #856404;">Raison du rejet:</strong><br/>
+                                        <p style="margin: 10px 0 0; color: #856404; white-space: pre-wrap;">{{ object.rejection_reason }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if object.comments %}
+                                    <div style="background-color: #F8F9FA; padding: 15px; margin: 20px 0; border-left: 4px solid #6C757D;">
+                                        <strong>Commentaires additionnels:</strong><br/>
+                                        <p style="margin: 10px 0 0; white-space: pre-wrap;">{{ object.comments }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Action Button -->
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=supplier.approval.request&amp;view_type=form"
+                                           style="background-color: #6C757D; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                                            Voir les Détails
+                                        </a>
+                                    </div>
+                                    
+                                    <p style="margin: 20px 0 0; font-size: 12px; color: #888;">
+                                        Vous pouvez corriger les informations et soumettre une nouvelle demande en réinitialisant cette demande au brouillon.
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="padding: 10px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #E0E0E0;">
+                                    Cet email a été envoyé automatiquement depuis votre système Odoo.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+        </field>
+    </record>
+
+    <!-- Template 4: Supplier Evaluation Reminder (to Purchase Users) -->
+    <record id="mail_template_evaluation_reminder" model="mail.template">
+        <field name="name">Rappel: Évaluation Fournisseur à Effectuer</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="subject">⏰ Rappel: Évaluation du fournisseur {{ object.partner_id.name }}</field>
+        <field name="email_from">{{ user.email_formatted }}</field>
+
+        <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family: Arial, sans-serif; color: #454748; width: 100%; border-collapse: separate;">
+        <tbody>
+            <tr>
+                <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: white; border: 1px solid #D9D9D9;">
+                        <tbody>
+                            <!-- Header -->
+                            <tr>
+                                <td style="padding: 20px 0px; background-color: #FFC107; text-align: center;">
+                                    <h2 style="margin: 0; color: white; font-size: 24px;">
+                                        ⏰ Rappel d'Évaluation
+                                    </h2>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0 0 10px; font-size: 14px;">
+                                        Bonjour {{ object.user_id.name }},
+                                    </p>
+                                    <p style="margin: 10px 0; font-size: 14px;">
+                                        Un bon de commande est en attente d'évaluation depuis plusieurs jours. Veuillez prendre le temps d'évaluer la performance du fournisseur.
+                                    </p>
+                                    
+                                    <!-- PO Details -->
+                                    <table border="0" cellpadding="8" cellspacing="0" width="100%" style="margin: 20px 0; border: 1px solid #E0E0E0;">
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold; width: 40%;">Bon de commande:</td>
+                                            <td><strong>{{ object.name }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Fournisseur:</td>
+                                            <td>{{ object.partner_id.name }}</td>
+                                        </tr>
+                                        <tr style="background-color: #F5F5F5;">
+                                            <td style="font-weight: bold;">Date de confirmation:</td>
+                                            <td>{{ format_date(object.date_approve) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: bold;">Montant:</td>
+                                            <td>{{ format_amount(object.amount_total, object.currency_id) }}</td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <div style="background-color: #FFF3CD; padding: 15px; margin: 20px 0; border-left: 4px solid #FFC107;">
+                                        <p style="margin: 0; color: #856404;">
+                                            <strong>Important:</strong> L'évaluation des fournisseurs nous permet de maintenir un niveau de qualité élevé et d'identifier les axes d'amélioration.
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Action Button -->
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="{{ object.get_base_url() }}/web#id={{ object.id }}&amp;model=purchase.order&amp;view_type=form"
+                                           style="background-color: #FFC107; color: #333; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                                            Évaluer Maintenant
+                                        </a>
+                                    </div>
+                                    
+                                    <p style="margin: 20px 0 0; font-size: 12px; color: #888;">
+                                        L'évaluation ne prend que quelques minutes et contribue à améliorer nos relations avec nos fournisseurs.
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="padding: 10px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #E0E0E0;">
+                                    Cet email a été envoyé automatiquement depuis votre système Odoo.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+        </field>
+    </record>
+
 </odoo>

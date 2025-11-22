@@ -1,4 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Graph Views - Phase 11 implementation -->
+    <!-- Supplier Evaluation Bar Graph View (Score Evolution) -->
+    <record id="view_supplier_evaluation_graph_bar" model="ir.ui.view">
+        <field name="name">supplier.evaluation.graph.bar</field>
+        <field name="model">supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <graph string="Évolution des Scores" type="line" sample="1" 
+                   stacked="False" order="desc">
+                <field name="evaluation_date" interval="month" type="row"/>
+                <field name="overall_score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Supplier Evaluation Graph Action (Line Chart) -->
+    <record id="action_supplier_evaluation_graph" model="ir.actions.act_window">
+        <field name="name">Évolution des Scores</field>
+        <field name="res_model">supplier.evaluation</field>
+        <field name="view_mode">graph,pivot,list,form</field>
+        <field name="view_id" ref="view_supplier_evaluation_graph_bar"/>
+        <field name="context">{
+            'search_default_filter_this_year': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune évaluation à visualiser
+            </p>
+            <p>
+                Ce graphique montre l'évolution des scores d'évaluation dans le temps.
+                Utilisez les filtres pour analyser des fournisseurs spécifiques ou des périodes particulières.
+            </p>
+        </field>
+    </record>
+
+    <!-- Add menu item for Graph Analysis -->
+    <record id="menu_supplier_evaluation_graph" model="ir.ui.menu">
+        <field name="name">Graphiques</field>
+        <field name="parent_id" ref="menu_supplier_approval_reports"/>
+        <field name="action" ref="action_supplier_evaluation_graph"/>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- Approval Requests Pie Chart View (By State) -->
+    <record id="view_supplier_approval_request_graph_pie" model="ir.ui.view">
+        <field name="name">supplier.approval.request.graph.pie</field>
+        <field name="model">supplier.approval.request</field>
+        <field name="arch" type="xml">
+            <graph string="Demandes par État" type="pie" sample="1">
+                <field name="state" type="row"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Approval Requests Graph Action (Pie Chart) -->
+    <record id="action_supplier_approval_request_graph" model="ir.actions.act_window">
+        <field name="name">Répartition des Demandes</field>
+        <field name="res_model">supplier.approval.request</field>
+        <field name="view_mode">graph,list,form</field>
+        <field name="view_id" ref="view_supplier_approval_request_graph_pie"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune demande à visualiser
+            </p>
+            <p>
+                Ce graphique montre la répartition des demandes d'approbation par état.
+            </p>
+        </field>
+    </record>
+
+    <!-- Add menu item for Approval Requests Graph -->
+    <record id="menu_supplier_approval_request_graph" model="ir.ui.menu">
+        <field name="name">Répartition des Demandes</field>
+        <field name="parent_id" ref="menu_supplier_approval_reports"/>
+        <field name="action" ref="action_supplier_approval_request_graph"/>
+        <field name="sequence">30</field>
+    </record>
+
+    <!-- Enhanced Bar Chart - Overall Score by Supplier -->
+    <record id="view_supplier_evaluation_graph_criteria" model="ir.ui.view">
+        <field name="name">supplier.evaluation.graph.criteria</field>
+        <field name="model">supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <graph string="Scores par Fournisseur" type="bar" sample="1" stacked="False">
+                <field name="partner_id" type="row"/>
+                <field name="overall_score" type="measure" string="Score Global (%)"/>
+                <!-- Note: Individual rating fields (quality_rating, delivery_rating, etc.) are Selection fields
+                     and cannot be used as numeric measures in graphs. Use overall_score for aggregation. -->
+            </graph>
+        </field>
+    </record>
+
+    <!-- Supplier Comparison Graph Action -->
+    <record id="action_supplier_evaluation_criteria_graph" model="ir.actions.act_window">
+        <field name="name">Comparaison des Fournisseurs</field>
+        <field name="res_model">supplier.evaluation</field>
+        <field name="view_mode">graph,pivot,list,form</field>
+        <field name="view_id" ref="view_supplier_evaluation_graph_criteria"/>
+        <field name="context">{
+            'search_default_group_by_partner': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune évaluation à comparer
+            </p>
+            <p>
+                Ce graphique compare les scores globaux de satisfaction par fournisseur.
+                Utilisez les filtres pour analyser des périodes spécifiques ou des évaluateurs particuliers.
+            </p>
+        </field>
+    </record>
+
+    <!-- Add menu item for Supplier Comparison -->
+    <record id="menu_supplier_evaluation_criteria_graph" model="ir.ui.menu">
+        <field name="name">Comparaison Fournisseurs</field>
+        <field name="parent_id" ref="menu_supplier_approval_reports"/>
+        <field name="action" ref="action_supplier_evaluation_criteria_graph"/>
+        <field name="sequence">40</field>
+    </record>
+
 </odoo>

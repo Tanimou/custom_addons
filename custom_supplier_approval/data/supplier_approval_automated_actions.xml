@@ -1,4 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Automated Actions - Phase 10 implementation -->
+    <!-- 
+        Automated Actions for Supplier Approval & Evaluation Module
+        
+        Odoo 19 Architecture:
+        - base.automation: Defines WHEN to trigger (trigger, filters)
+        - ir.actions.server: Defines WHAT to do (Python code)
+        - Linked via base_automation_id field
+    -->
+
+    <!-- ============================================================ -->
+    <!-- ACTION 1: Create Evaluation Activity on PO Confirmation      -->
+    <!-- ============================================================ -->
+    
+    <!-- Step 1: Define the server action (WHAT to do) -->
+    <record id="action_server_po_evaluation_activity" model="ir.actions.server">
+        <field name="name">Create Supplier Evaluation Activity</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="state">code</field>
+        <field name="code">
+# Create evaluation activity for purchase user (7 days deadline)
+for record in records:
+    # Only create activity if supplier is approved
+    approval_request = env['supplier.approval.request'].search([
+        ('partner_id', '=', record.partner_id.id),
+        ('state', '=', 'approved')
+    ], limit=1)
+    
+    if approval_request:
+        # Check if activity already exists to avoid duplicates
+        existing_activity = env['mail.activity'].search([
+            ('res_model', '=', 'purchase.order'),
+            ('res_id', '=', record.id),
+            ('activity_type_id', '=', env.ref('mail.mail_activity_data_todo').id),
+            ('summary', '=', 'Évaluer le fournisseur')
+        ], limit=1)
+        
+        if not existing_activity:
+            # Create activity for the purchase order responsible user
+            activity_user = record.user_id if record.user_id else env.user
+            
+            record.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=activity_user.id,
+                summary='Évaluer le fournisseur',
+                note=f'Bon de commande {record.name} confirmé. Veuillez évaluer le fournisseur {record.partner_id.name} dans un délai de 7 jours.',
+                date_deadline=fields.Date.context_today(record) + relativedelta(days=7)
+            )
+        </field>
+    </record>
+    
+    <!-- Step 2: Define the automation rule (WHEN to trigger) -->
+    <record id="automation_po_evaluation_activity" model="base.automation">
+        <field name="name">Create Supplier Evaluation Activity on PO Confirmation</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="trigger">on_write</field>
+        <field name="filter_domain">[('state', '=', 'purchase')]</field>
+        <field name="filter_pre_domain">[('state', '!=', 'purchase')]</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <!-- Step 3: Link the action to the automation -->
+    <record id="action_server_po_evaluation_activity" model="ir.actions.server">
+        <field name="base_automation_id" ref="automation_po_evaluation_activity"/>
+    </record>
+
+
+    <!-- ============================================================ -->
+    <!-- ACTION 2: Performance Alert on 3 Consecutive Bad Evaluations -->
+    <!-- ============================================================ -->
+    
+    <!-- Step 1: Define the server action (WHAT to do) -->
+    <record id="action_server_supplier_performance_alert" model="ir.actions.server">
+        <field name="name">Alert on Poor Supplier Performance</field>
+        <field name="model_id" ref="model_supplier_evaluation"/>
+        <field name="state">code</field>
+        <field name="code">
+# Check last 3 evaluations for the same supplier
+for evaluation in records:
+    if evaluation.overall_score &lt; 50:
+        # Get last 3 evaluations for this supplier (including current one)
+        last_evaluations = env['supplier.evaluation'].search([
+            ('partner_id', '=', evaluation.partner_id.id)
+        ], order='evaluation_date desc', limit=3)
+        
+        # Check if all 3 evaluations have score less than 50%
+        if len(last_evaluations) >= 3 and all(e.overall_score &lt; 50 for e in last_evaluations):
+            # Get all purchase managers
+            purchase_managers = env.ref('purchase.group_purchase_manager').users
+            
+            # Create performance alert activity for each manager
+            for manager in purchase_managers:
+                # Check if alert already exists (avoid duplicates)
+                existing_alert = env['mail.activity'].search([
+                    ('res_model', '=', 'res.partner'),
+                    ('res_id', '=', evaluation.partner_id.id),
+                    ('user_id', '=', manager.id),
+                    ('activity_type_id', '=', env.ref('mail.mail_activity_data_warning').id),
+                    ('summary', '=', 'Alerte performance fournisseur')
+                ], limit=1)
+                
+                if not existing_alert:
+                    # Create warning activity on the supplier (res.partner)
+                    evaluation.partner_id.activity_schedule(
+                        'mail.mail_activity_data_warning',
+                        user_id=manager.id,
+                        summary='Alerte performance fournisseur',
+                        note=f'''⚠️ ALERTE PERFORMANCE CRITIQUE
+                        
+Le fournisseur {evaluation.partner_id.name} a reçu 3 évaluations consécutives avec un score inférieur à 50%.
+
+Dernières évaluations:
+{chr(10).join([f'- {e.evaluation_date}: {e.overall_score:.1f}%' for e in last_evaluations])}
+
+Actions recommandées:
+1. Analyser les causes de la baisse de performance
+2. Rencontrer le fournisseur pour discuter des améliorations
+3. Envisager des alternatives si aucune amélioration n'est constatée
+
+Veuillez traiter cette alerte dans les plus brefs délais.''',
+                        date_deadline=fields.Date.context_today(evaluation)
+                    )
+                    
+                    # Also post message on supplier chatter
+                    evaluation.partner_id.message_post(
+                        body=f'⚠️ Alerte performance: 3 évaluations consécutives &lt; 50%. Dernier score: {evaluation.overall_score:.1f}%',
+                        message_type='notification',
+                        subtype_xmlid='mail.mt_note'
+                    )
+        </field>
+    </record>
+    
+    <!-- Step 2: Define the automation rule (WHEN to trigger) -->
+    <record id="automation_supplier_performance_alert" model="base.automation">
+        <field name="name">Alert on 3 Consecutive Bad Supplier Evaluations</field>
+        <field name="model_id" ref="model_supplier_evaluation"/>
+        <field name="trigger">on_create</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <!-- Step 3: Link the action to the automation -->
+    <record id="action_server_supplier_performance_alert" model="ir.actions.server">
+        <field name="base_automation_id" ref="automation_supplier_performance_alert"/>
+    </record>
+
 </odoo>

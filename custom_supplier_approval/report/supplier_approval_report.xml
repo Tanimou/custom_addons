@@ -1,4 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Approval Report - Phase 9 implementation -->
+    <!-- Supplier Approval Request Report - Phase 9 -->
+    
+    <!-- Report Action -->
+    <record id="action_report_supplier_approval_request" model="ir.actions.report">
+        <field name="name">Demande d'Approbation Fournisseur</field>
+        <field name="model">supplier.approval.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_supplier_approval.report_supplier_approval_request</field>
+        <field name="report_file">custom_supplier_approval.report_supplier_approval_request</field>
+        <field name="binding_model_id" ref="model_supplier_approval_request"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Approbation_%s' % (object.name)</field>
+    </record>
+
+    <!-- QWeb Report Template -->
+    <template id="report_supplier_approval_request">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="row mb-4">
+                            <div class="col-8">
+                                <h2>
+                                    <strong>Demande d'Approbation Fournisseur</strong>
+                                </h2>
+                                <h3 t-field="o.name"/>
+                            </div>
+                            <div class="col-4 text-end">
+                                <!-- QR Code for quick access -->
+                                <t t-if="o.id">
+                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('QR', o.id, 150, 150)" style="width:150px;height:150px;"/>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Request Information -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <strong>Fournisseur:</strong><br/>
+                                <span t-field="o.partner_id.name"/><br/>
+                                <t t-if="o.partner_id.street">
+                                    <span t-field="o.partner_id.street"/><br/>
+                                </t>
+                                <t t-if="o.partner_id.city">
+                                    <span t-field="o.partner_id.city"/><br/>
+                                </t>
+                                <t t-if="o.partner_id.phone">
+                                    Tél: <span t-field="o.partner_id.phone"/><br/>
+                                </t>
+                                <t t-if="o.partner_id.email">
+                                    Email: <span t-field="o.partner_id.email"/><br/>
+                                </t>
+                            </div>
+                            <div class="col-6">
+                                <strong>Date de demande:</strong> <span t-field="o.request_date"/><br/>
+                                <strong>Demandeur:</strong> <span t-field="o.requested_by.name"/><br/>
+                                <strong>État:</strong> 
+                                <span t-if="o.state == 'draft'" class="badge bg-secondary">Brouillon</span>
+                                <span t-if="o.state == 'pending'" class="badge bg-warning">En attente</span>
+                                <span t-if="o.state == 'approved'" class="badge bg-success">Approuvé</span>
+                                <span t-if="o.state == 'rejected'" class="badge bg-danger">Rejeté</span>
+                                <br/>
+                                <t t-if="o.state in ['approved', 'rejected']">
+                                    <strong>Date de validation:</strong> <span t-field="o.approval_date"/><br/>
+                                    <strong>Validé par:</strong> <span t-field="o.approved_by.name"/><br/>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <t t-if="o.description">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <strong>Description de la demande:</strong><br/>
+                                    <p t-field="o.description" class="text-muted"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Legal Documents Table -->
+                        <t t-if="o.legal_document_ids">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4><strong>Documents Légaux</strong></h4>
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Type de Document</th>
+                                                <th>Numéro</th>
+                                                <th>Date d'Émission</th>
+                                                <th>Date d'Expiration</th>
+                                                <th>État</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="o.legal_document_ids" t-as="doc">
+                                                <td><span t-field="doc.document_type.name"/></td>
+                                                <td><span t-field="doc.document_number"/></td>
+                                                <td><span t-field="doc.issue_date"/></td>
+                                                <td>
+                                                    <span t-field="doc.expiry_date"/>
+                                                    <t t-if="doc.expiry_date and doc.expiry_date &lt; datetime.date.today()">
+                                                        <span class="text-danger"> (Expiré)</span>
+                                                    </t>
+                                                </td>
+                                                <td>
+                                                    <span t-if="doc.state == 'valid'" class="badge bg-success">Valide</span>
+                                                    <span t-if="doc.state == 'expired'" class="badge bg-danger">Expiré</span>
+                                                    <span t-if="doc.state == 'pending'" class="badge bg-warning">En attente</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Comments -->
+                        <t t-if="o.comments">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <strong>Commentaires du validateur:</strong><br/>
+                                    <p t-field="o.comments" class="text-muted"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Footer with generation info -->
+                        <div class="row mt-5">
+                            <div class="col-12 text-muted small">
+                                <hr/>
+                                Document généré le <span t-esc="datetime.datetime.now().strftime('%d/%m/%Y à %H:%M')"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
 </odoo>

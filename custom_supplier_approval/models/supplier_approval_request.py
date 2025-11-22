@@ -147,6 +147,14 @@ class SupplierApprovalRequest(models.Model):
                     partner_ids=purchase_managers.mapped('partner_id').ids,
                     subtype_xmlid='mail.mt_comment'
                 )
+            
+            # Send email notification to purchase managers
+            template = self.env.ref('custom_supplier_approval.mail_template_approval_request_submitted', raise_if_not_found=False)
+            if template:
+                rec.message_post_with_source(
+                    template,
+                    subtype_xmlid='mail.mt_comment',
+                )
 
     def action_approve(self):
         """Approve request - transition to approved state"""
@@ -180,6 +188,14 @@ class SupplierApprovalRequest(models.Model):
                 body=_('Supplier approved by %s') % self.env.user.name,
                 message_type='notification'
             )
+            
+            # Send email notification to requester
+            template = self.env.ref('custom_supplier_approval.mail_template_approval_request_approved', raise_if_not_found=False)
+            if template:
+                rec.message_post_with_source(
+                    template,
+                    subtype_xmlid='mail.mt_comment',
+                )
             
             # Notify requester
             if rec.requested_by.partner_id:
@@ -217,6 +233,14 @@ class SupplierApprovalRequest(models.Model):
                 body=_('Supplier rejected by %s. Reason: %s') % (self.env.user.name, rec.rejection_reason),
                 message_type='notification'
             )
+            
+            # Send email notification to requester
+            template = self.env.ref('custom_supplier_approval.mail_template_approval_request_rejected', raise_if_not_found=False)
+            if template:
+                rec.message_post_with_source(
+                    template,
+                    subtype_xmlid='mail.mt_comment',
+                )
             
             # Notify requester
             if rec.requested_by.partner_id:

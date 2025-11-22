@@ -108,6 +108,12 @@
               action="action_supplier_evaluation"
               sequence="20"/>
 
+    <!-- Reports Menu (folder for analytical views) -->
+    <menuitem id="menu_supplier_approval_reports"
+              name="Rapports"
+              parent="menu_supplier_approval_root"
+              sequence="30"/>
+
     <!-- Configuration Menu -->
     <menuitem id="menu_supplier_approval_config"
               name="Configuration"

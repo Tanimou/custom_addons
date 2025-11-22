@@ -42,16 +42,12 @@
                         invisible="supplier_rank == 0 or supplier_approved"/>
             </xpath>
             
-            <!-- Add supplier rank checkbox in Purchase section -->
+            <!-- Add supplier toggle checkbox in Purchase section -->
             <xpath expr="//page[@name='sales_purchases']//group[@name='purchase']" position="inside">
                 <field name="supplier_rank" invisible="1"/>
-                <div class="o_checkbox_optional_field" colspan="2">
-                    <div class="o_cell o_wrap_label text-break text-900">
-                        <label for="supplier_rank" string="Est un fournisseur"/>
-                    </div>
-                    <div class="o_cell o_wrap_input text-break">
-                        <field name="supplier_rank" widget="boolean_toggle" nolabel="1"/>
-                    </div>
+                <div class="o_row">
+                    <field name="is_supplier" widget="boolean_toggle" nolabel="1"/>
+                    <span>Est un fournisseur</span>
                 </div>
             </xpath>
             

@@ -1,4 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Cron Jobs - Phase 10 implementation -->
+    <!-- Cron Job: Check Expired Legal Documents (Daily) -->
+    <record id="cron_check_expired_legal_documents" model="ir.cron">
+        <field name="name">Supplier Approval: Check Expired Legal Documents</field>
+        <field name="model_id" ref="model_supplier_legal_document"/>
+        <field name="state">code</field>
+        <field name="active">True</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="code">
+# Find all legal documents that have expired (expiry_date &lt; today and state != 'expired')
+today = fields.Date.context_today(env.user)
+
+expired_docs = env['supplier.legal.document'].search([
+    ('expiry_date', '&lt;', today),
+    ('state', '=', 'valid')
+])
+
+if expired_docs:
+    # Update state to expired
+    expired_docs.write({'state': 'expired'})
+    
+    # Group expired documents by approval request
+    approval_requests = expired_docs.mapped('approval_request_id')
+    
+    # Get all purchase managers
+    purchase_managers = env.ref('purchase.group_purchase_manager').users
+    
+    # Create activity for each manager about expired documents
+    for approval_request in approval_requests:
+        expired_docs_for_request = expired_docs.filtered(lambda d: d.approval_request_id == approval_request)
+        
+        for manager in purchase_managers:
+            # Create warning activity
+            approval_request.activity_schedule(
+                'mail.mail_activity_data_warning',
+                user_id=manager.id,
+                summary='Documents légaux expirés',
+                note=f'''⚠️ ALERTE DOCUMENTS EXPIRÉS
+
+Fournisseur: {approval_request.partner_id.name}
+Demande d'approbation: {approval_request.name}
+
+Documents expirés:
+{chr(10).join([f'- {doc.document_type}: {doc.document_number} (expiré le {doc.expiry_date})' for doc in expired_docs_for_request])}
+
+Actions requises:
+1. Contacter le fournisseur pour obtenir des documents valides
+2. Mettre à jour la demande d'approbation avec les nouveaux documents
+3. Vérifier la conformité du fournisseur
+
+Note: Le statut des documents a été automatiquement mis à jour en "Expiré".''',
+                date_deadline=today
+            )
+        
+        # Post message on approval request chatter
+        approval_request.message_post(
+            body=f'''⚠️ {len(expired_docs_for_request)} document(s) légal(aux) expiré(s) détecté(s):
+{chr(10).join([f'- {doc.document_type}: {doc.document_number}' for doc in expired_docs_for_request])}''',
+            message_type='notification',
+            subtype_xmlid='mail.mt_note'
+        )
+
+# Log the execution
+if expired_docs:
+    env['ir.logging'].sudo().create({
+        'name': 'supplier_approval.cron_expired_docs',
+        'type': 'server',
+        'level': 'info',
+        'message': f'Checked expired legal documents. Found {len(expired_docs)} expired document(s).',
+        'path': 'custom_supplier_approval',
+        'func': 'cron_check_expired_legal_documents',
+        'line': '1'
+    })
+        </field>
+    </record>
+
+    <!-- Cron Job: Send Evaluation Reminders (Monthly) -->
+    <record id="cron_send_evaluation_reminders" model="ir.cron">
+        <field name="name">Supplier Approval: Send Evaluation Reminders</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="state">code</field>
+        <field name="active">True</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">months</field>
+        <field name="code">
+# Find purchase orders that:
+# 1. Are in 'purchase' or 'done' state
+# 2. Were confirmed more than 30 days ago (date_approve)
+# 3. Have no evaluation yet
+# 4. Supplier is approved
+
+# Note: datetime and relativedelta are pre-imported in Odoo's safe_eval context
+today = fields.Date.context_today(env.user)
+thirty_days_ago = today - relativedelta(days=30)
+
+# Get all approved suppliers
+approved_suppliers = env['supplier.approval.request'].search([
+    ('state', '=', 'approved')
+]).mapped('partner_id')
+
+# Find POs needing evaluation
+pos_to_evaluate = env['purchase.order'].search([
+    ('state', 'in', ['purchase', 'done']),
+    ('date_approve', '&lt;=', thirty_days_ago),
+    ('partner_id', 'in', approved_suppliers.ids)
+])
+
+# Filter out POs that already have an evaluation
+pos_without_evaluation = pos_to_evaluate.filtered(
+    lambda po: not env['supplier.evaluation'].search([
+        ('purchase_order_id', '=', po.id)
+    ], limit=1)
+)
+
+if pos_without_evaluation:
+    # Send reminder email for each PO using the evaluation reminder template
+    template = env.ref('custom_supplier_approval.mail_template_evaluation_reminder', raise_if_not_found=False)
+    
+    if template:
+        for po in pos_without_evaluation:
+            # Send email to the responsible user
+            if po.user_id and po.user_id.email:
+                po.message_post_with_source(
+                    template,
+                    subtype_xmlid='mail.mt_comment',
+                )
+            
+            # Also create an activity as a backup reminder
+            activity_user = po.user_id if po.user_id else env.user
+            
+            # Check if reminder activity already exists
+            existing_activity = env['mail.activity'].search([
+                ('res_model', '=', 'purchase.order'),
+                ('res_id', '=', po.id),
+                ('activity_type_id', '=', env.ref('mail.mail_activity_data_todo').id),
+                ('summary', '=', 'Rappel: Évaluer le fournisseur')
+            ], limit=1)
+            
+            if not existing_activity:
+                po.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    user_id=activity_user.id,
+                    summary='Rappel: Évaluer le fournisseur',
+                    note=f'''📅 RAPPEL D'ÉVALUATION
+
+Bon de commande: {po.name}
+Fournisseur: {po.partner_id.name}
+Date de confirmation: {po.date_approve}
+Jours écoulés: {(today - po.date_approve).days}
+
+Cette commande a été confirmée il y a plus de 30 jours et n'a pas encore été évaluée.
+Veuillez évaluer le fournisseur dans les plus brefs délais pour maintenir un suivi de performance à jour.''',
+                    date_deadline=today
+                )
+
+# Log the execution
+env['ir.logging'].sudo().create({
+    'name': 'supplier_approval.cron_evaluation_reminders',
+    'type': 'server',
+    'level': 'info',
+    'message': f'Sent evaluation reminders. Found {len(pos_without_evaluation)} PO(s) without evaluation.',
+    'path': 'custom_supplier_approval',
+    'func': 'cron_send_evaluation_reminders',
+    'line': '1'
+})
+        </field>
+    </record>
+
 </odoo>

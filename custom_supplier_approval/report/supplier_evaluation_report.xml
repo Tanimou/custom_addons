@@ -1,4 +1,257 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Evaluation Report - Phase 9 implementation -->
+    <!-- Supplier Evaluation Report - Phase 9 -->
+    
+    <!-- Report Action -->
+    <record id="action_report_supplier_evaluation" model="ir.actions.report">
+        <field name="name">Évaluation Fournisseur</field>
+        <field name="model">supplier.evaluation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_supplier_approval.report_supplier_evaluation</field>
+        <field name="report_file">custom_supplier_approval.report_supplier_evaluation</field>
+        <field name="binding_model_id" ref="model_supplier_evaluation"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Evaluation_%s' % (object.name)</field>
+    </record>
+
+    <!-- QWeb Report Template -->
+    <template id="report_supplier_evaluation">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h2><strong>Évaluation Fournisseur</strong></h2>
+                                <h3 t-field="o.name"/>
+                            </div>
+                        </div>
+
+                        <!-- Evaluation Information -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <strong>Fournisseur:</strong> <span t-field="o.partner_id.name"/><br/>
+                                <strong>Date d'évaluation:</strong> <span t-field="o.evaluation_date"/><br/>
+                                <strong>Évaluateur:</strong> <span t-field="o.evaluated_by.name"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <t t-if="o.purchase_order_id">
+                                    <strong>Bon de commande:</strong> <span t-field="o.purchase_order_id.name"/><br/>
+                                    <strong>Date du BC:</strong> <span t-field="o.purchase_order_id.date_order"/><br/>
+                                    <strong>Montant:</strong> <span t-field="o.purchase_order_id.amount_total" 
+                                        t-options='{"widget": "monetary", "display_currency": o.purchase_order_id.currency_id}'/><br/>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Overall Score - Highlighted -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <div class="p-4" t-attf-style="background-color: #{o.overall_score >= 75 and '#d4edda' or (o.overall_score >= 50 and '#fff3cd' or '#f8d7da')}; border-radius: 10px;">
+                                    <h3 class="mb-2"><strong>Score Global</strong></h3>
+                                    <h1 t-attf-style="font-size: 48px; color: #{o.overall_score >= 75 and '#155724' or (o.overall_score >= 50 and '#856404' or '#721c24')};">
+                                        <strong><span t-esc="'%.1f' % o.overall_score"/>%</strong>
+                                    </h1>
+                                    <p class="mb-0">
+                                        <span t-if="o.overall_score >= 75" class="badge bg-success" style="font-size: 16px;">Excellent</span>
+                                        <span t-elif="o.overall_score >= 50" class="badge bg-warning" style="font-size: 16px;">Satisfaisant</span>
+                                        <span t-else="" class="badge bg-danger" style="font-size: 16px;">À Améliorer</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Criteria Breakdown -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4><strong>Détail des Critères</strong></h4>
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Critère</th>
+                                            <th class="text-center">Note (/100)</th>
+                                            <th class="text-center">Poids</th>
+                                            <th class="text-center">Score Pondéré</th>
+                                            <th class="text-center">Barre de Progression</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Quality Score -->
+                                        <tr>
+                                            <td><strong>Qualité des Produits/Services</strong></td>
+                                            <td class="text-center"><span t-esc="'%.1f' % o.quality_score"/></td>
+                                            <td class="text-center">30%</td>
+                                            <td class="text-center"><span t-esc="'%.1f' % (o.quality_score * 0.30)"/></td>
+                                            <td>
+                                                <div class="progress" style="height: 25px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                        t-attf-style="width: #{o.quality_score}%; background-color: #{o.quality_score >= 75 and '#28a745' or (o.quality_score >= 50 and '#ffc107' or '#dc3545')};"
+                                                        t-att-aria-valuenow="o.quality_score" aria-valuemin="0" aria-valuemax="100">
+                                                        <span t-esc="'%.0f%%' % o.quality_score"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Delivery Score -->
+                                        <tr>
+                                            <td><strong>Respect des Délais de Livraison</strong></td>
+                                            <td class="text-center"><span t-esc="'%.1f' % o.delivery_score"/></td>
+                                            <td class="text-center">25%</td>
+                                            <td class="text-center"><span t-esc="'%.1f' % (o.delivery_score * 0.25)"/></td>
+                                            <td>
+                                                <div class="progress" style="height: 25px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                        t-attf-style="width: #{o.delivery_score}%; background-color: #{o.delivery_score >= 75 and '#28a745' or (o.delivery_score >= 50 and '#ffc107' or '#dc3545')};"
+                                                        t-att-aria-valuenow="o.delivery_score" aria-valuemin="0" aria-valuemax="100">
+                                                        <span t-esc="'%.0f%%' % o.delivery_score"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Reactivity Score -->
+                                        <tr>
+                                            <td><strong>Réactivité</strong></td>
+                                            <td class="text-center"><span t-esc="'%.1f' % o.reactivity_score"/></td>
+                                            <td class="text-center">20%</td>
+                                            <td class="text-center"><span t-esc="'%.1f' % (o.reactivity_score * 0.20)"/></td>
+                                            <td>
+                                                <div class="progress" style="height: 25px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                        t-attf-style="width: #{o.reactivity_score}%; background-color: #{o.reactivity_score >= 75 and '#28a745' or (o.reactivity_score >= 50 and '#ffc107' or '#dc3545')};"
+                                                        t-att-aria-valuenow="o.reactivity_score" aria-valuemin="0" aria-valuemax="100">
+                                                        <span t-esc="'%.0f%%' % o.reactivity_score"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Compliance Score -->
+                                        <tr>
+                                            <td><strong>Conformité Administrative</strong></td>
+                                            <td class="text-center"><span t-esc="'%.1f' % o.compliance_score"/></td>
+                                            <td class="text-center">15%</td>
+                                            <td class="text-center"><span t-esc="'%.1f' % (o.compliance_score * 0.15)"/></td>
+                                            <td>
+                                                <div class="progress" style="height: 25px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                        t-attf-style="width: #{o.compliance_score}%; background-color: #{o.compliance_score >= 75 and '#28a745' or (o.compliance_score >= 50 and '#ffc107' or '#dc3545')};"
+                                                        t-att-aria-valuenow="o.compliance_score" aria-valuemin="0" aria-valuemax="100">
+                                                        <span t-esc="'%.0f%%' % o.compliance_score"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Relationship Score -->
+                                        <tr>
+                                            <td><strong>Relation Commerciale</strong></td>
+                                            <td class="text-center"><span t-esc="'%.1f' % o.relationship_score"/></td>
+                                            <td class="text-center">10%</td>
+                                            <td class="text-center"><span t-esc="'%.1f' % (o.relationship_score * 0.10)"/></td>
+                                            <td>
+                                                <div class="progress" style="height: 25px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                        t-attf-style="width: #{o.relationship_score}%; background-color: #{o.relationship_score >= 75 and '#28a745' or (o.relationship_score >= 50 and '#ffc107' or '#dc3545')};"
+                                                        t-att-aria-valuenow="o.relationship_score" aria-valuemin="0" aria-valuemax="100">
+                                                        <span t-esc="'%.0f%%' % o.relationship_score"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>Score Global:</strong></td>
+                                            <td class="text-center"><strong><span t-esc="'%.1f' % o.overall_score"/></strong></td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Radar Chart Representation (SVG) -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h4><strong>Visualisation Radar</strong></h4>
+                                <svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <style>
+                                            .grid-line { stroke: #e0e0e0; stroke-width: 1; fill: none; }
+                                            .axis-line { stroke: #999; stroke-width: 2; }
+                                            .data-polygon { fill: rgba(40, 167, 69, 0.3); stroke: #28a745; stroke-width: 2; }
+                                            .data-point { fill: #28a745; }
+                                            .label-text { font-size: 12px; font-weight: bold; }
+                                        </style>
+                                    </defs>
+                                    
+                                    <!-- Center point -->
+                                    <g transform="translate(200, 200)">
+                                        <!-- Grid circles (25%, 50%, 75%, 100%) -->
+                                        <circle cx="0" cy="0" r="40" class="grid-line"/>
+                                        <circle cx="0" cy="0" r="80" class="grid-line"/>
+                                        <circle cx="0" cy="0" r="120" class="grid-line"/>
+                                        <circle cx="0" cy="0" r="160" class="grid-line"/>
+                                        
+                                        <!-- Axis lines (5 criteria) -->
+                                        <line x1="0" y1="0" x2="0" y2="-160" class="axis-line"/> <!-- Quality (top) -->
+                                        <line x1="0" y1="0" x2="152" y2="-49" class="axis-line"/> <!-- Delivery (top-right) -->
+                                        <line x1="0" y1="0" x2="94" y2="130" class="axis-line"/> <!-- Reactivity (bottom-right) -->
+                                        <line x1="0" y1="0" x2="-94" y2="130" class="axis-line"/> <!-- Compliance (bottom-left) -->
+                                        <line x1="0" y1="0" x2="-152" y2="-49" class="axis-line"/> <!-- Relationship (top-left) -->
+                                        
+                                        <!-- Data polygon based on actual scores -->
+                                        <t t-set="quality_y" t-value="-(o.quality_score * 1.6)"/>
+                                        <t t-set="delivery_x" t-value="(o.delivery_score * 1.52)"/>
+                                        <t t-set="delivery_y" t-value="-(o.delivery_score * 0.49)"/>
+                                        <t t-set="reactivity_x" t-value="(o.reactivity_score * 0.94)"/>
+                                        <t t-set="reactivity_y" t-value="(o.reactivity_score * 1.30)"/>
+                                        <t t-set="compliance_x" t-value="-(o.compliance_score * 0.94)"/>
+                                        <t t-set="compliance_y" t-value="(o.compliance_score * 1.30)"/>
+                                        <t t-set="relationship_x" t-value="-(o.relationship_score * 1.52)"/>
+                                        <t t-set="relationship_y" t-value="-(o.relationship_score * 0.49)"/>
+                                        
+                                        <polygon class="data-polygon"
+                                            t-attf-points="0,#{quality_y} #{delivery_x},#{delivery_y} #{reactivity_x},#{reactivity_y} #{compliance_x},#{compliance_y} #{relationship_x},#{relationship_y}"/>
+                                        
+                                        <!-- Data points -->
+                                        <circle cx="0" t-att-cy="quality_y" r="5" class="data-point"/>
+                                        <circle t-att-cx="delivery_x" t-att-cy="delivery_y" r="5" class="data-point"/>
+                                        <circle t-att-cx="reactivity_x" t-att-cy="reactivity_y" r="5" class="data-point"/>
+                                        <circle t-att-cx="compliance_x" t-att-cy="compliance_y" r="5" class="data-point"/>
+                                        <circle t-att-cx="relationship_x" t-att-cy="relationship_y" r="5" class="data-point"/>
+                                        
+                                        <!-- Labels -->
+                                        <text x="0" y="-175" text-anchor="middle" class="label-text">Qualité (30%)</text>
+                                        <text x="165" y="-40" text-anchor="start" class="label-text">Livraison (25%)</text>
+                                        <text x="105" y="150" text-anchor="start" class="label-text">Réactivité (20%)</text>
+                                        <text x="-105" y="150" text-anchor="end" class="label-text">Conformité (15%)</text>
+                                        <text x="-165" y="-40" text-anchor="end" class="label-text">Relation (10%)</text>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Comments -->
+                        <t t-if="o.comments">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4><strong>Commentaires</strong></h4>
+                                    <p t-field="o.comments" class="text-muted"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Footer -->
+                        <div class="row mt-5">
+                            <div class="col-12 text-muted small">
+                                <hr/>
+                                Document généré le <span t-esc="datetime.datetime.now().strftime('%d/%m/%Y à %H:%M')"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
 </odoo>

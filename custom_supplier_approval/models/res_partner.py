@@ -80,6 +80,14 @@ class ResPartner(models.Model):
         store=True,
         help="Average satisfaction score from all evaluations (0-100)"
     )
+    
+    # Supplier Toggle (bridges integer supplier_rank to boolean UI)
+    is_supplier = fields.Boolean(
+        string='Is a Supplier',
+        compute='_compute_is_supplier',
+        inverse='_inverse_is_supplier',
+        help="Check to mark this contact as a supplier"
+    )
 
     @api.depends('supplier_approval_request_ids.state')
     def _compute_supplier_approved(self):
@@ -152,6 +160,23 @@ class ResPartner(models.Model):
                 partner.supplier_satisfaction_rate = sum(evaluations.mapped('overall_score')) / len(evaluations)
             else:
                 partner.supplier_satisfaction_rate = 0.0
+
+    @api.depends('supplier_rank')
+    def _compute_is_supplier(self):
+        """Compute if partner is marked as supplier based on supplier_rank"""
+        for partner in self:
+            partner.is_supplier = partner.supplier_rank > 0
+
+    def _inverse_is_supplier(self):
+        """Set supplier_rank when toggling is_supplier checkbox"""
+        for partner in self:
+            if partner.is_supplier:
+                # Mark as supplier ONLY if not already (preserve PO count)
+                if partner.supplier_rank == 0:
+                    partner.supplier_rank = 1
+            else:
+                # Unmark as supplier (reset to 0)
+                partner.supplier_rank = 0
 
     def action_view_approval_requests(self):
         """Action to view all approval requests for this supplier"""

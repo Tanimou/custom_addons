@@ -1,4 +1,366 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Performance Report - Phase 9 implementation -->
+    <!-- Supplier Performance Report - Phase 9 -->
+    
+    <!-- Report Action -->
+    <record id="action_report_supplier_performance" model="ir.actions.report">
+        <field name="name">Performance Fournisseur</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_supplier_approval.report_supplier_performance</field>
+        <field name="report_file">custom_supplier_approval.report_supplier_performance</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Performance_%s' % (object.name)</field>
+    </record>
+
+    <!-- QWeb Report Template -->
+    <template id="report_supplier_performance">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h2><strong>Rapport de Performance Fournisseur</strong></h2>
+                                <h3 t-field="o.name"/>
+                            </div>
+                        </div>
+
+                        <!-- Supplier Information -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <strong>Fournisseur:</strong> <span t-field="o.name"/><br/>
+                                <t t-if="o.street">
+                                    <strong>Adresse:</strong> <span t-field="o.street"/><br/>
+                                </t>
+                                <t t-if="o.phone">
+                                    <strong>Téléphone:</strong> <span t-field="o.phone"/><br/>
+                                </t>
+                                <t t-if="o.email">
+                                    <strong>Email:</strong> <span t-field="o.email"/><br/>
+                                </t>
+                            </div>
+                            <div class="col-6">
+                                <strong>Statut:</strong> 
+                                <span t-if="o.supplier_approved" class="badge bg-success">Agréé</span>
+                                <span t-else="" class="badge bg-secondary">Non Agréé</span>
+                                <br/>
+                                <t t-if="o.supplier_approval_date">
+                                    <strong>Date d'agrément:</strong> <span t-field="o.supplier_approval_date"/><br/>
+                                </t>
+                                <strong>Documents valides:</strong> 
+                                <span t-if="o.valid_legal_documents" class="badge bg-success">Oui</span>
+                                <span t-else="" class="badge bg-warning">Non</span>
+                            </div>
+                        </div>
+
+                        <!-- Key Performance Indicators -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4><strong>Indicateurs Clés de Performance</strong></h4>
+                            </div>
+                        </div>
+
+                        <!-- Calculate statistics -->
+                        <t t-set="purchase_orders" t-value="o.env['purchase.order'].search([('partner_id', '=', o.id), ('state', 'in', ['purchase', 'done'])])"/>
+                        <t t-set="po_count" t-value="len(purchase_orders)"/>
+                        <t t-set="total_amount" t-value="sum(purchase_orders.mapped('amount_total'))"/>
+                        <t t-set="evaluations" t-value="o.supplier_evaluation_ids"/>
+                        <t t-set="eval_count" t-value="len(evaluations)"/>
+                        <t t-set="avg_satisfaction" t-value="o.supplier_satisfaction_rate"/>
+                        
+                        <!-- KPI Cards -->
+                        <div class="row mb-4">
+                            <div class="col-3">
+                                <div class="p-3 text-center" style="background-color: #e3f2fd; border-radius: 8px;">
+                                    <h1 style="color: #1976d2; margin: 0;"><span t-esc="po_count"/></h1>
+                                    <p class="mb-0" style="color: #666;">Bons de Commande</p>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-3 text-center" style="background-color: #e8f5e9; border-radius: 8px;">
+                                    <h1 style="color: #388e3c; margin: 0; font-size: 24px;">
+                                        <span t-esc="'{:,.0f}'.format(total_amount)"/> FCFA
+                                    </h1>
+                                    <p class="mb-0" style="color: #666;">Montant Total</p>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-3 text-center" style="background-color: #fff3e0; border-radius: 8px;">
+                                    <h1 style="color: #f57c00; margin: 0;"><span t-esc="eval_count"/></h1>
+                                    <p class="mb-0" style="color: #666;">Évaluations</p>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-3 text-center" t-attf-style="background-color: #{avg_satisfaction >= 75 and '#d4edda' or (avg_satisfaction >= 50 and '#fff3cd' or '#f8d7da')}; border-radius: 8px;">
+                                    <h1 t-attf-style="color: #{avg_satisfaction >= 75 and '#155724' or (avg_satisfaction >= 50 and '#856404' or '#721c24')}; margin: 0;">
+                                        <span t-esc="'%.1f' % avg_satisfaction"/>%
+                                    </h1>
+                                    <p class="mb-0" style="color: #666;">Taux de Satisfaction</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Purchase Orders Statistics Table -->
+                        <t t-if="po_count > 0">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4><strong>Statistiques des Commandes</strong></h4>
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Bon de Commande</th>
+                                                <th>Date</th>
+                                                <th class="text-end">Montant</th>
+                                                <th class="text-center">État</th>
+                                                <th class="text-center">Évalué</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="purchase_orders[:10]" t-as="po">
+                                                <td><span t-field="po.name"/></td>
+                                                <td><span t-field="po.date_order"/></td>
+                                                <td class="text-end">
+                                                    <span t-field="po.amount_total" t-options='{"widget": "monetary", "display_currency": po.currency_id}'/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-if="po.state == 'purchase'" class="badge bg-info">Confirmé</span>
+                                                    <span t-if="po.state == 'done'" class="badge bg-success">Terminé</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <t t-set="po_evaluation" t-value="o.env['supplier.evaluation'].search([('purchase_order_id', '=', po.id)], limit=1)"/>
+                                                    <span t-if="po_evaluation" class="badge bg-success">
+                                                        <i class="fa fa-check"/> <span t-esc="'%.0f%%' % po_evaluation.overall_score"/>
+                                                    </span>
+                                                    <span t-else="" class="badge bg-secondary">
+                                                        <i class="fa fa-times"/> Non
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot class="table-light">
+                                            <tr>
+                                                <td colspan="2" class="text-end"><strong>Total:</strong></td>
+                                                <td class="text-end"><strong><span t-esc="'{:,.0f}'.format(total_amount)"/> FCFA</strong></td>
+                                                <td colspan="2"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                    <t t-if="po_count > 10">
+                                        <p class="text-muted small">
+                                            <i class="fa fa-info-circle"/> Affichage des 10 dernières commandes sur un total de <span t-esc="po_count"/>
+                                        </p>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Evaluation History and Trends -->
+                        <t t-if="eval_count > 0">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4><strong>Historique des Évaluations</strong></h4>
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Bon de Commande</th>
+                                                <th class="text-center">Qualité</th>
+                                                <th class="text-center">Livraison</th>
+                                                <th class="text-center">Réactivité</th>
+                                                <th class="text-center">Conformité</th>
+                                                <th class="text-center">Relation</th>
+                                                <th class="text-center">Score Global</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="evaluations.sorted(key=lambda e: e.evaluation_date, reverse=True)[:10]" t-as="ev">
+                                                <td><span t-field="ev.evaluation_date"/></td>
+                                                <td><span t-field="ev.purchase_order_id.name"/></td>
+                                                <td class="text-center">
+                                                    <span t-attf-class="badge #{ev.quality_score >= 75 and 'bg-success' or (ev.quality_score >= 50 and 'bg-warning' or 'bg-danger')}">
+                                                        <span t-esc="'%.0f' % ev.quality_score"/>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-attf-class="badge #{ev.delivery_score >= 75 and 'bg-success' or (ev.delivery_score >= 50 and 'bg-warning' or 'bg-danger')}">
+                                                        <span t-esc="'%.0f' % ev.delivery_score"/>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-attf-class="badge #{ev.reactivity_score >= 75 and 'bg-success' or (ev.reactivity_score >= 50 and 'bg-warning' or 'bg-danger')}">
+                                                        <span t-esc="'%.0f' % ev.reactivity_score"/>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-attf-class="badge #{ev.compliance_score >= 75 and 'bg-success' or (ev.compliance_score >= 50 and 'bg-warning' or 'bg-danger')}">
+                                                        <span t-esc="'%.0f' % ev.compliance_score"/>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-attf-class="badge #{ev.relationship_score >= 75 and 'bg-success' or (ev.relationship_score >= 50 and 'bg-warning' or 'bg-danger')}">
+                                                        <span t-esc="'%.0f' % ev.relationship_score"/>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <strong>
+                                                        <span t-attf-class="badge #{ev.overall_score >= 75 and 'bg-success' or (ev.overall_score >= 50 and 'bg-warning' or 'bg-danger')}">
+                                                            <span t-esc="'%.1f%%' % ev.overall_score"/>
+                                                        </span>
+                                                    </strong>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <t t-if="eval_count > 10">
+                                        <p class="text-muted small">
+                                            <i class="fa fa-info-circle"/> Affichage des 10 dernières évaluations sur un total de <span t-esc="eval_count"/>
+                                        </p>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Trend Analysis -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4><strong>Analyse de Tendance</strong></h4>
+                                    <t t-set="recent_evals" t-value="evaluations.sorted(key=lambda e: e.evaluation_date, reverse=True)[:5]"/>
+                                    <t t-set="older_evals" t-value="evaluations.sorted(key=lambda e: e.evaluation_date, reverse=True)[5:10]"/>
+                                    
+                                    <t t-if="len(recent_evals) >= 3 and len(older_evals) >= 3">
+                                        <t t-set="recent_avg" t-value="sum(recent_evals.mapped('overall_score')) / len(recent_evals)"/>
+                                        <t t-set="older_avg" t-value="sum(older_evals.mapped('overall_score')) / len(older_evals)"/>
+                                        <t t-set="trend_diff" t-value="recent_avg - older_avg"/>
+                                        
+                                        <div class="alert" t-attf-class="#{trend_diff > 5 and 'alert-success' or (trend_diff &lt; -5 and 'alert-danger' or 'alert-info')}">
+                                            <h5 class="mb-2">
+                                                <i t-attf-class="fa #{trend_diff > 5 and 'fa-arrow-up' or (trend_diff &lt; -5 and 'fa-arrow-down' or 'fa-minus')}"/>
+                                                <strong>
+                                                    <span t-if="trend_diff > 5">Tendance à la Hausse</span>
+                                                    <span t-elif="trend_diff &lt; -5">Tendance à la Baisse</span>
+                                                    <span t-else="">Tendance Stable</span>
+                                                </strong>
+                                            </h5>
+                                            <p class="mb-1">
+                                                <strong>Moyenne des 5 dernières évaluations:</strong> <span t-esc="'%.1f%%' % recent_avg"/>
+                                            </p>
+                                            <p class="mb-1">
+                                                <strong>Moyenne des 5 évaluations précédentes:</strong> <span t-esc="'%.1f%%' % older_avg"/>
+                                            </p>
+                                            <p class="mb-0">
+                                                <strong>Variation:</strong> 
+                                                <span t-if="trend_diff > 0">+</span><span t-esc="'%.1f' % trend_diff"/> points
+                                            </p>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="alert alert-info">
+                                            <i class="fa fa-info-circle"/> Analyse de tendance disponible après au moins 8 évaluations
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Criteria Average Breakdown -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4><strong>Performance Moyenne par Critère</strong></h4>
+                                    <t t-set="avg_quality" t-value="sum(evaluations.mapped('quality_score')) / len(evaluations)"/>
+                                    <t t-set="avg_delivery" t-value="sum(evaluations.mapped('delivery_score')) / len(evaluations)"/>
+                                    <t t-set="avg_reactivity" t-value="sum(evaluations.mapped('reactivity_score')) / len(evaluations)"/>
+                                    <t t-set="avg_compliance" t-value="sum(evaluations.mapped('compliance_score')) / len(evaluations)"/>
+                                    <t t-set="avg_relationship" t-value="sum(evaluations.mapped('relationship_score')) / len(evaluations)"/>
+                                    
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Critère</th>
+                                                <th class="text-center">Score Moyen</th>
+                                                <th>Barre de Performance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Qualité des Produits/Services (30%)</td>
+                                                <td class="text-center"><span t-esc="'%.1f' % avg_quality"/></td>
+                                                <td>
+                                                    <div class="progress" style="height: 25px;">
+                                                        <div class="progress-bar" t-attf-style="width: #{avg_quality}%; background-color: #{avg_quality >= 75 and '#28a745' or (avg_quality >= 50 and '#ffc107' or '#dc3545')};">
+                                                            <span t-esc="'%.0f%%' % avg_quality"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Respect des Délais de Livraison (25%)</td>
+                                                <td class="text-center"><span t-esc="'%.1f' % avg_delivery"/></td>
+                                                <td>
+                                                    <div class="progress" style="height: 25px;">
+                                                        <div class="progress-bar" t-attf-style="width: #{avg_delivery}%; background-color: #{avg_delivery >= 75 and '#28a745' or (avg_delivery >= 50 and '#ffc107' or '#dc3545')};">
+                                                            <span t-esc="'%.0f%%' % avg_delivery"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Réactivité (20%)</td>
+                                                <td class="text-center"><span t-esc="'%.1f' % avg_reactivity"/></td>
+                                                <td>
+                                                    <div class="progress" style="height: 25px;">
+                                                        <div class="progress-bar" t-attf-style="width: #{avg_reactivity}%; background-color: #{avg_reactivity >= 75 and '#28a745' or (avg_reactivity >= 50 and '#ffc107' or '#dc3545')};">
+                                                            <span t-esc="'%.0f%%' % avg_reactivity"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Conformité Administrative (15%)</td>
+                                                <td class="text-center"><span t-esc="'%.1f' % avg_compliance"/></td>
+                                                <td>
+                                                    <div class="progress" style="height: 25px;">
+                                                        <div class="progress-bar" t-attf-style="width: #{avg_compliance}%; background-color: #{avg_compliance >= 75 and '#28a745' or (avg_compliance >= 50 and '#ffc107' or '#dc3545')};">
+                                                            <span t-esc="'%.0f%%' % avg_compliance"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Relation Commerciale (10%)</td>
+                                                <td class="text-center"><span t-esc="'%.1f' % avg_relationship"/></td>
+                                                <td>
+                                                    <div class="progress" style="height: 25px;">
+                                                        <div class="progress-bar" t-attf-style="width: #{avg_relationship}%; background-color: #{avg_relationship >= 75 and '#28a745' or (avg_relationship >= 50 and '#ffc107' or '#dc3545')};">
+                                                            <span t-esc="'%.0f%%' % avg_relationship"/>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- No Data Message -->
+                        <t t-if="eval_count == 0">
+                            <div class="alert alert-warning">
+                                <i class="fa fa-exclamation-triangle"/> Aucune évaluation disponible pour ce fournisseur
+                            </div>
+                        </t>
+
+                        <!-- Footer -->
+                        <div class="row mt-5">
+                            <div class="col-12 text-muted small">
+                                <hr/>
+                                Rapport généré le <span t-esc="datetime.datetime.now().strftime('%d/%m/%Y à %H:%M')"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
 </odoo>

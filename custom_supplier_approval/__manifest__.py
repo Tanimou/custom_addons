@@ -29,7 +29,7 @@
         * Email notifications and activity management
         * Full French language support
     """,
-    'depends': ['base', 'purchase', 'mail'],
+    'depends': ['base', 'purchase', 'mail', 'base_automation'],
     'data': [
         # Security
         'security/supplier_approval_groups.xml',
