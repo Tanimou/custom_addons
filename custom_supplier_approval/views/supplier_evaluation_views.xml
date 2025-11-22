@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Supplier Evaluation Form View -->
+    <record id="view_supplier_evaluation_form" model="ir.ui.view">
+        <field name="name">supplier.evaluation.form</field>
+        <field name="model">supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <form string="Évaluation du fournisseur">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_purchase_order"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                invisible="not purchase_order_id">
+                            <span>Purchase Order</span>
+                        </button>
+                        <button name="action_view_supplier"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-building">
+                            <span>View Supplier</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" domain="[('supplier_rank', '>', 0), ('supplier_approved', '=', True)]"/>
+                            <field name="purchase_order_id" domain="[('partner_id', '=', partner_id)]"/>
+                            <field name="evaluation_date"/>
+                        </group>
+                        <group>
+                            <field name="evaluated_by"/>
+                            <field name="overall_score" widget="percentage"/>
+                        </group>
+                    </group>
+                    <group string="Critères d'évaluation">
+                        <group>
+                            <field name="quality_rating" widget="selection"/>
+                            <field name="delivery_rating" widget="selection"/>
+                            <field name="reactivity_rating" widget="selection"/>
+                        </group>
+                        <group>
+                            <field name="compliance_rating" widget="selection"/>
+                            <field name="commercial_rating" widget="selection"/>
+                        </group>
+                    </group>
+                    <group string="Commentaires">
+                        <field name="comments" nolabel="1" placeholder="Commentaires supplémentaires sur cette évaluation..."/>
+                    </group>
+                </sheet>
+                <!-- <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div> -->
+            </form>
+        </field>
+    </record>
+
+    <!-- Supplier Evaluation List View -->
+    <record id="view_supplier_evaluation_list" model="ir.ui.view">
+        <field name="name">supplier.evaluation.list</field>
+        <field name="model">supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <list string="Évaluations des fournisseurs" decoration-success="overall_score >= 80" decoration-warning="overall_score >= 60 and overall_score &lt; 80" decoration-danger="overall_score &lt; 60">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="evaluation_date"/>
+                <field name="quality_rating"/>
+                <field name="delivery_rating"/>
+                <field name="reactivity_rating"/>
+                <field name="compliance_rating"/>
+                <field name="commercial_rating"/>
+                <field name="overall_score" widget="progressbar"/>
+                <field name="evaluated_by"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Supplier Evaluation Search View -->
+    <!-- <record id="view_supplier_evaluation_search" model="ir.ui.view">
+        <field name="name">supplier.evaluation.search</field>
+        <field name="model">supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <search string="Search Evaluations">
+                <field name="partner_id"/>
+                <field name="evaluated_by"/>
+                <field name="purchase_order_id"/>
+                <filter string="Excellent (≥80%)" name="excellent" domain="[('overall_score', '>=', 80)]"/>
+                <filter string="Good (60-79%)" name="good" domain="[('overall_score', '>=', 60), ('overall_score', '&lt;', 80)]"/>
+                <filter string="Poor (&lt;60%)" name="poor" domain="[('overall_score', '&lt;', 60)]"/>
+                <separator/>
+                <filter string="This Month" name="this_month" domain="[('evaluation_date', '>=', (context_today() - relativedelta(months=1)).strftime('%%Y-%%m-01'))]"/>
+                <filter string="This Year" name="this_year" domain="[('evaluation_date', '>=', context_today().strftime('%%Y-01-01'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Supplier" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Evaluated By" name="group_evaluator" context="{'group_by': 'evaluated_by'}"/>
+                    <filter string="Evaluation Date" name="group_date" context="{'group_by': 'evaluation_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+</odoo>

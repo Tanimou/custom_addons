@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- Security Groups -->
+    <!-- ========================================== -->
+    
+    <!-- 
+        This module reuses Odoo's standard Purchase groups:
+        - purchase.group_purchase_user: Purchase Users
+          * Can view all approval requests, evaluations, legal documents, categories
+          * Can create approval requests and evaluations
+          * Can edit/delete their own draft approval requests
+          * Can edit their own evaluations
+          * Can create/edit legal documents
+        
+        - purchase.group_purchase_manager: Purchase Managers
+          * Full access to all records
+          * Can approve/reject approval requests
+          * Can manage all evaluations
+          * Can create/edit/delete categories
+        
+        No custom groups are needed for this module.
+    -->
+</odoo>

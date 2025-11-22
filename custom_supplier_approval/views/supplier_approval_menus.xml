@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- Actions -->
+    <!-- ========================================== -->
+    
+    <!-- Supplier Category Actions -->
+    <record id="action_supplier_category" model="ir.actions.act_window">
+        <field name="name">Supplier Categories</field>
+        <field name="res_model">supplier.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a supplier category
+            </p>
+            <p>
+                Organize your suppliers by categories like Office Supplies, IT Services, Construction, etc.
+            </p>
+        </field>
+    </record>
+
+    <!-- Supplier Legal Document Actions -->
+    <record id="action_supplier_legal_document" model="ir.actions.act_window">
+        <field name="name">Legal Documents</field>
+        <field name="res_model">supplier.legal.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_valid': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a legal document
+            </p>
+            <p>
+                Track supplier legal documents like RCCM, NCC, CNPS certificates with expiry dates.
+            </p>
+        </field>
+    </record>
+
+    <!-- Supplier Approval Request Actions -->
+    <record id="action_supplier_approval_request" model="ir.actions.act_window">
+        <field name="name">Approval Requests</field>
+        <field name="res_model">supplier.approval.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create an approval request
+            </p>
+            <p>
+                Submit supplier approval requests for validation by purchase managers.
+            </p>
+        </field>
+    </record>
+
+    <!-- My Approval Requests Action -->
+    <record id="action_my_approval_requests" model="ir.actions.act_window">
+        <field name="name">My Approval Requests</field>
+        <field name="res_model">supplier.approval.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_my_requests': 1}</field>
+        <field name="domain">[('requested_by', '=', uid)]</field>
+    </record>
+
+    <!-- Supplier Evaluation Actions -->
+    <record id="action_supplier_evaluation" model="ir.actions.act_window">
+        <field name="name">Supplier Evaluations</field>
+        <field name="res_model">supplier.evaluation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_this_year': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a supplier evaluation
+            </p>
+            <p>
+                Rate your suppliers on quality, delivery, reactivity, compliance, and commercial terms.
+            </p>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Menu Structure -->
+    <!-- ========================================== -->
+    
+    <!-- Root Menu (under Purchases) -->
+    <menuitem id="menu_supplier_approval_root"
+              name="Approbation des fournisseurs"
+              parent="purchase.menu_purchase_root"
+              sequence="50"/>
+
+    <!-- Approval Requests Menu -->
+    <menuitem id="menu_supplier_approval_requests"
+              name="Demandes d'approbation"
+              parent="menu_supplier_approval_root"
+              action="action_supplier_approval_request"
+              sequence="10"/>
+
+    <!-- My Requests Menu -->
+    <menuitem id="menu_my_approval_requests"
+              name="Mes demandes"
+              parent="menu_supplier_approval_root"
+              action="action_my_approval_requests"
+              sequence="15"/>
+
+    <!-- Evaluations Menu -->
+    <menuitem id="menu_supplier_evaluations"
+              name="Evaluations"
+              parent="menu_supplier_approval_root"
+              action="action_supplier_evaluation"
+              sequence="20"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_supplier_approval_config"
+              name="Configuration"
+              parent="menu_supplier_approval_root"
+              sequence="100"/>
+
+    <!-- Legal Documents Menu (under Config) -->
+    <menuitem id="menu_supplier_legal_documents"
+              name="Documents légaux"
+              parent="menu_supplier_approval_config"
+              action="action_supplier_legal_document"
+              sequence="10"/>
+
+    <!-- Categories Menu (under Config) -->
+    <menuitem id="menu_supplier_categories"
+              name="Categories"
+              parent="menu_supplier_approval_config"
+              action="action_supplier_category"
+              sequence="20"/>
+</odoo>

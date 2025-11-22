@@ -1,0 +1,731 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* custom_supplier_approval
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-22 12:00:00\n"
+"PO-Revision-Date: 2025-11-22 12:00:00\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_supplier_approval_request
+msgid "Supplier Approval Request"
+msgstr "Demande d'Approbation Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_supplier_evaluation
+msgid "Supplier Evaluation"
+msgstr "Évaluation Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_supplier_category
+msgid "Supplier Category"
+msgstr "Catégorie Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_supplier_legal_document
+msgid "Supplier Legal Document"
+msgstr "Document Légal Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_res_partner
+msgid "Contact"
+msgstr "Contact"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_purchase_order
+msgid "Purchase Order"
+msgstr "Bon de Commande"
+
+#. module: custom_supplier_approval
+#: model_terms:ir.ui.menu,name:custom_supplier_approval.menu_supplier_approval_root
+msgid "Supplier Approval"
+msgstr "Approbation Fournisseur"
+
+#. module: custom_supplier_approval
+#: model_terms:ir.ui.menu,name:custom_supplier_approval.menu_supplier_approval_requests
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_supplier_approval_request
+msgid "Approval Requests"
+msgstr "Demandes d'Approbation"
+
+#. module: custom_supplier_approval
+#: model_terms:ir.ui.menu,name:custom_supplier_approval.menu_my_approval_requests
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_my_approval_requests
+msgid "My Approval Requests"
+msgstr "Mes Demandes"
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_my_approval_requests
+msgid "My Requests"
+msgstr "Mes Demandes"
+
+#. module: custom_supplier_approval
+#: model_terms:ir.ui.menu,name:custom_supplier_approval.menu_supplier_evaluations
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_supplier_evaluation
+msgid "Evaluations"
+msgstr "Évaluations"
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_supplier_evaluation
+msgid "Supplier Evaluations"
+msgstr "Évaluations Fournisseurs"
+
+#. module: custom_supplier_approval
+#: model_terms:ir.ui.menu,name:custom_supplier_approval.menu_supplier_approval_config
+msgid "Configuration"
+msgstr "Configuration"
+
+#. module: custom_supplier_approval
+#: model_terms:ir.ui.menu,name:custom_supplier_approval.menu_supplier_legal_documents
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_supplier_legal_document
+msgid "Legal Documents"
+msgstr "Documents Légaux"
+
+#. module: custom_supplier_approval
+#: model_terms:ir.ui.menu,name:custom_supplier_approval.menu_supplier_categories
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_supplier_category
+msgid "Supplier Categories"
+msgstr "Catégories Fournisseurs"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__name
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__name
+msgid "Reference"
+msgstr "Référence"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__name
+msgid "Evaluation Name"
+msgstr "Nom de l'Évaluation"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__partner_id
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__partner_id
+msgid "Supplier"
+msgstr "Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__requested_by
+msgid "Requested By"
+msgstr "Demandé par"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__request_date
+msgid "Request Date"
+msgstr "Date de Demande"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__service_types
+msgid "Service Types"
+msgstr "Types de Services"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,help:custom_supplier_approval.field_supplier_approval_request__service_types
+msgid "Description of services or products provided by this supplier"
+msgstr "Description des services ou produits fournis par ce fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__initial_evaluation
+msgid "Initial Evaluation"
+msgstr "Évaluation Initiale"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,help:custom_supplier_approval.field_supplier_approval_request__initial_evaluation
+msgid "Initial assessment if supplier was already tested"
+msgstr "Évaluation initiale si le fournisseur a déjà été testé"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__state
+msgid "Status"
+msgstr "Statut"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_approval_request__state__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_approval_request__state__pending
+msgid "Pending Approval"
+msgstr "En Attente d'Approbation"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_approval_request__state__approved
+msgid "Approved"
+msgstr "Approuvé"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_approval_request__state__rejected
+msgid "Rejected"
+msgstr "Rejeté"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__approved_by
+msgid "Approved By"
+msgstr "Approuvé par"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__approval_date
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__supplier_approval_date
+msgid "Approval Date"
+msgstr "Date d'Approbation"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_request__rejection_reason
+msgid "Rejection Reason"
+msgstr "Raison du Rejet"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__evaluated_by
+msgid "Evaluated By"
+msgstr "Évalué par"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__evaluation_date
+msgid "Evaluation Date"
+msgstr "Date d'Évaluation"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__purchase_order_id
+msgid "Purchase Order"
+msgstr "Bon de Commande"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,help:custom_supplier_approval.field_supplier_evaluation__purchase_order_id
+msgid "Related purchase order for this evaluation"
+msgstr "Bon de commande associé à cette évaluation"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__quality_rating
+msgid "Quality"
+msgstr "Qualité"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__delivery_rating
+msgid "Delivery"
+msgstr "Livraison"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__reactivity_rating
+msgid "Reactivity"
+msgstr "Réactivité"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__compliance_rating
+msgid "Compliance"
+msgstr "Conformité"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__commercial_rating
+msgid "Commercial"
+msgstr "Commercial"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__overall_score
+msgid "Overall Score (%)"
+msgstr "Score Global (%)"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__comments
+msgid "Comments"
+msgstr "Commentaires"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__supplier_approved
+msgid "Approved Supplier"
+msgstr "Fournisseur Approuvé"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__supplier_satisfaction_rate
+msgid "Satisfaction Rate"
+msgstr "Taux de Satisfaction"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__supplier_category_ids
+msgid "Supplier Categories"
+msgstr "Catégories Fournisseurs"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__valid_legal_documents
+msgid "Has Valid Documents"
+msgstr "Possède des Documents Valides"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_category__name
+msgid "Category Name"
+msgstr "Nom de Catégorie"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_category__description
+msgid "Description"
+msgstr "Description"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__name
+msgid "Document Name"
+msgstr "Nom du Document"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__partner_id
+msgid "Supplier"
+msgstr "Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__document_type
+msgid "Document Type"
+msgstr "Type de Document"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__expiry_date
+msgid "Expiry Date"
+msgstr "Date d'Expiration"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__state
+msgid "Status"
+msgstr "Statut"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__state__valid
+msgid "Valid"
+msgstr "Valide"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__state__expiring_soon
+msgid "Expiring Soon"
+msgstr "Expire Bientôt"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__state__expired
+msgid "Expired"
+msgstr "Expiré"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Supplier Approval Request"
+msgstr "Demande d'Approbation Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Submit"
+msgstr "Soumettre"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Approve"
+msgstr "Approuver"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Reject"
+msgstr "Rejeter"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Reset to Draft"
+msgstr "Remettre en Brouillon"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Request Details"
+msgstr "Détails de la Demande"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Service Description"
+msgstr "Description du Service"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Describe services or products provided by this supplier..."
+msgstr "Décrivez les services ou produits fournis par ce fournisseur..."
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Initial assessment if supplier was already tested..."
+msgstr "Évaluation initiale si le fournisseur a déjà été testé..."
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Rejection Details"
+msgstr "Détails du Rejet"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_form
+msgid "Enter rejection reason..."
+msgstr "Saisissez la raison du rejet..."
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_form
+msgid "Supplier Evaluation"
+msgstr "Évaluation Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_form
+msgid "View Supplier"
+msgstr "Voir le Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_form
+msgid "Evaluation Criteria"
+msgstr "Critères d'Évaluation"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_form
+msgid "Additional comments about this evaluation..."
+msgstr "Commentaires supplémentaires sur cette évaluation..."
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_res_partner_form_inherit_supplier_approval
+msgid "Approval Requests"
+msgstr "Demandes d'Approbation"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_res_partner_form_inherit_supplier_approval
+msgid "Request Approval"
+msgstr "Demander l'Approbation"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_res_partner_form_inherit_supplier_approval
+msgid "Is a Vendor"
+msgstr "Est un Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_res_partner_form_inherit_supplier_approval
+msgid "Supplier Approval"
+msgstr "Approbation Fournisseur"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "New"
+msgstr "Nouveau"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "A pending approval request already exists for supplier %s!"
+msgstr "Une demande d'approbation en attente existe déjà pour le fournisseur %s !"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Cannot approve supplier %s without at least one valid legal document!"
+msgstr "Impossible d'approuver le fournisseur %s sans au moins un document légal valide !"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Only draft requests can be submitted!"
+msgstr "Seules les demandes en brouillon peuvent être soumises !"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Approval request submitted by %s"
+msgstr "Demande d'approbation soumise par %s"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Supplier Approval Request to Review"
+msgstr "Demande d'Approbation Fournisseur à Examiner"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Please review approval request %s for supplier %s"
+msgstr "Veuillez examiner la demande d'approbation %s pour le fournisseur %s"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "New supplier approval request requires your attention."
+msgstr "Une nouvelle demande d'approbation fournisseur nécessite votre attention."
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Only pending requests can be approved!"
+msgstr "Seules les demandes en attente peuvent être approuvées !"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Supplier %s has been approved"
+msgstr "Le fournisseur %s a été approuvé"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Only pending requests can be rejected!"
+msgstr "Seules les demandes en attente peuvent être rejetées !"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Rejection reason is required!"
+msgstr "La raison du rejet est obligatoire !"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/supplier_approval_request.py:0
+#, python-format
+msgid "Supplier %s has been rejected. Reason: %s"
+msgstr "Le fournisseur %s a été rejeté. Raison : %s"
+
+#. module: custom_supplier_approval
+#: code:addons/custom_supplier_approval/models/purchase_order.py:0
+#, python-format
+msgid "Cannot confirm purchase order! Supplier %s is not approved."
+msgstr "Impossible de confirmer le bon de commande ! Le fournisseur %s n'est pas approuvé."
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_category
+msgid "Create a supplier category"
+msgstr "Créer une catégorie fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_category
+msgid "Organize your suppliers by categories like Office Supplies, IT Services, Construction, etc."
+msgstr "Organisez vos fournisseurs par catégories comme Fournitures de Bureau, Services IT, Construction, etc."
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_legal_document
+msgid "Add a legal document"
+msgstr "Ajouter un document légal"
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_legal_document
+msgid "Track supplier legal documents like RCCM, NCC, CNPS certificates with expiry dates."
+msgstr "Suivez les documents légaux des fournisseurs comme RCCM, NCC, certificats CNPS avec dates d'expiration."
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_approval_request
+msgid "Create an approval request"
+msgstr "Créer une demande d'approbation"
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_approval_request
+msgid "Submit supplier approval requests for validation by purchase managers."
+msgstr "Soumettez des demandes d'approbation de fournisseurs pour validation par les responsables achats."
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_evaluation
+msgid "Create a supplier evaluation"
+msgstr "Créer une évaluation fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.actions.act_window,help:custom_supplier_approval.action_supplier_evaluation
+msgid "Rate your suppliers on quality, delivery, reactivity, compliance, and commercial terms."
+msgstr "Évaluez vos fournisseurs sur la qualité, la livraison, la réactivité, la conformité et les conditions commerciales."
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__supplier_approval_request_count
+msgid "Approval Request Count"
+msgstr "Nombre de Demandes d'Approbation"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__supplier_evaluation_count
+msgid "Evaluation Count"
+msgstr "Nombre d'Évaluations"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_res_partner__supplier_legal_document_count
+msgid "Legal Document Count"
+msgstr "Nombre de Documents Légaux"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_request_list
+msgid "Approval Requests"
+msgstr "Demandes d'Approbation"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_list
+msgid "Supplier Evaluations"
+msgstr "Évaluations Fournisseurs"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_category__active
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__attachment_id
+msgid "Attachment"
+msgstr "Pièce Jointe"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_legal_document_form
+msgid "Legal Document"
+msgstr "Document Légal"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_category_form
+msgid "Supplier Category"
+msgstr "Catégorie Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_category__partner_count
+msgid "Supplier Count"
+msgstr "Nombre de Fournisseurs"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation__wizard_id
+msgid "Wizard"
+msgstr "Assistant"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Create Supplier Evaluation"
+msgstr "Créer une Évaluation Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Create Evaluation"
+msgstr "Créer l'Évaluation"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Overall Score Preview"
+msgstr "Aperçu du Score Global"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_evaluation_wizard__overall_score_preview
+msgid "Overall Score (%)"
+msgstr "Score Global (%)"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_bulk_wizard_form
+msgid "Bulk Approve Suppliers"
+msgstr "Approuver les Fournisseurs en Masse"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_bulk_wizard_form
+msgid "Approve Selected"
+msgstr "Approuver la Sélection"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_approval_bulk_wizard__request_ids
+msgid "Requests to Approve"
+msgstr "Demandes à Approuver"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_supplier_evaluation_wizard
+msgid "Supplier Evaluation Wizard"
+msgstr "Assistant d'Évaluation Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.model,name:custom_supplier_approval.model_supplier_approval_bulk_wizard
+msgid "Supplier Approval Bulk Wizard"
+msgstr "Assistant d'Approbation en Masse"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields,field_description:custom_supplier_approval.field_supplier_legal_document__days_until_expiry
+msgid "Days Until Expiry"
+msgstr "Jours Avant Expiration"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__document_type__rccm
+msgid "RCCM"
+msgstr "RCCM"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__document_type__ncc
+msgid "NCC"
+msgstr "NCC"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__document_type__cnps
+msgid "CNPS"
+msgstr "CNPS"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__document_type__tax_certificate
+msgid "Tax Certificate"
+msgstr "Certificat Fiscal"
+
+#. module: custom_supplier_approval
+#: model:ir.model.fields.selection,name:custom_supplier_approval.selection__supplier_legal_document__document_type__other
+msgid "Other"
+msgstr "Autre"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_res_partner_form_inherit_supplier_approval
+msgid "Satisfaction"
+msgstr "Satisfaction"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_bulk_wizard_form
+#: model:ir.actions.act_window,name:custom_supplier_approval.action_supplier_approval_bulk_wizard
+msgid "Bulk Approval Action"
+msgstr "Action d'Approbation en Masse"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_bulk_wizard_form
+msgid "Selected Requests"
+msgstr "Demandes Sélectionnées"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_bulk_wizard_form
+msgid "Confirm"
+msgstr "Confirmer"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_approval_bulk_wizard_form
+msgid "Enter the reason for rejection..."
+msgstr "Entrez la raison du rejet..."
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Supplier Information"
+msgstr "Informations Fournisseur"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Overall Score Preview"
+msgstr "Aperçu du Score Global"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Rating Criteria"
+msgstr "Critères d'Évaluation"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Product/Service Quality"
+msgstr "Qualité Produit/Service"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Delivery Timeliness"
+msgstr "Ponctualité des Livraisons"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Responsiveness"
+msgstr "Réactivité"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Commercial Relationship"
+msgstr "Relation Commerciale"
+
+#. module: custom_supplier_approval
+#: model:ir.ui.view,arch_db:custom_supplier_approval.view_supplier_evaluation_wizard_form
+msgid "Enter additional comments..."
+msgstr "Entrez des commentaires supplémentaires..."

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- Evaluation Wizard Form View -->
+    <!-- ========================================== -->
+    <record id="view_supplier_evaluation_wizard_form" model="ir.ui.view">
+        <field name="name">supplier.evaluation.wizard.form</field>
+        <field name="model">supplier.evaluation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Créer une évaluation du fournisseur">
+                <sheet>
+                    <group>
+                        <group string="Informations sur le fournisseur">
+                            <field name="partner_id" 
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="purchase_order_id" 
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group string="Aperçu du score global">
+                            <field name="overall_score_preview" 
+                                   widget="percentage" 
+                                   readonly="1"
+                                   class="oe_inline"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Critères d'évaluation" name="ratings">
+                            <group>
+                                <group string="Qualité du produit/service">
+                                    <field name="quality_rating" widget="radio"/>
+                                </group>
+                                <group string="Ponctualité de la livraison">
+                                    <field name="delivery_rating" widget="radio"/>
+                                </group>
+                            </group>
+                            
+                            <group>
+                                <group string="Réactivité">
+                                    <field name="reactivity_rating" widget="radio"/>
+                                </group>
+                                <group string="Conformité">
+                                    <field name="compliance_rating" widget="radio"/>
+                                </group>
+                            </group>
+                            
+                            <group>
+                                <group string="Relation commerciale">
+                                    <field name="commercial_terms_rating" widget="radio"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Commentaires" name="comments">
+                            <field name="comments" 
+                                   placeholder="Entrez des commentaires supplémentaires sur cette évaluation..."
+                                   nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                
+                <footer>
+                    <button name="action_create_evaluation" 
+                            string="Créer l'évaluation" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Annuler" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- ========================================== -->
+    <!-- Action to Launch Wizard -->
+    <!-- ========================================== -->
+    <record id="action_supplier_evaluation_wizard" model="ir.actions.act_window">
+        <field name="name">Create Evaluation</field>
+        <field name="res_model">supplier.evaluation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+    <!-- Add menu item under Evaluations -->
+    <menuitem id="menu_supplier_evaluation_wizard"
+              name="Create Evaluation (Guided)"
+              parent="menu_supplier_approval_root"
+              action="action_supplier_evaluation_wizard"
+              sequence="25"/>
+</odoo>

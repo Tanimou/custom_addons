@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- Bulk Approval Wizard Form View -->
+    <!-- ========================================== -->
+    <record id="view_supplier_approval_bulk_wizard_form" model="ir.ui.view">
+        <field name="name">supplier.approval.bulk.wizard.form</field>
+        <field name="model">supplier.approval.bulk.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Action d'approbation en masse">
+                <group>
+                    <group>
+                        <field name="action" widget="radio"/>
+                        <field name="request_count" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="rejection_reason" 
+                               invisible="action != 'reject'"
+                               required="action == 'reject'"
+                               placeholder="Enter the reason for rejection..."/>
+                    </group>
+                </group>
+                
+                <group string="Requêtes sélectionnées">
+                    <field name="request_ids" nolabel="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="request_date"/>
+                            <field name="state" widget="badge" 
+                                   decoration-info="state == 'pending'"
+                                   decoration-success="state == 'approved'"
+                                   decoration-danger="state == 'rejected'"/>
+                        </list>
+                    </field>
+                </group>
+                
+                <footer>
+                    <button name="action_confirm" 
+                            string="Confirmer" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Annuler" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- ========================================== -->
+    <!-- Action to Launch Wizard -->
+    <!-- ========================================== -->
+    <record id="action_supplier_approval_bulk_wizard" model="ir.actions.act_window">
+        <field name="name">Bulk Approval Action</field>
+        <field name="res_model">supplier.approval.bulk.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_supplier_approval_request"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>

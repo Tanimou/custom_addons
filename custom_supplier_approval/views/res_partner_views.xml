@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Res Partner Form View Extension - Add Smart Buttons -->
+    <record id="view_partner_form_inherit_supplier_approval" model="ir.ui.view">
+        <field name="name">res.partner.form.supplier.approval</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Add green ribbon for approved suppliers -->
+            <xpath expr="//div[@name='button_box']" position="before">
+                <widget name="web_ribbon" title="Fourisser=ur Aggrée" bg_color="bg-success" invisible="not supplier_approved or supplier_rank == 0"/>
+            </xpath>
+            
+            <!-- Add smart buttons for suppliers -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_approval_requests"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-check-circle"
+                        invisible="supplier_rank == 0">
+                    <field name="supplier_approval_request_count" widget="statinfo" string="Demandes d'approbation"/>
+                </button>
+                <button name="action_view_evaluations"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-star"
+                        invisible="supplier_rank == 0 or not supplier_approved">
+                    <field name="supplier_evaluation_count" widget="statinfo" string="Evaluations"/>
+                </button>
+                <button name="action_view_legal_documents"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text"
+                        invisible="supplier_rank == 0">
+                    <field name="supplier_legal_document_count" widget="statinfo" string="Legal Documents"/>
+                </button>
+                <button name="action_create_approval_request"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-plus-circle"
+                        string="Demander un aggrément"
+                        invisible="supplier_rank == 0 or supplier_approved"/>
+            </xpath>
+            
+            <!-- Add supplier rank checkbox in Purchase section -->
+            <xpath expr="//page[@name='sales_purchases']//group[@name='purchase']" position="inside">
+                <field name="supplier_rank" invisible="1"/>
+                <div class="o_checkbox_optional_field" colspan="2">
+                    <div class="o_cell o_wrap_label text-break text-900">
+                        <label for="supplier_rank" string="Est un fournisseur"/>
+                    </div>
+                    <div class="o_cell o_wrap_input text-break">
+                        <field name="supplier_rank" widget="boolean_toggle" nolabel="1"/>
+                    </div>
+                </div>
+            </xpath>
+            
+            <!-- Add supplier approval fields in Purchase section -->
+            <xpath expr="//page[@name='sales_purchases']//group[@name='purchase']" position="after">
+                <group string="Demande d'aggrément" invisible="supplier_rank == 0" name="supplier_approval">
+                    <group>
+                        <field name="supplier_approval_date" readonly="1" invisible="not supplier_approved"/>
+                        <field name="supplier_satisfaction_rate" widget="percentage" readonly="1" invisible="not supplier_approved"/>
+                    </group>
+                    <group>
+                        <field name="valid_legal_documents" widget="boolean" readonly="1"/>
+                        <field name="supplier_category_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Res Partner Tree View Extension - Add Approval Indicators -->
+    <record id="view_partner_tree_inherit_supplier_approval" model="ir.ui.view">
+        <field name="name">res.partner.tree.supplier.approval</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email']" position="after">
+                <field name="supplier_approved" string="Fournisseur aggrée" optional="show"/>
+                <field name="supplier_satisfaction_rate" string="Satisfaction" widget="percentage" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

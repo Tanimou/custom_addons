@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- Record Rules for Approval Requests -->
+    <!-- ========================================== -->
+    
+    <!-- Users can view all approval requests -->
+    <record id="supplier_approval_request_user_read_rule" model="ir.rule">
+        <field name="name">Supplier Approval Request: user read access</field>
+        <field name="model_id" ref="model_supplier_approval_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Users can create their own approval requests -->
+    <record id="supplier_approval_request_user_create_rule" model="ir.rule">
+        <field name="name">Supplier Approval Request: user create access</field>
+        <field name="model_id" ref="model_supplier_approval_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Users can only edit/delete their own draft requests -->
+    <record id="supplier_approval_request_user_write_rule" model="ir.rule">
+        <field name="name">Supplier Approval Request: user write own draft</field>
+        <field name="model_id" ref="model_supplier_approval_request"/>
+        <field name="domain_force">[('requested_by', '=', user.id), ('state', '=', 'draft')]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    
+    <!-- Managers have full access -->
+    <record id="supplier_approval_request_manager_rule" model="ir.rule">
+        <field name="name">Supplier Approval Request: manager full access</field>
+        <field name="model_id" ref="model_supplier_approval_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    
+    <!-- ========================================== -->
+    <!-- Record Rules for Evaluations -->
+    <!-- ========================================== -->
+    
+    <!-- Users can view all evaluations -->
+    <record id="supplier_evaluation_user_read_rule" model="ir.rule">
+        <field name="name">Supplier Evaluation: user read access</field>
+        <field name="model_id" ref="model_supplier_evaluation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Users can create evaluations -->
+    <record id="supplier_evaluation_user_create_rule" model="ir.rule">
+        <field name="name">Supplier Evaluation: user create access</field>
+        <field name="model_id" ref="model_supplier_evaluation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Users can edit their own evaluations -->
+    <record id="supplier_evaluation_user_write_rule" model="ir.rule">
+        <field name="name">Supplier Evaluation: user write own</field>
+        <field name="model_id" ref="model_supplier_evaluation"/>
+        <field name="domain_force">[('evaluated_by', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    
+    <!-- Managers have full access -->
+    <record id="supplier_evaluation_manager_rule" model="ir.rule">
+        <field name="name">Supplier Evaluation: manager full access</field>
+        <field name="model_id" ref="model_supplier_evaluation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    
+    <!-- ========================================== -->
+    <!-- Record Rules for Legal Documents -->
+    <!-- ========================================== -->
+    
+    <!-- All users can view all legal documents -->
+    <record id="supplier_legal_document_all_rule" model="ir.rule">
+        <field name="name">Supplier Legal Document: all users access</field>
+        <field name="model_id" ref="model_supplier_legal_document"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+    </record>
+    
+    <!-- ========================================== -->
+    <!-- Record Rules for Categories -->
+    <!-- ========================================== -->
+    
+    <!-- All users can view all categories -->
+    <record id="supplier_category_all_rule" model="ir.rule">
+        <field name="name">Supplier Category: all users access</field>
+        <field name="model_id" ref="model_supplier_category"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+    </record>
+</odoo>

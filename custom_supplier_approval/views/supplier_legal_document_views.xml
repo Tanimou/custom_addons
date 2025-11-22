@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Supplier Legal Document Form View -->
+    <record id="view_supplier_legal_document_form" model="ir.ui.view">
+        <field name="name">supplier.legal.document.form</field>
+        <field name="model">supplier.legal.document</field>
+        <field name="arch" type="xml">
+            <form string="Document Légal du Fournisseur">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,valid,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_attachment"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-pdf-o"
+                                invisible="not attachment_id">
+                            <span>View Document</span>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" domain="[('supplier_rank', '>', 0)]"/>
+                            <field name="document_type"/>
+                            <field name="document_number"/>
+                        </group>
+                        <group>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+                            <field name="attachment_id" widget="many2one_binary"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" placeholder="Additional notes about this document..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Supplier Legal Document List View -->
+    <record id="view_supplier_legal_document_list" model="ir.ui.view">
+        <field name="name">supplier.legal.document.list</field>
+        <field name="model">supplier.legal.document</field>
+        <field name="arch" type="xml">
+            <list string="Documents Légaux" decoration-success="state == 'valid'" decoration-danger="state == 'expired'" decoration-muted="state == 'pending'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="document_type"/>
+                <field name="document_number"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'valid'" decoration-danger="state == 'expired'" decoration-warning="state == 'pending'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Supplier Legal Document Search View -->
+    <!-- <record id="view_supplier_legal_document_search" model="ir.ui.view">
+        <field name="name">supplier.legal.document.search</field>
+        <field name="model">supplier.legal.document</field>
+        <field name="arch" type="xml">
+            <search string="Search Documents">
+                <field name="partner_id"/>
+                <field name="document_type"/>
+                <field name="document_number"/>
+                <filter string="Valid" name="valid" domain="[('state', '=', 'valid')]"/>
+                <filter string="Expired" name="expired" domain="[('state', '=', 'expired')]"/>
+                <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Supplier" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Document Type" name="group_type" context="{'group_by': 'document_type'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+</odoo>

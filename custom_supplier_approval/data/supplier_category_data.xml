@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default Supplier Categories - Phase 8 full implementation -->
+        <record id="category_office_supplies" model="supplier.category">
+            <field name="name">Fournitures de bureau</field>
+            <field name="code">OFFICE</field>
+            <field name="description">Fournitures et équipements de bureau</field>
+        </record>
+
+        <record id="category_it_services" model="supplier.category">
+            <field name="name">Services informatiques</field>
+            <field name="code">IT</field>
+            <field name="description">Services et solutions informatiques</field>
+        </record>
+
+        <record id="category_construction" model="supplier.category">
+            <field name="name">Travaux de construction</field>
+            <field name="code">CONST</field>
+            <field name="description">Travaux de construction et rénovation</field>
+        </record>
+
+        <record id="category_industrial" model="supplier.category">
+            <field name="name">Fournitures industrielles</field>
+            <field name="code">IND</field>
+            <field name="description">Fournitures et équipements industriels</field>
+        </record>
+
+        <record id="category_consulting" model="supplier.category">
+            <field name="name">Services de consulting</field>
+            <field name="code">CONSULT</field>
+            <field name="description">Services de conseil et consulting</field>
+        </record>
+
+        <record id="category_transport" model="supplier.category">
+            <field name="name">Transport et logistique</field>
+            <field name="code">TRANSP</field>
+            <field name="description">Services de transport et logistique</field>
+        </record>
+    </data>
+</odoo>
