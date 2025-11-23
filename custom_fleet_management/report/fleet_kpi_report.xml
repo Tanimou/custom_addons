@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== REPORT: FLEET KPI ANALYTICS ========== -->
+        
+        <record id="report_fleet_kpi" model="ir.actions.report">
+            <field name="name">Rapport Parc Automobile</field>
+            <field name="model">fleet.vehicle</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_fleet_management.report_fleet_kpi_document</field>
+            <field name="report_file">custom_fleet_management.report_fleet_kpi_document</field>
+            <field name="binding_model_id" ref="fleet.model_fleet_vehicle"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="base.paperformat_euro"/>
+            <field name="print_report_name">'Rapport_Parc_Auto_%s' % (context_timestamp(datetime.datetime.now()).strftime('%Y%m%d'))</field>
+        </record>
+        
+        <!-- ========== QWEB TEMPLATE: FLEET KPI DOCUMENT ========== -->
+        
+        <template id="report_fleet_kpi_document">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        
+                        <!-- Header -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h1 style="border-bottom: 4px solid #667eea; padding-bottom: 15px; color: #667eea;">
+                                    <i class="fa fa-bar-chart"/> RAPPORT ANALYTIQUE - PARC AUTOMOBILE
+                                </h1>
+                                <p class="lead text-muted">
+                                    Période: <t t-esc="context_timestamp(datetime.datetime.now() - datetime.timedelta(days=180)).strftime('%d/%m/%Y')"/> 
+                                    au <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/>
+                                </p>
+                                <p class="text-muted">
+                                    Généré le <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Calculate statistics -->
+                        <t t-set="vehicles" t-value="env['fleet.vehicle'].search([('active','=',True)])"/>
+                        <t t-set="missions" t-value="env['fleet.mission'].search([('create_date','&gt;=', (datetime.datetime.now() - datetime.timedelta(days=180)).strftime('%Y-%m-%d'))])"/>
+                        <t t-set="missions_done" t-value="missions.filtered(lambda m: m.state == 'done')"/>
+                        <t t-set="missions_in_progress" t-value="missions.filtered(lambda m: m.state == 'in_progress')"/>
+                        <t t-set="documents" t-value="env['fleet.vehicle.document'].search([])"/>
+                        <t t-set="documents_expired" t-value="documents.filtered(lambda d: d.state == 'expired')"/>
+                        <t t-set="documents_expiring" t-value="documents.filtered(lambda d: d.state == 'expiring_soon')"/>
+                        
+                        <!-- Summary Cards -->
+                        <div class="row mb-4">
+                            <div class="col-3">
+                                <div style="border: 2px solid #28a745; border-radius: 8px; padding: 15px; text-align: center; background-color: #d4edda;">
+                                    <h2 style="margin: 0; color: #28a745;"><t t-esc="len(vehicles)"/></h2>
+                                    <p style="margin: 0; font-weight: bold;">Véhicules Actifs</p>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div style="border: 2px solid #007bff; border-radius: 8px; padding: 15px; text-align: center; background-color: #cfe2ff;">
+                                    <h2 style="margin: 0; color: #007bff;"><t t-esc="len(missions)"/></h2>
+                                    <p style="margin: 0; font-weight: bold;">Missions (6 mois)</p>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div style="border: 2px solid #ffc107; border-radius: 8px; padding: 15px; text-align: center; background-color: #fff3cd;">
+                                    <h2 style="margin: 0; color: #ff8800;"><t t-esc="len(documents_expiring)"/></h2>
+                                    <p style="margin: 0; font-weight: bold;">Docs À Renouveler</p>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div style="border: 2px solid #dc3545; border-radius: 8px; padding: 15px; text-align: center; background-color: #f8d7da;">
+                                    <h2 style="margin: 0; color: #dc3545;"><t t-esc="len(documents_expired)"/></h2>
+                                    <p style="margin: 0; font-weight: bold;">Docs Expirés</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr style="border-top: 2px solid #dee2e6; margin: 30px 0;"/>
+                        
+                        <!-- Section 1: Mission Statistics -->
+                        <h3 style="background-color: #f8f9fa; padding: 12px; border-left: 5px solid #667eea; margin-top: 30px;">
+                            <i class="fa fa-road"/> Statistiques Missions
+                        </h3>
+                        
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <table class="table table-sm table-bordered">
+                                    <thead style="background-color: #667eea; color: white;">
+                                        <tr>
+                                            <th>Type de Mission</th>
+                                            <th class="text-end">Nombre</th>
+                                            <th class="text-end">%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="mission_types" t-value="['course_urbaine', 'mission_interurbaine', 'livraison', 'deplacement_administratif', 'autre']"/>
+                                        <t t-set="mission_type_labels" t-value="{'course_urbaine': 'Course Urbaine', 'mission_interurbaine': 'Mission Interurbaine', 'livraison': 'Livraison', 'deplacement_administratif': 'Déplacement Administratif', 'autre': 'Autre'}"/>
+                                        <t t-foreach="mission_types" t-as="mtype">
+                                            <t t-set="count" t-value="len(missions.filtered(lambda m: m.mission_type == mtype))"/>
+                                            <tr>
+                                                <td><t t-esc="mission_type_labels[mtype]"/></td>
+                                                <td class="text-end"><strong><t t-esc="count"/></strong></td>
+                                                <td class="text-end"><t t-esc="'%.1f' % (count * 100.0 / len(missions) if len(missions) > 0 else 0)"/>%</td>
+                                            </tr>
+                                        </t>
+                                        <tr style="background-color: #e9ecef; font-weight: bold;">
+                                            <td>TOTAL</td>
+                                            <td class="text-end"><t t-esc="len(missions)"/></td>
+                                            <td class="text-end">100%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-bordered">
+                                    <thead style="background-color: #667eea; color: white;">
+                                        <tr>
+                                            <th>État Mission</th>
+                                            <th class="text-end">Nombre</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Terminées</td>
+                                            <td class="text-end"><strong style="color: #28a745;"><t t-esc="len(missions_done)"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>En cours</td>
+                                            <td class="text-end"><strong style="color: #007bff;"><t t-esc="len(missions_in_progress)"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Distance totale</td>
+                                            <td class="text-end"><strong><t t-esc="'%.0f' % sum(missions_done.mapped('distance_km'))"/> km</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Durée moyenne</td>
+                                            <td class="text-end"><strong><t t-esc="'%.1f' % (sum(missions_done.mapped('duration_days')) / len(missions_done) if len(missions_done) > 0 else 0)"/> jours</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Section 2: Mission Trend by Month -->
+                        <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #667eea;">
+                            Évolution Mensuelle (6 derniers mois)
+                        </h4>
+                        <table class="table table-sm table-bordered mb-4">
+                            <thead style="background-color: #e9ecef;">
+                                <tr>
+                                    <th>Mois</th>
+                                    <th class="text-end">Missions</th>
+                                    <th class="text-end">Distance (km)</th>
+                                    <th class="text-end">Carburant (L)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="range(6)" t-as="i">
+                                    <t t-set="month_date" t-value="datetime.datetime.now() - datetime.timedelta(days=(5-i)*30)"/>
+                                    <t t-set="month_start" t-value="month_date.replace(day=1)"/>
+                                    <t t-set="month_end" t-value="(month_start + datetime.timedelta(days=32)).replace(day=1) - datetime.timedelta(days=1)"/>
+                                    <t t-set="month_missions" t-value="missions.filtered(lambda m: m.date_start and month_start.date() &lt;= m.date_start.date() &lt;= month_end.date())"/>
+                                    <tr>
+                                        <td><t t-esc="month_date.strftime('%B %Y')"/></td>
+                                        <td class="text-end"><t t-esc="len(month_missions)"/></td>
+                                        <td class="text-end"><t t-esc="'%.0f' % sum(month_missions.mapped('distance_km'))"/></td>
+                                        <td class="text-end"><t t-esc="'%.1f' % sum(month_missions.mapped('estimated_consumption'))"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Section 3: Document Alerts -->
+                        <h3 style="background-color: #f8f9fa; padding: 12px; border-left: 5px solid #667eea; margin-top: 30px;">
+                            <i class="fa fa-file-text"/> État Documents Administratifs
+                        </h3>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <table class="table table-sm table-bordered">
+                                    <thead style="background-color: #667eea; color: white;">
+                                        <tr>
+                                            <th>Type de Document</th>
+                                            <th class="text-end" style="background-color: #28a745;">Valides</th>
+                                            <th class="text-end" style="background-color: #ffc107;">À Renouveler</th>
+                                            <th class="text-end" style="background-color: #dc3545;">Expirés</th>
+                                            <th class="text-end">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="doc_types" t-value="env['fleet.vehicle.document.type'].search([])"/>
+                                        <t t-foreach="doc_types" t-as="dtype">
+                                            <t t-set="docs_type" t-value="documents.filtered(lambda d: d.document_type_id.id == dtype.id)"/>
+                                            <tr>
+                                                <td><t t-esc="dtype.name"/></td>
+                                                <td class="text-end"><t t-esc="len(docs_type.filtered(lambda d: d.state == 'valid'))"/></td>
+                                                <td class="text-end" style="background-color: #fff3cd;"><strong><t t-esc="len(docs_type.filtered(lambda d: d.state == 'expiring_soon'))"/></strong></td>
+                                                <td class="text-end" style="background-color: #f8d7da;"><strong><t t-esc="len(docs_type.filtered(lambda d: d.state == 'expired'))"/></strong></td>
+                                                <td class="text-end"><t t-esc="len(docs_type)"/></td>
+                                            </tr>
+                                        </t>
+                                        <tr style="background-color: #e9ecef; font-weight: bold;">
+                                            <td>TOTAL</td>
+                                            <td class="text-end"><t t-esc="len(documents.filtered(lambda d: d.state == 'valid'))"/></td>
+                                            <td class="text-end"><t t-esc="len(documents_expiring)"/></td>
+                                            <td class="text-end"><t t-esc="len(documents_expired)"/></td>
+                                            <td class="text-end"><t t-esc="len(documents)"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Section 4: Top 5 Most Used Vehicles -->
+                        <h3 style="background-color: #f8f9fa; padding: 12px; border-left: 5px solid #667eea; margin-top: 30px; page-break-before: always;">
+                            <i class="fa fa-car"/> Top 5 Véhicules les Plus Utilisés
+                        </h3>
+                        
+                        <t t-set="vehicle_stats" t-value="[]"/>
+                        <t t-foreach="vehicles" t-as="veh">
+                            <t t-set="veh_missions" t-value="missions_done.filtered(lambda m: m.vehicle_id.id == veh.id)"/>
+                            <t t-set="veh_stats" t-value="{
+                                'vehicle': veh,
+                                'mission_count': len(veh_missions),
+                                'total_distance': sum(veh_missions.mapped('distance_km')),
+                                'is_available': veh.is_available
+                            }"/>
+                            <t t-set="vehicle_stats" t-value="vehicle_stats + [veh_stats]"/>
+                        </t>
+                        <t t-set="vehicle_stats" t-value="sorted(vehicle_stats, key=lambda v: v['mission_count'], reverse=True)[:5]"/>
+                        
+                        <table class="table table-sm table-bordered mb-4">
+                            <thead style="background-color: #667eea; color: white;">
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Véhicule</th>
+                                    <th>Immatriculation</th>
+                                    <th class="text-end">Missions</th>
+                                    <th class="text-end">Distance (km)</th>
+                                    <th class="text-center">Disponible</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="vehicle_stats" t-as="vstat">
+                                    <tr>
+                                        <td><strong><t t-esc="vstat_index + 1"/></strong></td>
+                                        <td><t t-esc="vstat['vehicle'].name"/></td>
+                                        <td><strong><t t-esc="vstat['vehicle'].license_plate"/></strong></td>
+                                        <td class="text-end"><t t-esc="vstat['mission_count']"/></td>
+                                        <td class="text-end"><t t-esc="'%.0f' % vstat['total_distance']"/></td>
+                                        <td class="text-center">
+                                            <span t-if="vstat['is_available']" style="color: #28a745;">✓ Oui</span>
+                                            <span t-else="" style="color: #dc3545;">✗ Non</span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Section 5: Top 5 Most Active Drivers -->
+                        <h3 style="background-color: #f8f9fa; padding: 12px; border-left: 5px solid #667eea; margin-top: 30px;">
+                            <i class="fa fa-user"/> Top 5 Conducteurs les Plus Actifs
+                        </h3>
+                        
+                        <t t-set="driver_stats" t-value="[]"/>
+                        <t t-set="drivers" t-value="missions_done.mapped('driver_id')"/>
+                        <t t-foreach="drivers" t-as="drv">
+                            <t t-set="drv_missions" t-value="missions_done.filtered(lambda m: m.driver_id.id == drv.id)"/>
+                            <t t-set="drv_stats" t-value="{
+                                'driver': drv,
+                                'mission_count': len(drv_missions),
+                                'total_distance': sum(drv_missions.mapped('distance_km')),
+                                'avg_duration': sum(drv_missions.mapped('duration_days')) / len(drv_missions) if len(drv_missions) > 0 else 0
+                            }"/>
+                            <t t-set="driver_stats" t-value="driver_stats + [drv_stats]"/>
+                        </t>
+                        <t t-set="driver_stats" t-value="sorted(driver_stats, key=lambda d: d['mission_count'], reverse=True)[:5]"/>
+                        
+                        <table class="table table-sm table-bordered mb-4">
+                            <thead style="background-color: #667eea; color: white;">
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Conducteur</th>
+                                    <th class="text-end">Missions</th>
+                                    <th class="text-end">Distance (km)</th>
+                                    <th class="text-end">Durée Moyenne (j)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="driver_stats" t-as="dstat">
+                                    <tr>
+                                        <td><strong><t t-esc="dstat_index + 1"/></strong></td>
+                                        <td><t t-esc="dstat['driver'].name"/></td>
+                                        <td class="text-end"><t t-esc="dstat['mission_count']"/></td>
+                                        <td class="text-end"><t t-esc="'%.0f' % dstat['total_distance']"/></td>
+                                        <td class="text-end"><t t-esc="'%.1f' % dstat['avg_duration']"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Section 6: Vehicles Needing Attention -->
+                        <h3 style="background-color: #f8f9fa; padding: 12px; border-left: 5px solid #dc3545; margin-top: 30px;">
+                            <i class="fa fa-exclamation-triangle"/> Véhicules Nécessitant une Attention
+                        </h3>
+                        
+                        <t t-set="vehicles_critical" t-value="vehicles.filtered(lambda v: v.administrative_state == 'critical')"/>
+                        <t t-set="vehicles_warning" t-value="vehicles.filtered(lambda v: v.administrative_state == 'warning')"/>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <t t-if="len(vehicles_critical) > 0 or len(vehicles_warning) > 0">
+                                    <table class="table table-sm table-bordered">
+                                        <thead style="background-color: #dc3545; color: white;">
+                                            <tr>
+                                                <th>Véhicule</th>
+                                                <th>Immatriculation</th>
+                                                <th>État</th>
+                                                <th>Documents Critiques</th>
+                                                <th>Prochaine Échéance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="vehicles_critical + vehicles_warning" t-as="veh">
+                                                <t t-set="critical_docs" t-value="veh.document_ids.filtered(lambda d: d.alert_level in ['critical', 'high']).sorted(lambda d: d.expiry_date)"/>
+                                                <tr t-att-style="'background-color: %s;' % ('#f8d7da' if veh.administrative_state == 'critical' else '#fff3cd')">
+                                                    <td><t t-esc="veh.name"/></td>
+                                                    <td><strong><t t-esc="veh.license_plate"/></strong></td>
+                                                    <td>
+                                                        <span t-if="veh.administrative_state == 'critical'" class="badge" style="background-color: #dc3545;">CRITIQUE</span>
+                                                        <span t-else="" class="badge" style="background-color: #ffc107;">AVERTISSEMENT</span>
+                                                    </td>
+                                                    <td>
+                                                        <t t-foreach="critical_docs[:3]" t-as="doc">
+                                                            <t t-esc="doc.document_type_id.name"/> (<t t-esc="dict(doc._fields['state'].selection)[doc.state]"/>)<br/>
+                                                        </t>
+                                                    </td>
+                                                    <td>
+                                                        <t t-if="len(critical_docs) > 0">
+                                                            <strong><t t-esc="critical_docs[0].expiry_date.strftime('%d/%m/%Y')"/></strong>
+                                                            (<t t-esc="critical_docs[0].days_until_expiry"/> jours)
+                                                        </t>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </t>
+                                <t t-else="">
+                                    <div style="border: 2px solid #28a745; border-radius: 8px; padding: 20px; text-align: center; background-color: #d4edda;">
+                                        <h4 style="color: #28a745; margin: 0;">
+                                            <i class="fa fa-check-circle"/> Tous les véhicules sont en règle !
+                                        </h4>
+                                        <p style="margin-top: 10px; margin-bottom: 0;">Aucun document expiré ou proche de l'expiration.</p>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        
+                        <!-- Recommendations -->
+                        <h3 style="background-color: #f8f9fa; padding: 12px; border-left: 5px solid #667eea; margin-top: 30px;">
+                            <i class="fa fa-lightbulb-o"/> Recommandations
+                        </h3>
+                        <div style="border: 1px solid #dee2e6; padding: 20px; background-color: #e7f3ff;">
+                            <ul style="margin: 0;">
+                                <li t-if="len(documents_expired) > 0">
+                                    <strong style="color: #dc3545;">URGENT:</strong> <t t-esc="len(documents_expired)"/> document(s) expiré(s) à renouveler immédiatement.
+                                </li>
+                                <li t-if="len(documents_expiring) > 0">
+                                    <strong style="color: #ffc107;">ATTENTION:</strong> <t t-esc="len(documents_expiring)"/> document(s) arrive(nt) à expiration dans les 30 jours.
+                                </li>
+                                <li t-if="len(missions_in_progress) > 0">
+                                    Suivi des <t t-esc="len(missions_in_progress)"/> mission(s) en cours à assurer.
+                                </li>
+                                <li t-if="len(vehicle_stats) > 0 and vehicle_stats[0]['mission_count'] > 20">
+                                    Le véhicule <strong><t t-esc="vehicle_stats[0]['vehicle'].license_plate"/></strong> est fortement sollicité (<t t-esc="vehicle_stats[0]['mission_count']"/> missions). Prévoir maintenance préventive.
+                                </li>
+                                <li>
+                                    Planifier les renouvellements de documents administratifs pour le mois prochain.
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="row mt-5" style="border-top: 2px solid #dee2e6; padding-top: 15px; page-break-inside: avoid;">
+                            <div class="col-12 text-center text-muted small">
+                                <p>
+                                    <strong>Rapport généré automatiquement par le système de gestion du parc automobile</strong><br/>
+                                    <t t-esc="env.company.name"/> - Imprimé le <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/><br/>
+                                    Ce document est confidentiel et destiné à un usage interne uniquement.
+                                </p>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </t>
+            </t>
+        </template>
+        
+    </data>
+</odoo>

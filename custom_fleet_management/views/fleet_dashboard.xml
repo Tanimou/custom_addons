@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== KPI: ACTIVE VEHICLES COUNT ========== -->
+        
+        <record id="action_fleet_kpi_vehicles_active" model="ir.actions.act_window">
+            <field name="name">Véhicules Actifs</field>
+            <field name="res_model">fleet.vehicle</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="domain">[('active','=',True), ('state_id.code','!=','sold')]</field>
+            <field name="context">{'search_default_group_by_brand':1}</field>
+        </record>
+        
+        <!-- ========== KPI: MISSIONS THIS WEEK ========== -->
+        
+        <record id="action_fleet_kpi_missions_week" model="ir.actions.act_window">
+            <field name="name">Missions Cette Semaine</field>
+            <field name="res_model">fleet.mission</field>
+            <field name="view_mode">list,kanban,calendar,form</field>
+            <field name="domain">[('date_start','&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')), ('date_start','&lt;', (context_today() + datetime.timedelta(days=7-context_today().weekday())).strftime('%Y-%m-%d'))]</field>
+            <field name="context">{'search_default_group_by_state':1}</field>
+        </record>
+        
+        <!-- ========== KPI: CRITICAL ALERTS ========== -->
+        
+        <record id="action_fleet_kpi_alerts_critical" model="ir.actions.act_window">
+            <field name="name">Alertes Critiques</field>
+            <field name="res_model">fleet.vehicle.document</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('state','=','expired')]</field>
+            <field name="context">{'search_default_group_by_vehicle':1}</field>
+        </record>
+        
+        <!-- ========== KPI: VEHICLE AVAILABILITY ========== -->
+        
+        <record id="action_fleet_kpi_availability" model="ir.actions.act_window">
+            <field name="name">Disponibilité Véhicules</field>
+            <field name="res_model">fleet.vehicle</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="domain">[('active','=',True)]</field>
+            <field name="context">{'search_default_available':1}</field>
+        </record>
+        
+        <!-- ========== PIVOT: MISSIONS BY MONTH & TYPE ========== -->
+        
+        <record id="fleet_mission_view_pivot" model="ir.ui.view">
+            <field name="name">fleet.mission.view.pivot</field>
+            <field name="model">fleet.mission</field>
+            <field name="arch" type="xml">
+                <pivot string="Analyse Missions">
+                    <field name="date_start" interval="month" type="row"/>
+                    <field name="mission_type" type="col"/>
+                    <field name="distance_km" type="measure"/>
+                    <field name="duration_days" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+        
+        <record id="action_fleet_missions_pivot" model="ir.actions.act_window">
+            <field name="name">Analyse Missions</field>
+            <field name="res_model">fleet.mission</field>
+            <field name="view_mode">pivot,graph</field>
+            <field name="domain">[('state','in',['done','in_progress'])]</field>
+            <field name="context">{'group_by':['date_start:month','mission_type']}</field>
+        </record>
+        
+        <!-- ========== GRAPH: MISSION TREND ========== -->
+        
+        <record id="fleet_mission_view_graph" model="ir.ui.view">
+            <field name="name">fleet.mission.view.graph</field>
+            <field name="model">fleet.mission</field>
+            <field name="arch" type="xml">
+                <graph string="Tendance Missions" type="line" stacked="False">
+                    <field name="date_start" interval="month"/>
+                    <field name="distance_km" type="measure"/>
+                </graph>
+            </field>
+        </record>
+        
+        <record id="action_fleet_missions_graph" model="ir.actions.act_window">
+            <field name="name">Tendance Missions</field>
+            <field name="res_model">fleet.mission</field>
+            <field name="view_mode">graph,pivot</field>
+            <field name="domain">[('state','=','done'), ('date_start','&gt;=', (context_today() - datetime.timedelta(days=180)).strftime('%Y-%m-%d'))]</field>
+        </record>
+        
+        <!-- ========== GRAPH: DOCUMENT ALERTS PIE CHART ========== -->
+        
+        <record id="fleet_document_view_graph" model="ir.ui.view">
+            <field name="name">fleet.vehicle.document.view.graph</field>
+            <field name="model">fleet.vehicle.document</field>
+            <field name="arch" type="xml">
+                <graph string="Documents par État" type="pie">
+                    <field name="state"/>
+                </graph>
+            </field>
+        </record>
+        
+        <record id="action_fleet_documents_graph" model="ir.actions.act_window">
+            <field name="name">Répartition Documents</field>
+            <field name="res_model">fleet.vehicle.document</field>
+            <field name="view_mode">graph,pivot</field>
+            <field name="context">{'group_by':'state'}</field>
+        </record>
+        
+        <!-- ========== MAIN DASHBOARD ACTION ========== -->
+        <!-- Note: Board.board dashboard structure has changed in Odoo 19 -->
+        <!-- The individual KPI actions above can still be accessed via menus -->
+        <!-- TODO: Rebuild dashboard using Odoo 19 spreadsheet_dashboard approach -->
+        
+        <!--
+        <record id="action_fleet_dashboard" model="ir.actions.act_window">
+            <field name="name">Tableau de Bord Parc Automobile</field>
+            <field name="res_model">board.board</field>
+            <field name="view_mode">form</field>
+            <field name="usage">menu</field>
+        </record>
+        -->
+        
+    </data>
+</odoo>

@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- ========== EMAIL TEMPLATE: MISSION SUBMITTED ========== -->
+        
+        <record id="mail_template_mission_submitted" model="mail.template">
+            <field name="name">Fleet: Mission Soumise pour Approbation</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="subject">🚗 Mission ${object.name} soumise pour validation</field>
+            <field name="email_from">${(object.company_id.email or user.email_formatted) | safe}</field>
+            <field name="email_to">${','.join([u.email for u in object.env.ref('custom_fleet_management.group_fleet_manager').users if u.email]) | safe}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🚗 Nouvelle Mission à Valider</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 30px;">
+                            <p style="font-size: 16px; color: #333333; margin-bottom: 20px;">
+                                Bonjour,
+                            </p>
+                            <p style="font-size: 16px; color: #333333; margin-bottom: 20px;">
+                                Une nouvelle mission a été soumise et nécessite votre validation :
+                            </p>
+                            
+                            <table border="0" cellpadding="10" cellspacing="0" width="100%" style="background-color: #f8f9fa; border-radius: 4px; margin-bottom: 20px;">
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555; width: 40%;">Référence:</td>
+                                    <td style="color: #333333;">${object.name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555;">Demandeur:</td>
+                                    <td style="color: #333333;">${object.requester_id.name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555;">Type:</td>
+                                    <td style="color: #333333;">${dict(object._fields['mission_type'].selection)[object.mission_type]}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555;">Véhicule:</td>
+                                    <td style="color: #333333;">${object.vehicle_id.name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555;">Conducteur:</td>
+                                    <td style="color: #333333;">${object.driver_id.name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555;">Période:</td>
+                                    <td style="color: #333333;">${format_datetime(object.date_start, dt_format='dd/MM/yyyy HH:mm')} - ${format_datetime(object.date_end, dt_format='dd/MM/yyyy HH:mm')}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555;">Durée:</td>
+                                    <td style="color: #333333;">${'%.1f' % object.duration_days} jours</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #555555;">Itinéraire:</td>
+                                    <td style="color: #333333;">${object.route}</td>
+                                </tr>
+                            </table>
+                            
+                            % if object.has_conflict:
+                            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                                <p style="margin: 0; color: #856404; font-weight: bold;">⚠️ ATTENTION: Conflits détectés</p>
+                                <p style="margin: 5px 0 0 0; color: #856404; white-space: pre-line;">${object.conflict_details}</p>
+                            </div>
+                            % endif
+                            
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="${object.get_base_url()}/web#id=${object.id}&amp;model=fleet.mission&amp;view_type=form" 
+                                   style="display: inline-block; padding: 12px 30px; background-color: #28a745; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                    Valider la Mission
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; color: #6c757d; font-size: 12px;">
+                                ${object.company_id.name} - Gestion Parc Automobile
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+            </field>
+        </record>
+        
+        <!-- ========== EMAIL TEMPLATE: MISSION APPROVED ========== -->
+        
+        <record id="mail_template_mission_approved" model="mail.template">
+            <field name="name">Fleet: Mission Approuvée</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="subject">✅ Mission ${object.name} approuvée</field>
+            <field name="email_from">${(object.company_id.email or user.email_formatted) | safe}</field>
+            <field name="email_to">${object.requester_id.email | safe}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="background-color: #28a745; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="color: #ffffff; margin: 0;">✅ Mission Approuvée</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px;">
+                            <p>Bonjour ${object.requester_id.name},</p>
+                            <p>Votre mission <strong>${object.name}</strong> a été approuvée par ${object.approved_by.name}.</p>
+                            
+                            <table border="0" cellpadding="10" width="100%" style="background-color: #f8f9fa; margin: 20px 0;">
+                                <tr>
+                                    <td><strong>N° Ordre de Mission:</strong></td>
+                                    <td>${object.order_number}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Véhicule:</strong></td>
+                                    <td>${object.vehicle_id.name}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Conducteur:</strong></td>
+                                    <td>${object.driver_id.name}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date:</strong></td>
+                                    <td>${format_datetime(object.date_start, dt_format='dd/MM/yyyy HH:mm')}</td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="${object.get_base_url()}/web#id=${object.id}&amp;model=fleet.mission&amp;view_type=form" 
+                                   style="display: inline-block; padding: 12px 30px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 4px;">
+                                    Voir la Mission
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+            </field>
+        </record>
+        
+        <!-- ========== EMAIL TEMPLATE: MISSION ASSIGNED ========== -->
+        
+        <record id="mail_template_mission_assigned" model="mail.template">
+            <field name="name">Fleet: Mission Assignée au Conducteur</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="subject">📍 Mission ${object.name} - Véhicule assigné</field>
+            <field name="email_from">${(object.company_id.email or user.email_formatted) | safe}</field>
+            <field name="email_to">${object.driver_id.work_email or object.driver_id.user_id.email | safe}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="background-color: #17a2b8; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="color: #ffffff; margin: 0;">📍 Mission Assignée</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px;">
+                            <p>Bonjour ${object.driver_id.name},</p>
+                            <p>Vous êtes assigné à la mission suivante :</p>
+                            
+                            <table border="0" cellpadding="10" width="100%" style="background-color: #e9ecef; margin: 20px 0;">
+                                <tr>
+                                    <td><strong>Référence:</strong></td>
+                                    <td>${object.name} (${object.order_number})</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Véhicule:</strong></td>
+                                    <td>${object.vehicle_id.name} (${object.vehicle_id.license_plate})</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Type:</strong></td>
+                                    <td>${dict(object._fields['mission_type'].selection)[object.mission_type]}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Départ:</strong></td>
+                                    <td>${format_datetime(object.date_start, dt_format='dd/MM/yyyy à HH:mm')}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Retour:</strong></td>
+                                    <td>${format_datetime(object.date_end, dt_format='dd/MM/yyyy à HH:mm')}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Itinéraire:</strong></td>
+                                    <td>${object.route}</td>
+                                </tr>
+                            </table>
+                            
+                            <div style="background-color: #d1ecf1; border-left: 4px solid #17a2b8; padding: 15px; margin: 20px 0;">
+                                <p style="margin: 0;"><strong>N'oubliez pas:</strong></p>
+                                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                    <li>Relever le kilométrage au départ</li>
+                                    <li>Vérifier l'état du véhicule</li>
+                                    <li>Relever le kilométrage au retour</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+            </field>
+        </record>
+        
+        <!-- ========== EMAIL TEMPLATE: DEADLINE ALERT J-30 ========== -->
+        
+        <record id="mail_template_deadline_alert_j30" model="mail.template">
+            <field name="name">Fleet: Alerte Échéance J-30</field>
+            <field name="model_id" ref="model_fleet_vehicle"/>
+            <field name="subject">⚠️ Échéance Administrative J-30: ${object.name}</field>
+            <field name="email_from">${(object.company_id.email or user.email_formatted) | safe}</field>
+            <field name="email_to">${','.join([u.email for u in object.env['res.users'].sudo().browse([int(uid) for uid in object.env['ir.config_parameter'].sudo().get_param('fleet.responsible_ids', '').split(',') if uid]) if u.email]) | safe}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="background-color: #ffc107; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="color: #ffffff; margin: 0;">⚠️ Échéance Administrative</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px;">
+                            <p>Bonjour,</p>
+                            <p>Une échéance administrative expire dans moins de <strong>30 jours</strong> pour le véhicule suivant :</p>
+                            
+                            <table border="0" cellpadding="10" width="100%" style="background-color: #fff3cd; margin: 20px 0;">
+                                <tr>
+                                    <td><strong>Véhicule:</strong></td>
+                                    <td>${object.name}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Immatriculation:</strong></td>
+                                    <td>${object.license_plate}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>État:</strong></td>
+                                    <td style="color: ${object.administrative_state == 'critical' and '#dc3545' or '#ffc107'};">
+                                        ${dict(object._fields['administrative_state'].selection)[object.administrative_state]}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Prochaine échéance:</strong></td>
+                                    <td>${object.next_deadline_summary}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Jours restants:</strong></td>
+                                    <td><strong>${object.days_to_next_deadline} jours</strong></td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #856404;">Veuillez planifier le renouvellement de ce document dans les meilleurs délais.</p>
+                            
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="${object.get_base_url()}/web#id=${object.id}&amp;model=fleet.vehicle&amp;view_type=form" 
+                                   style="display: inline-block; padding: 12px 30px; background-color: #ffc107; color: #000000; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                    Voir le Véhicule
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+            </field>
+        </record>
+        
+        <!-- ========== EMAIL TEMPLATE: WEEKLY DIGEST ========== -->
+        
+        <record id="mail_template_weekly_digest" model="mail.template">
+            <field name="name">Fleet: Digest Hebdomadaire</field>
+            <field name="model_id" ref="base.model_res_company"/>
+            <field name="subject">📊 Digest Hebdomadaire Parc Auto - Semaine ${datetime.datetime.now().strftime('%W/%Y')}</field>
+            <field name="email_from">${(object.email or user.email_formatted) | safe}</field>
+            <field name="email_to">${','.join([u.email for u in object.env.ref('custom_fleet_management.group_fleet_manager').users if u.email]) | safe}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="700" style="background-color: #ffffff; border-radius: 8px;">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="color: #ffffff; margin: 0;">📊 Digest Hebdomadaire</h1>
+                            <p style="color: #ffffff; margin: 10px 0 0 0;">Parc Automobile - Semaine ${datetime.datetime.now().strftime('%W/%Y')}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px;">
+                            <p style="font-size: 16px;">Bonjour,</p>
+                            <p style="font-size: 16px;">Voici le résumé de l'activité du parc automobile cette semaine.</p>
+                            
+                            <h2 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px;">🚨 Alertes Urgentes</h2>
+                            <p style="font-style: italic; color: #6c757d;">
+                                Les détails des véhicules nécessitant une attention immédiate seront listés ici.
+                                Consultez le système pour la liste complète.
+                            </p>
+                            
+                            <h2 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-top: 30px;">📅 Missions à Venir</h2>
+                            <p style="font-style: italic; color: #6c757d;">
+                                Les missions planifiées pour les 7 prochains jours seront affichées ici.
+                            </p>
+                            
+                            <h2 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-top: 30px;">📈 Statistiques</h2>
+                            <table border="0" cellpadding="15" width="100%" style="background-color: #f8f9fa; margin: 20px 0; border-radius: 4px;">
+                                <tr>
+                                    <td style="text-align: center; border-right: 1px solid #dee2e6;">
+                                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">--</div>
+                                        <div style="color: #6c757d;">Missions terminées</div>
+                                    </td>
+                                    <td style="text-align: center; border-right: 1px solid #dee2e6;">
+                                        <div style="font-size: 32px; font-weight: bold; color: #17a2b8;">--</div>
+                                        <div style="color: #6c757d;">Missions en cours</div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div style="font-size: 32px; font-weight: bold; color: #ffc107;">--</div>
+                                        <div style="color: #6c757d;">Documents à renouveler</div>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <div style="text-align: center; margin-top: 40px;">
+                                <a href="${object.get_base_url()}/web#menu_id=custom_fleet_management.menu_fleet_dashboard" 
+                                   style="display: inline-block; padding: 15px 40px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+                                    Accéder au Tableau de Bord
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0; color: #6c757d; font-size: 12px;">
+                                ${object.name} - Gestion Parc Automobile<br/>
+                                Ce message est envoyé automatiquement tous les lundis matin.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+            </field>
+        </record>
+        
+    </data>
+</odoo>

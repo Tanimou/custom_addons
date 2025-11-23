@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- ========== CRON: DAILY DOCUMENT EXPIRY ALERTS (J-30) ========== -->
+        
+        <record id="ir_cron_fleet_document_alerts" model="ir.cron">
+            <field name="name">Fleet: Document Expiry Alerts (J-30)</field>
+            <field name="model_id" ref="model_fleet_vehicle_document"/>
+            <field name="state">code</field>
+            <field name="code">model.action_send_expiry_alerts()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+            <field name="user_id" ref="base.user_admin"/>
+        </record>
+        
+        <!-- ========== CRON: WEEKLY FLEET DIGEST (EVERY MONDAY 07:00) ========== -->
+        
+        <record id="ir_cron_fleet_weekly_digest" model="ir.cron">
+            <field name="name">Fleet: Weekly Manager Digest</field>
+            <field name="model_id" ref="model_fleet_vehicle"/>
+            <field name="state">code</field>
+            <field name="code">model.action_send_weekly_digest()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">weeks</field>
+            <field name="active" eval="True"/>
+            <field name="user_id" ref="base.user_admin"/>
+        </record>
+        
+    </data>
+</odoo>

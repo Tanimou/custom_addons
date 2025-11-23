@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Default document type categories for reference -->
+        <!-- These are Selection field values, not database records -->
+        <!-- This file serves as documentation for the document_type field values -->
+        
+        <!--
+        Available document_type values in fleet.vehicle.document:
+        
+        - carte_grise: Carte Grise (Registration Card)
+          Default validity: No expiration (permanent until vehicle sold)
+          
+        - assurance: Assurance (Insurance)
+          Default validity: 1 year
+          Renewal frequency: Annual
+          
+        - visite_technique: Visite Technique (Technical Inspection)
+          Default validity: 1 year (vehicles < 5 years), 6 months (vehicles > 5 years)
+          Renewal frequency: Annual or biannual
+          
+        - vignette: Vignette (Road Tax Sticker)
+          Default validity: 1 year
+          Renewal frequency: Annual
+          
+        - permis: Permis de Conduire (Driver's License)
+          Default validity: Varies by driver class
+          Renewal frequency: Varies
+          
+        - controle_pollution: Contrôle Pollution (Emission Test)
+          Default validity: 6 months to 1 year
+          Renewal frequency: Biannual or annual
+          
+        - pv: Procès-Verbal (Traffic Ticket)
+          Default validity: N/A (archived after payment)
+          Renewal frequency: N/A
+          
+        - maintenance: Carnet Entretien (Maintenance Record)
+          Default validity: N/A (continuous)
+          Renewal frequency: As per maintenance schedule
+          
+        - other: Autre (Other)
+          Default validity: Not specified
+          Renewal frequency: As needed
+        -->
+        
+        <!-- Configuration parameters for default document expiry periods (in days) -->
+        
+        <record id="ir_config_param_assurance_validity" model="ir.config_parameter">
+            <field name="key">fleet.document.assurance.default_days</field>
+            <field name="value">365</field>
+        </record>
+        
+        <record id="ir_config_param_visite_technique_validity" model="ir.config_parameter">
+            <field name="key">fleet.document.visite_technique.default_days</field>
+            <field name="value">365</field>
+        </record>
+        
+        <record id="ir_config_param_vignette_validity" model="ir.config_parameter">
+            <field name="key">fleet.document.vignette.default_days</field>
+            <field name="value">365</field>
+        </record>
+        
+        <record id="ir_config_param_controle_pollution_validity" model="ir.config_parameter">
+            <field name="key">fleet.document.controle_pollution.default_days</field>
+            <field name="value">180</field>
+        </record>
+        
+    </data>
+</odoo>

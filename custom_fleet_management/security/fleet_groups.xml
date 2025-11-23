@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- ========== SECURITY GROUPS ========== -->
+        
+        <!-- Fleet User: Basic access to view and create missions -->
+        <record id="group_fleet_user" model="res.groups">
+            <field name="name">Utilisateur Parc Auto</field>
+            <field name="privilege_id" ref="fleet.res_groups_privilege_fleet"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('fleet.fleet_group_user'))]"/>
+            <field name="comment">
+                Peut consulter les véhicules, créer et soumettre des missions, 
+                consulter les documents (non sensibles).
+                Hérite des permissions du groupe natif 'Officer: Manage all vehicles'.
+            </field>
+        </record>
+        
+        <!-- Fleet Manager: Full administrative access -->
+        <record id="group_fleet_manager" model="res.groups">
+            <field name="name">Responsable Parc Auto</field>
+            <field name="privilege_id" ref="fleet.res_groups_privilege_fleet"/>
+            <field name="implied_ids" eval="[(4, ref('group_fleet_user')), (4, ref('fleet.fleet_group_manager'))]"/>
+            <field name="comment">
+                Peut approuver les missions, gérer les documents sensibles (assurance, PV), 
+                modifier la configuration, consulter les statistiques.
+                Hérite des permissions du groupe natif 'Administrator'.
+            </field>
+        </record>
+        
+        <!-- Fleet Driver Portal: Limited portal access for drivers (optional) -->
+        <record id="group_fleet_driver_portal" model="res.groups">
+            <field name="name">Conducteur Parc Auto (Portal)</field>
+            <field name="privilege_id" ref="fleet.res_groups_privilege_fleet"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="comment">
+                Accès portal pour les conducteurs: consulter leurs missions assignées uniquement.
+            </field>
+        </record>
+        
+    </data>
+</odoo>

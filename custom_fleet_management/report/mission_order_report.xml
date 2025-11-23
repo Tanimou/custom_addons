@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== REPORT: MISSION ORDER (ORDRE DE MISSION) ========== -->
+        
+        <record id="report_mission_order" model="ir.actions.report">
+            <field name="name">Ordre de Mission</field>
+            <field name="model">fleet.mission</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_fleet_management.report_mission_order_document</field>
+            <field name="report_file">custom_fleet_management.report_mission_order_document</field>
+            <field name="binding_model_id" ref="model_fleet_mission"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="base.paperformat_euro"/>
+        </record>
+        
+        <!-- ========== QWEB TEMPLATE: MISSION ORDER DOCUMENT ========== -->
+        
+        <template id="report_mission_order_document">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            
+                            <!-- Header -->
+                            <div class="row mt-4 mb-4">
+                                <div class="col-8">
+                                    <h2 style="border-bottom: 3px solid #667eea; padding-bottom: 10px;">
+                                        <strong>ORDRE DE MISSION</strong>
+                                    </h2>
+                                    <h3 class="text-muted">N° <t t-esc="o.order_number"/></h3>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <!-- QR Code linking to mission record -->
+                                    <t t-set="qr_code_url" t-value="'/report/barcode/?type=QR&amp;value=%s/web#id=%s&amp;model=fleet.mission&amp;view_type=form&amp;width=150&amp;height=150' % (o.get_base_url(), o.id)"/>
+                                    <img t-att-src="qr_code_url" alt="QR Code Mission" style="max-width: 150px;"/>
+                                    <p class="text-muted small mt-2">Scan pour voir la mission</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Mission Status Badge -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <t t-set="state_colors" t-value="{'draft': '#6c757d', 'submitted': '#17a2b8', 'approved': '#28a745', 'assigned': '#ffc107', 'in_progress': '#007bff', 'done': '#28a745', 'cancelled': '#dc3545'}"/>
+                                    <span class="badge" t-attf-style="background-color: #{state_colors.get(o.state, '#6c757d')}; font-size: 14px; padding: 8px 15px;">
+                                        <t t-esc="dict(o._fields['state'].selection)[o.state]"/>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Mission Details -->
+                            <div class="row">
+                                <div class="col-6">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <th style="width: 40%;">Référence:</th>
+                                            <td><strong><t t-esc="o.name"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Date d'émission:</th>
+                                            <td><t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Type de mission:</th>
+                                            <td><t t-esc="dict(o._fields['mission_type'].selection)[o.mission_type]"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-6">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <th style="width: 40%;">Société:</th>
+                                            <td><t t-esc="o.company_id.name"/></td>
+                                        </tr>
+                                        <tr t-if="o.approved_by">
+                                            <th>Approuvé par:</th>
+                                            <td><t t-esc="o.approved_by.name"/></td>
+                                        </tr>
+                                        <tr t-if="o.approved_date">
+                                            <th>Date d'approbation:</th>
+                                            <td><t t-esc="o.approved_date.strftime('%d/%m/%Y %H:%M')"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <hr style="border-top: 2px solid #dee2e6; margin: 30px 0;"/>
+                            
+                            <!-- Personnel Section -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #667eea;">
+                                <i class="fa fa-users"/> Personnel
+                            </h4>
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th style="width: 40%; background-color: #e9ecef;">Demandeur:</th>
+                                            <td><t t-esc="o.requester_id.name"/></td>
+                                        </tr>
+
+                                        <tr t-if="o.requester_id.work_phone">
+                                            <th style="background-color: #e9ecef;">Téléphone:</th>
+                                            <td><t t-esc="o.requester_id.work_phone"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th style="width: 40%; background-color: #e9ecef;">Conducteur:</th>
+                                            <td><strong><t t-esc="o.driver_id.name"/></strong></td>
+                                        </tr>
+                                        <tr t-if="o.driver_id.work_phone">
+                                            <th style="background-color: #e9ecef;">Téléphone:</th>
+                                            <td><t t-esc="o.driver_id.work_phone"/></td>
+                                        </tr>
+                                        <tr t-if="o.driver_id.work_email">
+                                            <th style="background-color: #e9ecef;">Email:</th>
+                                            <td><t t-esc="o.driver_id.work_email"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Vehicle Section -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #667eea;">
+                                <i class="fa fa-car"/> Véhicule
+                            </h4>
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <table class="table table-sm table-bordered">
+                                        <tr>
+                                            <th style="width: 25%; background-color: #e9ecef;">Véhicule:</th>
+                                            <td><strong><t t-esc="o.vehicle_id.name"/></strong></td>
+                                            <th style="width: 25%; background-color: #e9ecef;">Immatriculation:</th>
+                                            <td><strong><t t-esc="o.vehicle_id.license_plate"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Marque/Modèle:</th>
+                                            <td><t t-esc="o.vehicle_id.model_id.brand_id.name"/> <t t-esc="o.vehicle_id.model_id.name"/></td>
+                                            <th style="background-color: #e9ecef;">Année:</th>
+                                            <td><t t-esc="o.vehicle_id.model_year or 'N/A'"/></td>
+                                        </tr>
+                                        <tr t-if="o.odo_start">
+                                            <th style="background-color: #e9ecef;">Km Départ:</th>
+                                            <td><t t-esc="'%.0f' % o.odo_start"/> km</td>
+                                            <th style="background-color: #e9ecef;">Km Retour:</th>
+                                            <td>
+                                                <t t-if="o.odo_end">
+                                                    <t t-esc="'%.0f' % o.odo_end"/> km
+                                                    (Distance: <strong><t t-esc="'%.0f' % o.distance_km"/> km</strong>)
+                                                </t>
+                                                <t t-else="1">À compléter</t>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Mission Itinerary -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #667eea;">
+                                <i class="fa fa-map-marker"/> Itinéraire &amp; Planning
+                            </h4>
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <table class="table table-sm table-bordered">
+                                        <tr>
+                                            <th style="width: 25%; background-color: #e9ecef;">Départ:</th>
+                                            <td><strong><t t-esc="o.date_start.strftime('%d/%m/%Y à %H:%M')"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Retour:</th>
+                                            <td><strong><t t-esc="o.date_end.strftime('%d/%m/%Y à %H:%M')"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Durée:</th>
+                                            <td><t t-esc="'%.1f' % o.duration_days"/> jours</td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Itinéraire:</th>
+                                            <td><t t-esc="o.route or 'Non spécifié'"/></td>
+                                        </tr>
+                                        <tr t-if="o.objective">
+                                            <th style="background-color: #e9ecef;">Objet:</th>
+                                            <td><t t-esc="o.objective"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div class="row mb-4" t-if="o.notes">
+                                <div class="col-12">
+                                    <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #667eea;">
+                                        <i class="fa fa-sticky-note"/> Notes &amp; Instructions
+                                    </h4>
+                                    <div style="border: 1px solid #dee2e6; padding: 15px; background-color: #fff3cd;">
+                                        <t t-esc="o.notes"/>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Checklist -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #667eea;">
+                                        <i class="fa fa-check-square-o"/> Check-list Obligatoire
+                                    </h4>
+                                    <div style="border: 1px solid #dee2e6; padding: 15px;">
+                                        <p><strong>Au départ:</strong></p>
+                                        <ul>
+                                            <li>☐ Vérification état général du véhicule (carrosserie, pneus, feux)</li>
+                                            <li>☐ Contrôle niveaux (huile, liquide de refroidissement, lave-glace)</li>
+                                            <li>☐ Présence documents à bord (carte grise, assurance, visite technique)</li>
+                                            <li>☐ Relevé kilométrage départ: <strong><t t-if="o.odo_start"><t t-esc="'%.0f' % o.odo_start"/> km</t><t t-else="1">___________ km</t></strong></li>
+                                            <li>☐ Niveau carburant: ___________ </li>
+                                        </ul>
+                                        <p><strong>Au retour:</strong></p>
+                                        <ul>
+                                            <li>☐ Relevé kilométrage retour: <strong><t t-if="o.odo_end"><t t-esc="'%.0f' % o.odo_end"/> km</t><t t-else="1">___________ km</t></strong></li>
+                                            <li>☐ Carburant consommé (estimé): <strong><t t-if="o.estimated_consumption"><t t-esc="'%.1f' % o.estimated_consumption"/> L</t><t t-else="1">___________ L</t></strong></li>
+                                            <li>☐ Signalement incidents/anomalies: _________________________________________</li>
+                                            <li>☐ Nettoyage véhicule si nécessaire</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Signatures -->
+                            <div class="row mt-5" style="page-break-inside: avoid;">
+                                <div class="col-4">
+                                    <p><strong>Le Demandeur</strong></p>
+                                    <p style="margin-top: 60px; border-top: 1px solid #000; padding-top: 5px;">
+                                        <t t-esc="o.requester_id.name"/><br/>
+                                        Date: _______________
+                                    </p>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <p><strong>Le Conducteur</strong></p>
+                                    <p style="margin-top: 60px; border-top: 1px solid #000; padding-top: 5px;">
+                                        <t t-esc="o.driver_id.name"/><br/>
+                                        Date: _______________
+                                    </p>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <p><strong>Le Responsable Parc Auto</strong></p>
+                                    <p style="margin-top: 60px; border-top: 1px solid #000; padding-top: 5px;">
+                                        <t t-if="o.approved_by"><t t-esc="o.approved_by.name"/></t>
+                                        <t t-else="1">_______________</t><br/>
+                                        Date: _______________
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Footer -->
+                            <div class="row mt-4" style="border-top: 2px solid #dee2e6; padding-top: 10px;">
+                                <div class="col-12 text-center text-muted small">
+                                    <p>
+                                        Ce document est généré automatiquement par le système de gestion du parc automobile.<br/>
+                                        <t t-esc="o.company_id.name"/> - Imprimé le <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+        
+    </data>
+</odoo>

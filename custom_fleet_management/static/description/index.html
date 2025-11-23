@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion Parc Automobile - Odoo 19</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f7fa;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+        border-radius: 8px;
+        margin-bottom: 40px;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 48px;
+        font-weight: 700;
+      }
+      .header p {
+        font-size: 20px;
+        margin-top: 15px;
+        opacity: 0.95;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+      }
+      .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+      }
+      .feature-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        color: #667eea;
+      }
+      .feature-card h3 {
+        color: #667eea;
+        font-size: 22px;
+        margin-bottom: 15px;
+      }
+      .feature-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .feature-card li {
+        padding: 8px 0;
+        padding-left: 25px;
+        position: relative;
+      }
+      .feature-card li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
+        font-size: 18px;
+      }
+      .section {
+        background: white;
+        padding: 40px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .section h2 {
+        color: #667eea;
+        font-size: 32px;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+      .section h3 {
+        color: #764ba2;
+        font-size: 24px;
+        margin-top: 25px;
+        margin-bottom: 15px;
+      }
+      .badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+      }
+      .badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+      }
+      .badge-version {
+        background-color: #007bff;
+      }
+      .badge-license {
+        background-color: #28a745;
+      }
+      .badge-category {
+        background-color: #ffc107;
+        color: #333;
+      }
+      .badge-lang {
+        background-color: #17a2b8;
+      }
+      .screenshot-placeholder {
+        background: #e9ecef;
+        border: 2px dashed #adb5bd;
+        border-radius: 8px;
+        padding: 60px;
+        text-align: center;
+        color: #6c757d;
+        margin: 20px 0;
+        font-style: italic;
+      }
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 40px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 600;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin: 20px 10px;
+      }
+      .cta-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+      .workflow {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 30px 0;
+        flex-wrap: wrap;
+      }
+      .workflow-step {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 5px;
+      }
+      .workflow-arrow {
+        font-size: 24px;
+        color: #667eea;
+        padding: 0 10px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+      }
+      .stat-card {
+        text-align: center;
+        padding: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+      }
+      .stat-number {
+        font-size: 48px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      .stat-label {
+        font-size: 16px;
+        opacity: 0.9;
+      }
+      .footer {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+        margin-top: 50px;
+      }
+      code {
+        background: #f8f9fa;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+        color: #e83e8c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>🚗 Gestion Parc Automobile</h1>
+        <p>
+          Solution complète pour gérer votre flotte : véhicules, missions,
+          conformité et analyses
+        </p>
+        <div class="badges">
+          <span class="badge badge-version">Odoo 19 Enterprise</span>
+          <span class="badge badge-license">LGPL-3</span>
+          <span class="badge badge-category">Operations / Fleet</span>
+          <span class="badge badge-lang">🇫🇷 Français</span>
+        </div>
+      </div>
+
+      <!-- Key Features -->
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">🚙</div>
+          <h3>Gestion Véhicules</h3>
+          <ul>
+            <li>Codes uniques automatiques (VEH-####)</li>
+            <li>Fiches complètes avec historique</li>
+            <li>État administratif en temps réel</li>
+            <li>Disponibilité instantanée</li>
+            <li>Multi-société</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Missions</h3>
+          <ul>
+            <li>Workflow 7 états avec validation</li>
+            <li>Détection automatique des conflits</li>
+            <li>Ordre de mission PDF avec QR code</li>
+            <li>Intégration calendrier Odoo</li>
+            <li>Suivi kilométrage et carburant</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📄</div>
+          <h3>Conformité</h3>
+          <ul>
+            <li>8 types de documents</li>
+            <li>Alertes automatiques J-30</li>
+            <li>États visuels (vert/orange/rouge)</li>
+            <li>Digest hebdomadaire</li>
+            <li>Workflow de renouvellement</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Analytics & Reporting</h3>
+          <ul>
+            <li>Tableau de bord KPI temps réel</li>
+            <li>Analyses pivot et graphiques</li>
+            <li>Rapport analytique complet PDF</li>
+            <li>Top véhicules et conducteurs</li>
+            <li>Recommandations intelligentes</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Workflow Section -->
+      <div class="section">
+        <h2>📌 Workflow Missions</h2>
+        <p>
+          Processus de validation complet et traçable pour toutes vos missions :
+        </p>
+
+        <div class="workflow">
+          <div class="workflow-step">
+            <strong>Brouillon</strong><br />
+            <small>Création initiale</small>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step">
+            <strong>Soumis</strong><br />
+            <small>Envoi pour validation</small>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step">
+            <strong>Approuvé</strong><br />
+            <small>Manager valide</small>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step">
+            <strong>Assigné</strong><br />
+            <small>Calendrier créé</small>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step">
+            <strong>En cours</strong><br />
+            <small>Mission active</small>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step">
+            <strong>Terminé</strong><br />
+            <small>Bilan saisi</small>
+          </div>
+        </div>
+
+        <p style="margin-top: 30px"><strong>Fonctionnalités clés :</strong></p>
+        <ul style="columns: 2; column-gap: 40px">
+          <li>Détection automatique des conflits (véhicule/conducteur)</li>
+          <li>Génération d'événements calendrier Odoo</li>
+          <li>Ordre de mission PDF avec QR code et signatures</li>
+          <li>Mise à jour automatique du kilométrage véhicule</li>
+          <li>Notifications par email à chaque étape</li>
+          <li>Historique complet avec mail.thread</li>
+        </ul>
+      </div>
+
+      <!-- Statistics -->
+      <div class="section">
+        <h2>🎯 Le module en chiffres</h2>
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-number">7</div>
+            <div class="stat-label">États de workflow</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Types de documents</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Tuiles KPI</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">33</div>
+            <div class="stat-label">Tests unitaires</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Screenshots -->
+      <div class="section">
+        <h2>🖼️ Captures d'écran</h2>
+
+        <h3>Fiche Véhicule</h3>
+        <div class="screenshot-placeholder">
+          <strong
+            >📸 Screenshot : Fiche véhicule avec onglet Administration</strong
+          ><br />
+          Affichage de l'état administratif, documents, smart buttons
+          missions/documents
+        </div>
+
+        <h3>Kanban Missions</h3>
+        <div class="screenshot-placeholder">
+          <strong>📸 Screenshot : Vue Kanban missions par état</strong><br />
+          Colonnes : Brouillon | Soumis | Approuvé | Assigné | En cours |
+          Terminé
+        </div>
+
+        <h3>Tableau de Bord</h3>
+        <div class="screenshot-placeholder">
+          <strong>📸 Screenshot : Dashboard avec KPI et graphiques</strong
+          ><br />
+          4 tuiles KPI + pivot missions + graphiques tendance + alertes
+        </div>
+
+        <h3>Ordre de Mission PDF</h3>
+        <div class="screenshot-placeholder">
+          <strong>📸 Screenshot : PDF ordre de mission</strong><br />
+          En-tête QR code, détails mission, check-list, signatures
+        </div>
+      </div>
+
+      <!-- Technical Details -->
+      <div class="section">
+        <h2>⚙️ Détails Techniques</h2>
+
+        <h3>Prérequis</h3>
+        <ul>
+          <li><strong>Odoo :</strong> Version 19.0 Enterprise</li>
+          <li><strong>Base de données :</strong> PostgreSQL 12+</li>
+          <li><strong>Python :</strong> 3.10+</li>
+        </ul>
+
+        <h3>Modules dépendants</h3>
+        <ul style="columns: 2; column-gap: 40px">
+          <li><code>base</code> : Framework Odoo</li>
+          <li><code>fleet</code> : Parc automobile standard</li>
+          <li><code>hr</code> : Gestion des employés</li>
+          <li><code>mail</code> : Notifications et suivi</li>
+          <li><code>calendar</code> : Intégration calendrier</li>
+          <li><code>web</code> : Interface utilisateur</li>
+          <li><code>board</code> : Tableau de bord</li>
+        </ul>
+
+        <h3>Architecture</h3>
+        <ul>
+          <li>
+            <strong>4 modèles principaux :</strong> fleet.vehicle (étendu),
+            fleet.mission, fleet.vehicle.document, fleet.vehicle.document.type
+          </li>
+          <li>
+            <strong>Mixins :</strong> mail.thread, mail.activity.mixin pour
+            traçabilité
+          </li>
+          <li>
+            <strong>Sécurité :</strong> 3 groupes, 7 ACL, 4 règles
+            d'enregistrement
+          </li>
+          <li>
+            <strong>Automatisation :</strong> 2 cron jobs (alertes quotidiennes,
+            digest hebdomadaire)
+          </li>
+          <li>
+            <strong>Vues :</strong> 15+ vues (list, form, kanban, calendar,
+            gantt, pivot, graph, board)
+          </li>
+          <li>
+            <strong>Rapports :</strong> 2 QWeb PDF (ordre de mission, rapport
+            analytique)
+          </li>
+        </ul>
+
+        <h3>Tests</h3>
+        <p>Suite complète de <strong>33 tests unitaires</strong> couvrant :</p>
+        <ul style="columns: 2; column-gap: 40px">
+          <li>Modèle véhicule et champs calculés (12 tests)</li>
+          <li>Workflow missions et validations (11 tests)</li>
+          <li>Sécurité et permissions (10 tests)</li>
+        </ul>
+        <p><strong>Exécution :</strong></p>
+        <code
+          >odoo-bin -c odoo.conf -d test_db -i custom_fleet_management
+          --test-enable</code
+        >
+      </div>
+
+      <!-- Installation -->
+      <div class="section">
+        <h2>🚀 Installation</h2>
+
+        <h3>1. Copier le module</h3>
+        <code>cp -r custom_fleet_management /path/to/odoo/addons/</code>
+
+        <h3>2. Mettre à jour la liste des apps</h3>
+        <p>Dans Odoo : <strong>Apps → Update Apps List</strong></p>
+
+        <h3>3. Installer le module</h3>
+        <p>
+          Rechercher <strong>"Gestion Parc Automobile"</strong> et cliquer sur
+          <strong>Installer</strong>
+        </p>
+
+        <h3>4. Configuration initiale</h3>
+        <p>
+          Aller dans <strong>Configuration → Parc Automobile</strong> pour
+          configurer :
+        </p>
+        <ul>
+          <li>Délai d'alerte (défaut : 30 jours)</li>
+          <li>Utilisateurs responsables pour notifications</li>
+          <li>Options calendrier et conflits</li>
+        </ul>
+      </div>
+
+      <!-- Support & Links -->
+      <div class="section">
+        <h2>📞 Support & Ressources</h2>
+
+        <h3>Documentation</h3>
+        <p>
+          Documentation complète disponible dans le fichier
+          <code>README.md</code> du module.
+        </p>
+
+        <h3>Développement</h3>
+        <ul>
+          <li><strong>Auteur :</strong> Équipe Développement Odoo</li>
+          <li><strong>Version :</strong> 1.0</li>
+          <li><strong>Licence :</strong> LGPL-3</li>
+          <li><strong>Catégorie :</strong> Operations / Fleet</li>
+        </ul>
+
+        <h3>Traductions</h3>
+        <ul>
+          <li>🇫🇷 <strong>Français</strong> : 100% (défaut)</li>
+          <li>🇬🇧 <strong>Anglais</strong> : 100%</li>
+        </ul>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div style="text-align: center; margin: 50px 0">
+        <a href="#" class="cta-button">📥 Télécharger le module</a>
+        <a href="#" class="cta-button">📖 Documentation complète</a>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p><strong>Gestion Parc Automobile</strong> - Version 1.0</p>
+        <p>Développé pour Odoo 19 Enterprise | Licence LGPL-3</p>
+        <p>© 2025 Équipe Développement Odoo</p>
+        <p style="margin-top: 20px; font-size: 12px">
+          Tous les noms de marques, logos et marques commerciales sont la
+          propriété de leurs détenteurs respectifs.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

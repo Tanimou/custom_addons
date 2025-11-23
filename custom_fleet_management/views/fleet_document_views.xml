@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== FLEET VEHICLE DOCUMENT: list VIEW ========== -->
+        
+        <record id="fleet_vehicle_document_view_list" model="ir.ui.view">
+            <field name="name">fleet.vehicle.document.view.list</field>
+            <field name="model">fleet.vehicle.document</field>
+            <field name="arch" type="xml">
+                <list string="Documents Véhicules" decoration-danger="state=='expired'" decoration-warning="state=='expiring_soon'" decoration-success="state=='valid'">
+                    <field name="vehicle_id"/>
+                    <field name="document_type"/>
+                    <field name="document_number"/>
+                    <field name="issue_date"/>
+                    <field name="expiry_date"/>
+                    <field name="days_to_expire" optional="show"/>
+                    <field name="state" widget="badge" decoration-success="state=='valid'" decoration-warning="state=='expiring_soon'" decoration-danger="state=='expired'"/>
+                    <field name="alert_level" column_invisible="1"/>
+                    <field name="responsible_id" widget="many2one_avatar_user"/>
+                    <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                </list>
+            </field>
+        </record>
+        
+        <!-- ========== FLEET VEHICLE DOCUMENT: FORM VIEW ========== -->
+        
+        <record id="fleet_vehicle_document_view_form" model="ir.ui.view">
+            <field name="name">fleet.vehicle.document.view.form</field>
+            <field name="model">fleet.vehicle.document</field>
+            <field name="arch" type="xml">
+                <form string="Document Véhicule">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="valid,expiring_soon,expired" readonly="1"/>
+                        <button name="action_renew" string="Renouveler" type="object" class="oe_highlight" invisible="state != 'expiring_soon'" groups="custom_fleet_management.group_fleet_manager"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="document_type" required="1"/>
+                            </h1>
+                        </div>
+                        
+                        <div class="alert alert-danger" role="alert" invisible="state != 'expired'">
+                            <i class="fa fa-exclamation-circle"/> <strong>Document Expiré</strong>
+                            <p>Ce document a expiré depuis <field name="days_to_expire" readonly="1"/> jours. Veuillez le renouveler immédiatement.</p>
+                        </div>
+                        
+                        <div class="alert alert-warning" role="alert" invisible="state != 'expiring_soon'">
+                            <i class="fa fa-exclamation-triangle"/> <strong>Expiration Proche</strong>
+                            <p>Ce document expire dans <field name="days_to_expire" readonly="1"/> jours.</p>
+                        </div>
+                        
+                        <group>
+                            <group name="vehicle_info" string="Véhicule">
+                                <field name="vehicle_id" options="{'no_create': True}" required="1"/>
+                                <field name="document_number"/>
+                                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            </group>
+                            <group name="responsible" string="Responsable">
+                                <field name="responsible_id" options="{'no_create': True}"/>
+                            </group>
+                        </group>
+                        
+                        <group>
+                            <group name="dates" string="Dates">
+                                <field name="issue_date"/>
+                                <field name="expiry_date"/>
+                                <field name="alert_level" widget="priority" readonly="1"/>
+                            </group>
+                            <group name="attachment" string="Fichier Joint">
+                                <field name="attachment_id" widget="binary" filename="attachment_name"/>
+                                <field name="attachment_name" invisible="1"/>
+                            </group>
+                        </group>
+                        
+                        <group>
+                            <field name="notes" placeholder="Remarques, conditions particulières, numéro de police..."/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+        
+        <!-- ========== FLEET VEHICLE DOCUMENT: SEARCH VIEW ========== -->
+        
+        <!-- <record id="fleet_vehicle_document_view_search" model="ir.ui.view">
+            <field name="name">fleet.vehicle.document.view.search</field>
+            <field name="model">fleet.vehicle.document</field>
+            <field name="arch" type="xml">
+                <search string="Rechercher Documents">
+                    <field name="vehicle_id"/>
+                    <field name="document_type"/>
+                    <field name="document_number"/>
+                    <field name="responsible_id"/>
+                    <separator/>
+                    <filter string="Expirés" name="expired" domain="[('state','=','expired')]"/>
+                    <filter string="À Renouveler Bientôt" name="expiring_soon" domain="[('state','=','expiring_soon')]"/>
+                    <filter string="Valides" name="valid" domain="[('state','=','valid')]"/>
+                    <separator/>
+                    <filter string="Mes Documents" name="my_documents" domain="[('responsible_id','=',uid)]"/>
+                    <separator/>
+                    <filter string="Expire ce Mois" name="expires_this_month" domain="[('expiry_date','&gt;=', (context_today().replace(day=1)).strftime('%Y-%m-%d')), ('expiry_date','&lt;', ((context_today().replace(day=1) + datetime.timedelta(days=32)).replace(day=1)).strftime('%Y-%m-%d'))]"/>
+                    <separator/>
+                    <group expand="0" string="Regrouper par">
+                        <filter string="Véhicule" name="group_vehicle" context="{'group_by':'vehicle_id'}"/>
+                        <filter string="Type Document" name="group_type" context="{'group_by':'document_type'}"/>
+                        <filter string="État" name="group_state" context="{'group_by':'state'}"/>
+                        <filter string="Responsable" name="group_responsible" context="{'group_by':'responsible_id'}"/>
+                        <filter string="Mois d'Expiration" name="group_month" context="{'group_by':'expiry_date:month'}"/>
+                        <filter string="Société" name="group_company" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                    </group>
+                </search>
+            </field>
+        </record> -->
+        
+    </data>
+</odoo>

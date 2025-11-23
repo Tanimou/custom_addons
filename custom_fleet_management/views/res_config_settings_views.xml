@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== RES CONFIG SETTINGS: FORM VIEW ========== -->
+        
+        <record id="res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.fleet</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="fleet.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <!-- Add custom blocks to native fleet app after existing Fleet Management block -->
+                <xpath expr="//app[@id='fleet']/block[@id='end_contract_setting']" position="after">
+                    
+                    <!-- ========== BLOCK: ALERTES & NOTIFICATIONS ========== -->
+                    <block title="Alertes et Notifications" id="fleet_alerts_settings">
+                        <setting string="Digest Hebdomadaire">
+                            <field name="fleet_weekly_alert_enabled"/>
+                            <div class="text-muted content-group mt16">
+                                Envoyer un digest hebdomadaire aux responsables chaque lundi matin
+                            </div>
+                        </setting>
+                        
+                        <setting string="Seuil d'Alerte">
+                            <div class="text-muted content-group mt16">
+                                <span>Déclencher les alertes </span>
+                                <field name="fleet_alert_offset_days" class="text-center" style="width: 10%; min-width: 4rem;"/>
+                                <span> jours avant échéance</span>
+                            </div>
+                        </setting>
+                        
+                        <setting string="Responsables Parc Auto">
+                            <div class="text-muted content-group mt16">
+                                <span>Utilisateurs recevant les alertes et digests (par société)</span>
+                                <field name="fleet_responsible_ids" widget="many2many_tags" placeholder="Sélectionner les responsables..." class="mt8"/>
+                            </div>
+                        </setting>
+                    </block>
+                    
+                    <!-- ========== BLOCK: MISSIONS ========== -->
+                    <block title="Gestion des Missions" id="fleet_mission_settings">
+                        <setting string="Événements Calendrier">
+                            <field name="fleet_create_calendar_events"/>
+                            <div class="text-muted content-group mt16">
+                                Créer automatiquement des événements au calendrier lors de l'assignation des missions
+                            </div>
+                        </setting>
+                        
+                        <setting string="Blocage Conflits">
+                            <field name="fleet_block_conflicting_missions"/>
+                            <div class="text-muted content-group mt16">
+                                Empêcher la création de missions avec chevauchement véhicule/conducteur
+                            </div>
+                        </setting>
+                    </block>
+                    
+                </xpath>
+            </field>
+        </record>
+        
+    </data>
+</odoo>

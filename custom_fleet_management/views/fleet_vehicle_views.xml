@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== FLEET.VEHICLE FORM VIEW (INHERITED) ========== -->
+        
+        <record id="fleet_vehicle_view_form_inherit" model="ir.ui.view">
+            <field name="name">fleet.vehicle.form.inherit</field>
+            <field name="model">fleet.vehicle</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add smart buttons at the top -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    
+                    <!-- Smart Button: Missions -->
+                    <button name="action_view_missions" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="fa-road"
+                            groups="custom_fleet_management.group_fleet_user">
+                        <field name="mission_count" widget="statinfo" string="Missions"/>
+                    </button>
+                    
+                    <!-- Smart Button: Documents -->
+                    <button name="action_view_documents" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="fa-file-text-o"
+                            groups="custom_fleet_management.group_fleet_user">
+                        <field name="document_count" widget="statinfo" string="Documents"/>
+                    </button>
+                    
+                    <!-- Smart Button: Alertes -->
+                    <button name="action_view_documents" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="fa-exclamation-triangle"
+                            groups="custom_fleet_management.group_fleet_user"
+                            invisible="alert_count == 0"
+                            context="{'search_default_expired': 1}">
+                        <field name="alert_count" widget="statinfo" string="Alertes"/>
+                    </button>
+                    
+                </xpath>
+                
+                <!-- Add vehicle_code after license_plate -->
+                <xpath expr="//field[@name='license_plate']" position="after">
+                    <field name="vehicle_code" readonly="1" class="oe_inline"/>
+                </xpath>
+                
+                <!-- Add administrative status widget below main fields -->
+                <xpath expr="//field[@name='driver_id']" position="after">
+                    <field name="administrative_state" widget="badge" 
+                           decoration-success="administrative_state == 'ok'"
+                           decoration-warning="administrative_state == 'warning'"
+                           decoration-danger="administrative_state == 'critical'"/>
+                    <field name="is_available" invisible="1"/>
+                </xpath>
+                
+                <!-- Add new notebook page: Administration & Documents -->
+                <xpath expr="//notebook" position="inside">
+                    <page string="Administration &amp; Documents" name="administration">
+                        
+                        <group>
+                            <group string="État Administratif">
+                                <field name="administrative_state" widget="statusbar" 
+                                       statusbar_visible="ok,warning,critical"
+                                       readonly="1"/>
+                                <field name="next_deadline_summary" readonly="1"/>
+                                <field name="days_to_next_deadline" readonly="1"/>
+                            </group>
+                            
+                            <group string="Disponibilité">
+                                <field name="is_available" widget="boolean_toggle"/>
+                                <field name="mission_count" readonly="1"/>
+                                <field name="current_mission_id" readonly="1"/>
+                            </group>
+                        </group>
+                        
+                        <group>
+                            <group string="Échéances Administratives">
+                                <field name="date_prochaine_visite" 
+                                       widget="date"
+                                       class="oe_inline"/>
+                                <field name="date_fin_assurance" 
+                                       widget="date"
+                                       class="oe_inline"/>
+                                <field name="date_fin_vignette" 
+                                       widget="date"
+                                       class="oe_inline"/>
+                            </group>
+                            
+                            <group string="Documents">
+                                <field name="document_count" readonly="1"/>
+                                <field name="has_expired_document" widget="boolean" readonly="1"/>
+                                <button name="action_view_documents" 
+                                        type="object" 
+                                        string="Voir Documents" 
+                                        class="oe_link"
+                                        icon="fa-folder-open"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Actions Rapides">
+                            <button name="action_create_mission" 
+                                    type="object" 
+                                    string="Créer une Mission" 
+                                    class="oe_highlight"
+                                    icon="fa-plus-circle"/>
+                        </group>
+                        
+                    </page>
+                </xpath>
+                
+            </field>
+        </record>
+        
+        <!-- ========== FLEET.VEHICLE list VIEW (INHERITED) ========== -->
+        
+        <record id="fleet_vehicle_view_list_inherit" model="ir.ui.view">
+            <field name="name">fleet.vehicle.list.inherit</field>
+            <field name="model">fleet.vehicle</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_view_tree"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add vehicle_code column -->
+                <xpath expr="//field[@name='license_plate']" position="after">
+                    <field name="vehicle_code" optional="show"/>
+                </xpath>
+                
+                <!-- Add administrative_state column -->
+                <xpath expr="//field[@name='driver_id']" position="after">
+                    <field name="administrative_state" 
+                           widget="badge"
+                           decoration-success="administrative_state == 'ok'"
+                           decoration-warning="administrative_state == 'warning'"
+                           decoration-danger="administrative_state == 'critical'"
+                           optional="show"/>
+                    <field name="next_deadline_summary" optional="show"/>
+                    <field name="is_available" widget="boolean_toggle" optional="show"/>
+                </xpath>
+                
+            </field>
+        </record>
+        
+        <!-- ========== FLEET.VEHICLE SEARCH VIEW (INHERITED) ========== -->
+        
+        <record id="fleet_vehicle_view_search_inherit" model="ir.ui.view">
+            <field name="name">fleet.vehicle.search.inherit</field>
+            <field name="model">fleet.vehicle</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_view_search"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add search by vehicle_code -->
+                <xpath expr="//field[@name='license_plate']" position="after">
+                    <field name="vehicle_code" string="Code Véhicule"/>
+                </xpath>
+                
+                <!-- Add filters -->
+                <xpath expr="//filter[@name='inactive']" position="after">
+                    <separator/>
+                    <filter string="Disponibles" 
+                            name="available" 
+                            domain="[('is_available', '=', True)]"/>
+                    <filter string="Non Disponibles" 
+                            name="not_available" 
+                            domain="[('is_available', '=', False)]"/>
+                    <separator/>
+                    <filter string="État OK" 
+                            name="state_ok" 
+                            domain="[('administrative_state', '=', 'ok')]"/>
+                    <filter string="En Alerte" 
+                            name="state_warning" 
+                            domain="[('administrative_state', '=', 'warning')]"/>
+                    <filter string="Critiques" 
+                            name="state_critical" 
+                            domain="[('administrative_state', '=', 'critical')]"/>
+                    <separator/>
+                    <filter string="Documents Expirés" 
+                            name="expired_docs" 
+                            domain="[('has_expired_document', '=', True)]"/>
+                </xpath>
+                
+                <!-- Add group by -->
+                <xpath expr="//group" position="inside">
+                    <filter string="État Administratif" 
+                            name="group_administrative_state" 
+                            context="{'group_by': 'administrative_state'}"/>
+                    <filter string="Disponibilité" 
+                            name="group_availability" 
+                            context="{'group_by': 'is_available'}"/>
+                </xpath>
+                
+            </field>
+        </record>
+        
+        <!-- ========== FLEET.VEHICLE KANBAN VIEW (INHERITED) ========== -->
+        
+        <record id="fleet_vehicle_view_kanban_inherit" model="ir.ui.view">
+            <field name="name">fleet.vehicle.kanban.inherit</field>
+            <field name="model">fleet.vehicle</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_view_kanban"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add fields to kanban -->
+                <xpath expr="//field[@name='license_plate']" position="after">
+                    <field name="vehicle_code"/>
+                    <field name="administrative_state"/>
+                    <field name="next_deadline_summary"/>
+                    <field name="is_available"/>
+                    <field name="mission_count"/>
+                    <field name="document_count"/>
+                </xpath>
+                
+                <!-- Add administrative status badge and counters -->
+                <xpath expr="//footer" position="inside">
+                    <div class="d-flex justify-content-between mt-1 pt-1 border-top">
+                        <div class="d-flex gap-1">
+                            <span class="badge" 
+                                  t-att-class="record.administrative_state.raw_value == 'ok' ? 'badge-success' : (record.administrative_state.raw_value == 'warning' ? 'badge-warning' : 'badge-danger')">
+                                <field name="administrative_state"/>
+                            </span>
+                            <span t-if="record.is_available.raw_value" class="badge badge-info">
+                                Disponible
+                            </span>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <span t-if="record.mission_count.raw_value" class="badge badge-primary">
+                                <i class="fa fa-road"/> <field name="mission_count"/>
+                            </span>
+                            <span t-if="record.document_count.raw_value" class="badge badge-secondary">
+                                <i class="fa fa-file-text-o"/> <field name="document_count"/>
+                            </span>
+                        </div>
+                    </div>
+                </xpath>
+                
+            </field>
+        </record>
+        
+        <!-- ========== ACTION: CREATE MISSION FROM VEHICLE ========== -->
+        
+        <record id="action_fleet_mission_from_vehicle" model="ir.actions.act_window">
+            <field name="name">Créer Mission</field>
+            <field name="res_model">fleet.mission</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{
+                'default_vehicle_id': active_id,
+                'default_driver_id': driver_id,
+            }</field>
+        </record>
+        
+    </data>
+</odoo>
