@@ -35,6 +35,7 @@
                         <field name="notes" placeholder="Additional notes about this document..."/>
                     </group>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

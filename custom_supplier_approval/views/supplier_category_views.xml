@@ -28,6 +28,7 @@
                         <field name="description" placeholder="Category description..."/>
                     </group>
                 </sheet>
+                 <chatter/>
             </form>
         </field>
     </record>

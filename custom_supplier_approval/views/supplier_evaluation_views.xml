@@ -53,11 +53,8 @@
                         <field name="comments" nolabel="1" placeholder="Commentaires supplémentaires sur cette évaluation..."/>
                     </group>
                 </sheet>
-                <!-- <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="message_ids"/>
-                </div> -->
-            </form>
+ <chatter/>            
+</form>
         </field>
     </record>
 

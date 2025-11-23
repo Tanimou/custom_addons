@@ -5,6 +5,13 @@
     'name': "Supplier Approval & Evaluation",
     'version': '1.0',
     'category': 'Purchases',
+    'images': [
+        'static/description/icon.png',
+        'static/description/screenshots/approval_workflow.png',
+        'static/description/screenshots/evaluation_form.png',
+        'static/description/screenshots/dashboard_insights.png',
+        'static/description/screenshots/reports_bundle.png',
+    ],
     'sequence': 10,
     'summary': "Manage supplier approval workflow and evaluation system",
     'description': """
