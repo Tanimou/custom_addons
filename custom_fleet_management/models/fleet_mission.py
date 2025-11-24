@@ -93,7 +93,7 @@ class FleetMission(models.Model):
         string='Véhicule',
         required=True,
         tracking=True,
-        domain="[('active', '=', True), ('is_available', '=', True)]",
+        domain="[ ('is_available', '=', True)]",
         help="Véhicule affecté à cette mission"
     )
     
@@ -190,7 +190,6 @@ class FleetMission(models.Model):
             ('draft', 'Brouillon'),
             ('submitted', 'Soumis'),
             ('approved', 'Approuvé'),
-            ('assigned', 'Affecté'),
             ('in_progress', 'En Cours'),
             ('done', 'Terminé'),
             ('cancelled', 'Annulé'),
@@ -340,7 +339,7 @@ class FleetMission(models.Model):
             # Cherche missions qui se chevauchent (même véhicule ou même conducteur)
             overlapping_domain = [
                 ('id', '!=', mission.id),
-                ('state', 'in', ['submitted', 'approved', 'assigned', 'in_progress']),
+                ('state', 'in', ['submitted', 'approved', 'in_progress']),
                 ('date_start', '<', mission.date_end),
                 ('date_end', '>', mission.date_start),
                 '|',
@@ -462,28 +461,32 @@ class FleetMission(models.Model):
             if not mission.order_number:
                 mission.order_number = self.env['ir.sequence'].next_by_code('fleet.mission.order')
             
-            # Notification au demandeur
-            mission.message_post_with_source(
-                'custom_fleet_management.mail_template_mission_approved',
-                subtype_xmlid='mail.mt_comment',
-            )
-            
+            # Notification dans le chatter
             mission.message_post(
-                body=_("Mission approuvée par %s", self.env.user.name),
+                body=_("Mission approuvée. N° Ordre: %s, Véhicule: %s, Conducteur: %s, Date début: %s. Approuvé par: %s") % (
+                    mission.order_number,
+                    mission.vehicle_id.name,
+                    mission.driver_id.name,
+                    mission.date_start.strftime('%d/%m/%Y %H:%M') if mission.date_start else '',
+                    self.env.user.name
+                ),
                 subject=_("Approbation")
             )
     
-    def action_assign(self):
+    def action_start(self):
         """
-        Assigne définitivement le véhicule et le conducteur.
-        Transitions: approved → assigned
-        Synchronise avec le calendrier si activé.
+        Démarre la mission.
+        Transitions: approved → in_progress
+        Crée l'événement calendrier et notifie le conducteur.
         """
         for mission in self:
             if mission.state != 'approved':
-                raise UserError(_("Seules les missions approuvées peuvent être assignées."))
+                raise UserError(_("Seules les missions approuvées peuvent être démarrées."))
             
-            mission.write({'state': 'assigned'})
+            if not mission.odo_start:
+                raise UserError(_("Le kilométrage de départ doit être renseigné avant de démarrer."))
+            
+            mission.write({'state': 'in_progress'})
             
             # Création événement calendrier si activé
             if mission.create_calendar_event and not mission.calendar_event_id:
@@ -495,32 +498,14 @@ class FleetMission(models.Model):
                     'mail.mail_activity_data_todo',
                     user_id=mission.driver_id.user_id.id,
                     date_deadline=mission.date_start.date(),
-                    summary=_("Mission assignée: %s", mission.name),
-                    note=_("Vous êtes assigné à cette mission avec le véhicule %s.", mission.vehicle_id.name),
+                    summary=_("Mission démarrée: %s", mission.name),
+                    note=_("Mission en cours avec le véhicule %s. Kilométrage départ: %s km.", 
+                           mission.vehicle_id.name, mission.odo_start),
                 )
             
             mission.message_post(
-                body=_("Mission assignée. Véhicule: %s, Conducteur: %s", 
-                       mission.vehicle_id.name, mission.driver_id.name),
-                subject=_("Affectation")
-            )
-    
-    def action_start(self):
-        """
-        Démarre la mission.
-        Transitions: assigned → in_progress
-        """
-        for mission in self:
-            if mission.state != 'assigned':
-                raise UserError(_("Seules les missions assignées peuvent être démarrées."))
-            
-            if not mission.odo_start:
-                raise UserError(_("Le kilométrage de départ doit être renseigné avant de démarrer."))
-            
-            mission.write({'state': 'in_progress'})
-            
-            mission.message_post(
-                body=_("Mission démarrée. Kilométrage départ: %s km", mission.odo_start),
+                body=_("Mission démarrée. Véhicule: %s, Conducteur: %s, Kilométrage départ: %s km", 
+                       mission.vehicle_id.name, mission.driver_id.name, mission.odo_start),
                 subject=_("Démarrage")
             )
     

@@ -10,7 +10,7 @@
             <field name="res_model">fleet.vehicle</field>
             <field name="view_mode">kanban,list,form</field>
             <field name="domain">[('is_available', '=', True)]</field>
-            <field name="context">{'search_default_available': 1}</field>
+            <field name="context">{}</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
                     Aucun véhicule disponible
@@ -30,7 +30,7 @@
         <record id="action_fleet_mission" model="ir.actions.act_window">
             <field name="name">Missions Véhicules</field>
             <field name="res_model">fleet.mission</field>
-            <field name="view_mode">list,form,kanban,calendar,gantt,pivot,graph</field>
+            <field name="view_mode">kanban,list,form,calendar,gantt,pivot,graph</field>
             <field name="context">{}</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">

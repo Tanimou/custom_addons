@@ -8,18 +8,19 @@
             <field name="name">fleet.mission.view.list</field>
             <field name="model">fleet.mission</field>
             <field name="arch" type="xml">
-                <list string="Missions" decoration-muted="state=='cancelled'" decoration-success="state=='done'" decoration-info="state in ('approved','assigned')" decoration-warning="has_conflict==True">
+                <list string="Missions" decoration-muted="state=='cancelled'" decoration-success="state=='done'" decoration-info="state=='approved'" decoration-warning="has_conflict==True">
                     <field name="name"/>
                     <field name="order_number"/>
                     <field name="requester_id"/>
                     <field name="driver_id" widget="many2one_avatar_user"/>
                     <field name="vehicle_id"/>
+                    <field name="destination" optional="show"/>
                     <field name="mission_type"/>
                     <field name="date_start"/>
                     <field name="date_end"/>
                     <field name="duration_days" optional="show"/>
                     <field name="distance_km" optional="hide"/>
-                    <field name="state" widget="badge" decoration-info="state in ('draft','submitted')" decoration-success="state=='done'" decoration-warning="state in ('approved','assigned','in_progress')" decoration-danger="state=='cancelled'"/>
+                    <field name="state" widget="badge" decoration-info="state in ('draft','submitted')" decoration-success="state=='done'" decoration-warning="state in ('approved','in_progress')" decoration-danger="state=='cancelled'"/>
                     <field name="has_conflict" column_invisible="1"/>
                     <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 </list>
@@ -36,12 +37,11 @@
                     <header>
                         <button name="action_submit" string="Soumettre" type="object" class="oe_highlight" invisible="state != 'draft'"/>
                         <button name="action_approve" string="Approuver" type="object" class="oe_highlight" invisible="state != 'submitted'" groups="custom_fleet_management.group_fleet_manager"/>
-                        <button name="action_assign" string="Assigner" type="object" class="oe_highlight" invisible="state != 'approved'" groups="custom_fleet_management.group_fleet_manager"/>
-                        <button name="action_start" string="Démarrer" type="object" class="oe_highlight" invisible="state != 'assigned'"/>
+                        <button name="action_start" string="Démarrer" type="object" class="oe_highlight" invisible="state != 'approved'"/>
                         <button name="action_done" string="Terminer" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
                         <button name="action_cancel" string="Annuler" type="object" invisible="state in ('done','cancelled')"/>
                         <button name="action_reset_to_draft" string="Réinitialiser" type="object" invisible="state != 'cancelled'" groups="custom_fleet_management.group_fleet_manager"/>
-                        <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,assigned,in_progress,done"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,in_progress,done"/>
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
@@ -72,7 +72,7 @@
                             <group name="vehicle_driver_info" string="Véhicule et Conducteur">
                                 <field name="vehicle_id" options="{'no_create': True}" required="1"/>
                                 <field name="driver_id" widget="many2one_avatar_user" options="{'no_create': True}" required="1"/>
-                                <field name="approved_by" readonly="1" invisible="state not in ('approved','assigned','in_progress','done')"/>
+                                <field name="approved_by" readonly="1" invisible="state not in ('approved','in_progress','done')"/>
                             </group>
                         </group>
                         
@@ -93,7 +93,7 @@
                         
                         <group>
                             <group name="odometer_info" string="Kilométrage">
-                                <field name="odo_start" readonly="state not in ('assigned','in_progress')"/>
+                                <field name="odo_start" readonly="state not in ('approved','in_progress')"/>
                                 <field name="odo_end" readonly="state != 'in_progress'"/>
                                 <field name="distance_km" readonly="1"/>
                             </group>
@@ -137,6 +137,7 @@
                     <field name="name"/>
                     <field name="vehicle_id"/>
                     <field name="driver_id"/>
+                    <field name="destination"/>
                     <field name="mission_type"/>
                     <field name="date_start"/>
                     <field name="date_end"/>
@@ -152,13 +153,16 @@
                                             <i class="fa fa-car"/> <field name="vehicle_id"/>
                                         </div>
                                     </div>
-                                    <span class="badge badge-pill" t-attf-class="badge-#{record.state.raw_value == 'done' ? 'success' : record.state.raw_value in ['approved','assigned','in_progress'] ? 'info' : 'secondary'}">
+                                    <span class="badge badge-pill" t-attf-class="badge-#{record.state.raw_value == 'done' ? 'success' : record.state.raw_value in ['approved','in_progress'] ? 'info' : 'secondary'}">
                                         <field name="state"/>
                                     </span>
                                 </div>
                                 <div class="o_kanban_record_body">
                                     <div>
                                         <i class="fa fa-user"/> <field name="driver_id"/>
+                                    </div>
+                                    <div t-if="record.destination.raw_value">
+                                        <i class="fa fa-map-marker"/> <field name="destination"/>
                                     </div>
                                     <div>
                                         <span t-attf-class="badge badge-#{record.mission_type.raw_value == 'urban' ? 'primary' : 'secondary'}">
@@ -229,7 +233,7 @@
                     <filter string="Brouillon" name="draft" domain="[('state','=','draft')]"/>
                     <filter string="En Attente" name="submitted" domain="[('state','=','submitted')]"/>
                     <filter string="Approuvées" name="approved" domain="[('state','=','approved')]"/>
-                    <filter string="En Cours" name="in_progress" domain="[('state','in',['assigned','in_progress'])]"/>
+                    <filter string="En Cours" name="in_progress" domain="[('state','=','in_progress')]"/>
                     <filter string="Terminées" name="done" domain="[('state','=','done')]"/>
                     <separator/>
                     <filter string="Cette Semaine" name="this_week" domain="[('date_start','&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')), ('date_start','&lt;', (context_today() + datetime.timedelta(days=7-context_today().weekday())).strftime('%Y-%m-%d'))]"/>

@@ -7,8 +7,8 @@
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
             <!-- Add domain to partner_id to show only approved suppliers -->
-            <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="domain">['&amp;', ('supplier_rank', '&gt;', 0), ('supplier_approved', '=', True)]</attribute>
+            <xpath expr="//sheet//field[@name='partner_id']" position="attributes">
+                <attribute name="domain">[('supplier_rank', '&gt;', 0), ('supplier_approved', '=', True)]</attribute>
             </xpath>
         </field>
     </record>

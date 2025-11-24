@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -126,7 +126,7 @@ class FleetVehicle(models.Model):
     is_available = fields.Boolean(
         string='Disponible',
         compute='_compute_is_available',
-        search='_search_is_available',
+        store=True,
         help="Indique si le véhicule est disponible pour une nouvelle mission"
     )
     
@@ -231,7 +231,7 @@ class FleetVehicle(models.Model):
         """
         Vérifie si le véhicule est disponible.
         Un véhicule est indisponible s'il a une mission en cours (in_progress)
-        ou une mission future approuvée/assignée.
+        ou une mission future approuvée.
         """
         today = date.today()
         for vehicle in self:
@@ -247,17 +247,13 @@ class FleetVehicle(models.Model):
             
             # Cherche missions actives ou futures
             active_missions = vehicle.mission_ids.filtered(
-                lambda m: m.state in ('in_progress', 'assigned', 'approved') and
-                         (not m.date_end or m.date_end >= today)
+                lambda m: m.state in ('in_progress', 'approved') and
+                         (not m.date_end or m.date_end.date() >= today)
             )
             
             vehicle.is_available = not active_missions
     
-    def _search_is_available(self, operator, value):
-        """Permet de filtrer par disponibilité dans les recherches."""
-        # Recherche complexe - déléguer à Python
-        vehicles = self.search([]).filtered(lambda v: v.is_available == value)
-        return [('id', 'in', vehicles.ids)]
+
     
     @api.depends('mission_ids.state')
     def _compute_current_mission(self):
@@ -334,6 +330,25 @@ class FleetVehicle(models.Model):
             'view_mode': 'list,form',
             'domain': [('vehicle_id', '=', self.id)],
             'context': {'default_vehicle_id': self.id},
+        }
+    
+    def action_view_alerts(self):
+        """Ouvre la vue des documents expirés/expirant pour ce véhicule."""
+        self.ensure_one()
+        return {
+            'name': _('Alertes Documents - %s', self.name),
+            'type': 'ir.actions.act_window',
+            'res_model': 'fleet.vehicle.document',
+            'view_mode': 'list,form',
+            'domain': [
+                ('vehicle_id', '=', self.id),
+                ('state', 'in', ['expiring_soon', 'expired'])
+            ],
+            'context': {
+                'default_vehicle_id': self.id,
+                'search_default_expiring_soon': 1,
+                'search_default_expired': 1,
+            },
         }
     
     def action_create_mission(self):

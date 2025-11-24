@@ -11,6 +11,11 @@
                 <widget name="web_ribbon" title="Fourisser=ur Aggrée" bg_color="bg-success" invisible="not supplier_approved or supplier_rank == 0"/>
             </xpath>
             
+            <!-- Hide Documents smart button from documents module -->
+            <xpath expr="//button[@name='action_see_documents']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            
             <!-- Add smart buttons for suppliers -->
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_approval_requests"
@@ -42,8 +47,8 @@
                         invisible="supplier_rank == 0 or supplier_approved"/>
             </xpath>
             
-            <!-- Add supplier toggle checkbox in Purchase section -->
-            <xpath expr="//page[@name='sales_purchases']//group[@name='purchase']" position="inside">
+            <!-- Add supplier toggle checkbox after category_id (Étiquettes) -->
+            <xpath expr="//field[@name='category_id']" position="after">
                 <field name="supplier_rank" invisible="1"/>
                 <div class="o_row">
                     <field name="is_supplier" widget="boolean_toggle" nolabel="1"/>

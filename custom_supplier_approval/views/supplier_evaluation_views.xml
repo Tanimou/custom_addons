@@ -72,7 +72,7 @@
                 <field name="reactivity_rating"/>
                 <field name="compliance_rating"/>
                 <field name="commercial_rating"/>
-                <field name="overall_score" widget="progressbar"/>
+                <field name="overall_score" widget="percentage"/>
                 <field name="evaluated_by"/>
             </list>
         </field>

@@ -10,6 +10,11 @@
             <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
             <field name="arch" type="xml">
                 
+                <!-- Hide the native documents_fleet button to avoid confusion -->
+                <xpath expr="//button[@name='action_open_attachments']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                
                 <!-- Add smart buttons at the top -->
                 <xpath expr="//div[@name='button_box']" position="inside">
                     
@@ -22,23 +27,22 @@
                         <field name="mission_count" widget="statinfo" string="Missions"/>
                     </button>
                     
-                    <!-- Smart Button: Documents -->
+                    <!-- Smart Button: Administrative Documents -->
                     <button name="action_view_documents" 
                             type="object" 
                             class="oe_stat_button" 
-                            icon="fa-file-text-o"
+                            icon="fa-folder"
                             groups="custom_fleet_management.group_fleet_user">
-                        <field name="document_count" widget="statinfo" string="Documents"/>
+                        <field name="document_count" widget="statinfo" string="Documents Admin"/>
                     </button>
                     
                     <!-- Smart Button: Alertes -->
-                    <button name="action_view_documents" 
+                    <button name="action_view_alerts" 
                             type="object" 
                             class="oe_stat_button" 
                             icon="fa-exclamation-triangle"
                             groups="custom_fleet_management.group_fleet_user"
-                            invisible="alert_count == 0"
-                            context="{'search_default_expired': 1}">
+                            invisible="alert_count == 0">
                         <field name="alert_count" widget="statinfo" string="Alertes"/>
                     </button>
                     

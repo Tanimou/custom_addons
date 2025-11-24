@@ -272,3 +272,17 @@ class SupplierApprovalRequest(models.Model):
                 body=_('Request reset to draft by %s') % self.env.user.name,
                 message_type='notification'
             )
+
+    def action_view_legal_documents(self):
+        """Action to view legal documents for the supplier"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Legal Documents'),
+            'res_model': 'supplier.legal.document',
+            'view_mode': 'list,form',
+            'domain': [('partner_id', '=', self.partner_id.id)],
+            'context': {
+                'default_partner_id': self.partner_id.id,
+            }
+        }

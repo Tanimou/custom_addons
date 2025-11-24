@@ -42,7 +42,7 @@
                             <!-- Mission Status Badge -->
                             <div class="row mb-3">
                                 <div class="col-12">
-                                    <t t-set="state_colors" t-value="{'draft': '#6c757d', 'submitted': '#17a2b8', 'approved': '#28a745', 'assigned': '#ffc107', 'in_progress': '#007bff', 'done': '#28a745', 'cancelled': '#dc3545'}"/>
+                                    <t t-set="state_colors" t-value="{'draft': '#6c757d', 'submitted': '#17a2b8', 'approved': '#28a745', 'in_progress': '#007bff', 'done': '#28a745', 'cancelled': '#dc3545'}"/>
                                     <span class="badge" t-attf-style="background-color: #{state_colors.get(o.state, '#6c757d')}; font-size: 14px; padding: 8px 15px;">
                                         <t t-esc="dict(o._fields['state'].selection)[o.state]"/>
                                     </span>

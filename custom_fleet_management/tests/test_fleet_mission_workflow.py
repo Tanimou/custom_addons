@@ -87,11 +87,7 @@ class TestFleetMissionWorkflow(TransactionCase):
         self.assertTrue(mission.approved_date)
         self.assertEqual(mission.approved_by, self.manager)
         
-        # Assign
-        mission.action_assign()
-        self.assertEqual(mission.state, 'assigned')
-        
-        # Start
+        # Start (directly from approved)
         mission.action_start()
         self.assertEqual(mission.state, 'in_progress')
         
@@ -111,7 +107,7 @@ class TestFleetMissionWorkflow(TransactionCase):
             'date_start': datetime.now() + timedelta(days=1),
             'date_end': datetime.now() + timedelta(days=2),
             'mission_type': 'course_urbaine',
-            'state': 'assigned',
+            'state': 'approved',
             'company_id': self.company.id,
         })
         
@@ -237,9 +233,9 @@ class TestFleetMissionWorkflow(TransactionCase):
         
         mission.action_submit()
         mission.with_user(self.manager_user).action_approve()
-        mission.action_assign()
+        mission.action_start()
         
-        # Check calendar event created
+        # Check calendar event created (now happens on start, not assign)
         self.assertTrue(mission.calendar_event_id)
         self.assertEqual(mission.calendar_event_id.name, f"Mission: {mission.name}")
 

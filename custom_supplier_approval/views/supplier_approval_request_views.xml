@@ -15,6 +15,14 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_legal_documents"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text">
+                            <span>Voir Documents</span>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>

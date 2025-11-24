@@ -11,6 +11,7 @@ class SupplierLegalDocument(models.Model):
     """Legal documents for suppliers (RCCM, NCC, CNPS, etc.)"""
     _name = 'supplier.legal.document'
     _description = 'Supplier Legal Document'
+    _inherit = ['mail.thread']
     _order = 'issue_date desc, id desc'
 
     name = fields.Char(
@@ -58,6 +59,11 @@ class SupplierLegalDocument(models.Model):
         string='Attachment',
         help="Scanned copy or PDF of the document",
         ondelete='restrict'
+    )
+    attachment_name = fields.Char(
+        related='attachment_id.name',
+        string='Nom Fichier',
+        readonly=True
     )
     state = fields.Selection(
         selection=[
