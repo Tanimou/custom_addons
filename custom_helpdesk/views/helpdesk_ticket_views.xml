@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="helpdesk_ticket_view_form" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.view.form</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button string="Valider" type="object" 
+                        name="action_validate" class="btn-primary"
+                        invisible="not (state in ['draft', 'pending'])"/>
+                <button string="Renvoyer " type="object" 
+                        name="action_send_back" class="btn-warning"
+                        invisible="state != 'draft'"/>
+                <button string="Rejeter" type="object" 
+                        name="action_cancel" class="btn-danger"
+                        invisible="not (state in ['draft', 'pending'])"/>
+                <button string="Mettre en Brouillon" type="object" 
+                        name="action_draft" class="btn-secondary"
+                        invisible="not (state in ['cancel', 'pending'])"/>
+                <button string="Cloturer " type="object" 
+                        name="action_close" class="btn-success"
+                        invisible="state != 'progress'"/>
+                <button name="action_create_purchase_order" 
+                        type="object" icon="fa-shopping-cart"
+                        string="Créer un achat" class="btn-primary"
+                        invisible="not (state in ['progress', 'pending'])"/>
+            </xpath>
+            <field name="email_cc" position="after">
+                <field name="equipment_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+            </field>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_purchase_orders" invisible="not purchase_ids"
+                        type="object" class="oe_stat_button" icon="fa-shopping-cart">
+                    <div class="o_field_widget o_stat_info">
+                        <div class="d-flex align-items-baseline gap-1">
+                            <span class="o_stat_value order-1">
+                                <field name="purchase_order_count" nolabel="1"/>
+                            </span>
+                            <span class="o_stat_text order-2">Achats</span>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-1">
+                            <span class="o_stat_value">
+                                <field name="purchase_amount" nolabel="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </span>
+                        </div>
+                    </div>
+                </button>
+            </xpath>
+
+            <xpath expr="//group[1]" position="after">
+                <group class="mb-0 mt-4">
+                    <group>
+                        <field name="type_work"/>
+                        <field name="date_intervention"/>
+                    </group>
+                    <group>
+                        <field name="office_id"/>
+                        <field name="room_id"/>
+                        <field name="state" invisible="1"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <xpath expr="//notebook/page[@name='description']" position="after">
+                <page string="Bon d'achat" name="purchase">
+                    <field name="purchase_ids">
+                        <list string="Purchase Order Lines" editable="bottom" limit="20">
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="amount_total"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="string">Demandeur</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

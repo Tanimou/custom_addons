@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_reservation_room_booking_form" model="ir.ui.view">
+            <field name="name">reservation.room.booking.form</field>
+            <field name="model">reservation.room.booking</field>
+            <field name="arch" type="xml">
+                <form string="Gestion des reservations" create="1" edit="1" delete="0">
+                    <header>
+                        <button name="action_submit" type="object" string="Soumettre Pour Validation"
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_validate" type="object" string="Approuver"
+                                class="btn btn-success" invisible="state != 'submit'" 
+                                groups="custom_room.group_head_general_services"/>
+                        <button name="action_refun" type="object" string="Refuser"
+                                class="btn btn-warning" invisible="state != 'submit'"
+                                groups="custom_room.group_head_general_services"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submit,done,refun"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name" placeholder="Nom" readonly="state in ('done', 'refun')"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="organized_id" readonly="state in ('done', 'refun')"/>
+                                <field name="company_id" readonly="state in ('done', 'refun')"/>
+                            </group>
+                            <group>
+                                <field name="room_id_domain" invisible="1"/>
+                                <field name="room_id" 
+                                        domain="room_id_domain"
+                                        readonly="state in ('done', 'refun')"/>
+                                <field name="room_booking_id" 
+                                        readonly='1' 
+                                        domain="[('room_id', '=', room_id)]"/>
+                            </group>
+                            <group>
+                                <field name="responsable_id" readonly="state in ('done', 'refun')"/>
+                                <field name="date_to" invisible="1"/>
+                                <field name="date_from" 
+                                        string="Date" 
+                                        widget="daterange" 
+                                        options="{'end_date_field': 'date_to'}"
+                                        readonly="state in ('done', 'refun')"/>
+                            </group>
+                            <group>
+                                <field name="description" 
+                                        readonly="state in ('done', 'refun')"
+                                        invisible="0"/>
+                            </group>
+                        </group>              
+                    </sheet>
+                    <chatter reload_on_follower="True"/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_reservation_room_booking_list" model="ir.ui.view">
+            <field name="name">reservation.room.booking.list</field>
+            <field name="model">reservation.room.booking</field>
+            <field name="arch" type="xml">
+                
+                <list string="Gestion des budget" create="1" edit="1" delete="0">
+                    <field name="name"/>
+                    <field name="organized_id"/>
+                    <field name="responsable_id"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="state"
+                       decoration-danger="state == 'refun'"
+                       decoration-success="state == 'submit'"
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'done'"
+                       widget="badge"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_reservation_room_booking" model="ir.actions.act_window">
+            <field name="name">Gestion des Reservations</field>
+            <field name="res_model">reservation.room.booking</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Créer vos reservations de salles de reunions
+                </p>
+            </field>
+        </record>
+
+        <!-- <record id="room.room_booking_menu" model="ir.ui.menu">
+            <field name="groups_id" eval="[(6, 0, [ref('base.group_no_one')])]"/>
+        </record> -->
+
+
+        <!-- Menu principal -->
+
+        <menuitem 
+            id="menu_reservation_room_booking"
+            name="Reservations"
+            parent="room.room_menu_root"
+            action="action_reservation_room_booking"
+            sequence="1"/>
+
+        <menuitem
+            id="room_booking_menu_inherit"
+            name="Réservations Validées"
+            action="room.room_booking_action"
+            parent="room.room_menu_root"
+            sequence="2"/>
+
+    </data>
+
+</odoo>
