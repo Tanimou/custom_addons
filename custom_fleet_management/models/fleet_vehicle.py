@@ -130,6 +130,13 @@ class FleetVehicle(models.Model):
         help="Indique si le véhicule est actuellement en mission"
     )
     
+    is_on_mission = fields.Boolean(
+        string='En Mission',
+        compute='_compute_is_on_mission',
+        store=True,
+        help="Indique si le véhicule est actuellement en mission"
+    )
+    
     current_mission_id = fields.Many2one(
         'fleet.mission',
         string='Mission en Cours',
@@ -261,6 +268,14 @@ class FleetVehicle(models.Model):
         for vehicle in self:
             current = vehicle.mission_ids.filtered(lambda m: m.state == 'in_progress')
             vehicle.current_mission_id = current[:1] if current else False
+    
+    @api.depends('mission_ids.state')
+    def _compute_is_on_mission(self):
+        """Vérifie si le véhicule est actuellement en mission."""
+        for vehicle in self:
+            vehicle.is_on_mission = bool(
+                vehicle.mission_ids.filtered(lambda m: m.state == 'in_progress')
+            )
     
     # ========== MÉTHODES CRUD ==========
     
