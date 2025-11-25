@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="room_room_view_form" model="ir.ui.view">
+        <field name="name">room.room.view.form</field>
+        <field name="model">room.room</field>
+        <field name="inherit_id" ref="room.room_room_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_open_booking_view']" position="before">
+                <button string="Mettre en travaux" type="object" 
+                        name="compute_under_construction" 
+                        invisible="under_construction"/>
+                <button string="Fin travaux" type="object" 
+                        name="compute_not_under_construction" 
+                        invisible="not under_construction"/>
+            </xpath>
+            <field name="room_booking_url" position="after">
+                <field name="under_construction" invisible='1'/>
+                <field name="num_place"/>
+            </field>
+            <field name="room_properties" position="before">
+                <group >
+                    <field name="equipment_ids" widget="many2many_tags"/>
+                    <button name="action_generate_index_html" type="object" 
+                            string="Mettre a jours les equipements"
+                            class="btn btn-primary" invisible="not equipment_ids"
+                            groups="custom_room.group_head_general_services"/>
+                </group>
+                
+            </field>
+            <xpath expr="//sheet/div[2]/div[1]" position="attributes">
+                <attribute name="invisible">not is_available or under_construction</attribute>
+            </xpath>
+            <xpath expr="//sheet/div[2]/div[2]" position="attributes">
+                <attribute name="invisible">is_available or under_construction</attribute>
+            </xpath>
+            <xpath expr="//sheet/div[2]" position="inside">
+                <div class="badge rounded-pill text-bg-danger float-end fs-6 border-0"
+                    invisible="not under_construction">
+                    En Travaux
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="room_room_view_kanban_inherit_v3" model="ir.ui.view">
+        <field name="name">room.room.view.kanban.inherit.v3</field>
+        <field name="model">room.room</field>
+        <field name="inherit_id" ref="room.room_room_view_kanban"/>
+        <field name="arch" type="xml">
+            
+            <field name="is_available" position="after">
+                <field name="under_construction"/>
+            </field>
+            
+            <xpath expr="//footer" position="replace">
+                <footer class="pt-0">
+                    <!-- En construction -->
+                    <div t-if="record.under_construction.raw_value" 
+                            class="py-1 px-2 text-bg-warning">
+                        En travaux
+                    </div>
+                    
+                    <!-- Disponible ou occupé (seulement si pas en construction) -->
+                    <div t-elif="record.active.raw_value" 
+                            t-attf-class="py-1 px-2 text-bg-#{record.is_available.raw_value ? 'success' : 'danger'}">
+                        <t t-if="record.is_available.raw_value">Disponible</t>
+                        <t t-else="">Occupé</t>
+                        <t t-if="record.next_booking_start.value">
+                            <t t-set="start_datetime"
+                                t-value="luxon.DateTime.fromISO(record.next_booking_start.raw_value)"/>
+                                Jusqu'à
+                            <t t-if="start_datetime.hasSame(luxon.DateTime.now(), 'day')"
+                                t-out="start_datetime.toLocaleString(luxon.DateTime.TIME_SIMPLE)"/>
+                            <t t-else="" t-out="start_datetime.toLocaleString(luxon.DateTime.DATE_SHORT)"/>
+                        </t>
+                    </div>
+                    
+                    <!-- Inactif -->
+                    <div t-else="" class="py-1 px-2 text-bg-secondary">
+                        Inactive
+                    </div>
+                </footer>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>

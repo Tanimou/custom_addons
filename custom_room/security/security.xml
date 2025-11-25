@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.module.category" id="principal_flux_validation">
+            <field name="name">Validation des flux</field>
+            <field name="sequence">120</field>
+        </record>
+        
+        <record model="res.groups.privilege" id="res_groups_flux_validation">
+            <field name="name">Responsabilite</field>
+            <field name="category_id" ref="principal_flux_validation"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="group_flux_user" model="res.groups">
+            <field name="name">Utilisateur</field>
+            <field name="privilege_id" ref="res_groups_flux_validation"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="group_head_general_services" model="res.groups">
+            <field name="name">Responsable des Moyens Généraux</field>
+            <field name="privilege_id" ref="res_groups_flux_validation"/>
+            <field name="implied_ids" eval="[(4, ref('group_flux_user'))]"/>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="group_administrative_financial_officer" model="res.groups">
+            <field name="name">Directeur Administratif et Financier (DAF)</field>
+            <field name="privilege_id" ref="res_groups_flux_validation"/>
+            <field name="implied_ids" eval="[(4, ref('group_head_general_services'))]"/>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="group_account_manager" model="res.groups">
+            <field name="name">Directeur Général (DG)</field>
+            <field name="sequence">4</field>
+            <field name="privilege_id" ref="res_groups_flux_validation"/>
+            <field name="implied_ids" eval="[(4, ref('group_administrative_financial_officer'))]"/>
+            <!-- <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/> -->
+        </record>
+
+    </data>
+</odoo>
