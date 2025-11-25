@@ -1,0 +1,41 @@
+<odoo>
+    <record id="mail_template_maintenance_alert" model="mail.template">
+        <field name="name">Alerte maintenance véhicule</field>
+        <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+        <field name="email_from">${(user.email_formatted or '')|safe}</field>
+        <field name="subject">[Maintenance] ${object.vehicle_id.display_name} - ${object.name}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Bonjour,</p>
+                <p>L'intervention <strong>${object.name}</strong> pour le véhicule <strong>${object.vehicle_id.display_name}</strong> arrive à échéance le ${format_datetime(object.scheduled_start)}.</p>
+                <p>Type : ${object.intervention_type == 'preventive' and 'Préventive' or 'Curative'}<br/>
+                Responsable : ${object.responsible_id.name or 'Non défini'}<br/>
+                Conducteur : ${object.driver_id.name or 'N/A'}</p>
+                <p>Merci de prendre les mesures nécessaires.</p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_weekly_digest" model="mail.template">
+        <field name="name">Digest hebdomadaire maintenance</field>
+        <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+        <field name="subject">[Maintenance] Digest hebdomadaire</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Bonjour ${object.responsible_id.name or 'équipe'},</p>
+                <p>Voici les interventions en attente :</p>
+                <ul>
+                    <t t-set="records" t-value="ctx.get('interventions') or [object]"/>
+                    <t t-foreach="records" t-as="intervention">
+                        <li>
+                            <strong><t t-esc="intervention.name"/></strong> -
+                            <t t-esc="intervention.vehicle_id.display_name"/> :
+                            <t t-esc="intervention.state"/> (début prévu <t t-esc="format_datetime(intervention.scheduled_start)"/>)
+                        </li>
+                    </t>
+                </ul>
+                <p>Merci de finaliser les actions nécessaires.</p>
+            </div>
+        </field>
+    </record>
+</odoo>

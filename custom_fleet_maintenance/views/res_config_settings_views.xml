@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_fleet" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.fleet.maintenance</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="fleet.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@id='fleet']" position="inside">
+                <block title="Préventif &amp; notifications">
+                    <setting string="Délai d'alerte">
+                        <field name="fleet_alert_offset_days"/>
+                        <label for="fleet_alert_offset_days" string="Nombre de jours avant l'échéance pour avertir les responsables."/>
+                    </setting>
+                    <setting string="Digest hebdomadaire">
+                        <field name="fleet_weekly_digest_enabled"/>
+                        <label for="fleet_weekly_digest_enabled" string="Envoyer un résumé des interventions en cours chaque lundi."/>
+                    </setting>
+                    <setting string="Responsable par défaut">
+                        <field name="fleet_default_responsible_id" options="{'no_open': True}"/>
+                        <label for="fleet_default_responsible_id" string="Utilisateur assigné par défaut aux nouvelles interventions."/>
+                    </setting>
+                    <setting string="Calendrier">
+                        <field name="fleet_calendar_sync_enabled"/>
+                        <label for="fleet_calendar_sync_enabled" string="Créer automatiquement des évènements pour les interventions planifiées."/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

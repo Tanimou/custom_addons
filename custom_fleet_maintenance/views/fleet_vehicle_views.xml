@@ -1,0 +1,34 @@
+<odoo>
+    <record id="fleet_vehicle_view_form_maintenance" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.maintenance</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_create_curative_intervention" type="object" string="Déclarer une panne" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_user"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_maintenance_history" type="object" class="oe_stat_button" icon="fa-stethoscope">
+                    <field name="active_intervention_count" widget="statinfo" string="Maintenances"/>
+                </button>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Maintenance" name="maintenance_tab">
+                    <group>
+                        <group string="Suivi">
+                            <field name="active_intervention_count" readonly="1"/>
+                            <field name="preventive_intervention_count" readonly="1"/>
+                            <field name="next_preventive_date" readonly="1"/>
+                            <field name="next_preventive_odometer" readonly="1"/>
+                        </group>
+                        <group string="État actuel">
+                            <field name="maintenance_state" readonly="1" widget="badge"/>
+                            <field name="maintenance_location_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="maintenance_history_ids" nolabel="1" mode="list,form"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

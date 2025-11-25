@@ -1,0 +1,34 @@
+<odoo>
+    <record id="ir_cron_generate_preventive" model="ir.cron">
+        <field name="name">Maintenance - Génération préventive</field>
+        <field name="model_id" ref="model_fleet_maintenance_plan"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_generate_preventive_interventions()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="ir_cron_send_alerts" model="ir.cron">
+        <field name="name">Maintenance - Alertes quotidiennes</field>
+        <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_send_alerts()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="ir_cron_weekly_digest" model="ir.cron">
+        <field name="name">Maintenance - Digest hebdomadaire</field>
+        <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_send_digest()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="active" eval="True"/>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+</odoo>

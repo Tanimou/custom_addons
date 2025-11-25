@@ -1,0 +1,22 @@
+<odoo>
+    <record id="fleet_intervention_rule_company" model="ir.rule">
+        <field name="name">Interventions multi-sociétés</field>
+        <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_maintenance.group_fleet_maintenance_user'))]"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="fleet_plan_rule_company" model="ir.rule">
+        <field name="name">Plans multi-sociétés</field>
+        <field name="model_id" ref="model_fleet_maintenance_plan"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_maintenance.group_fleet_maintenance_user'))]"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="fleet_driver_rule_intervention" model="ir.rule">
+        <field name="name">Conducteur - interventions personnelles</field>
+        <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_maintenance.group_fleet_maintenance_driver'))]"/>
+        <field name="domain_force">[('driver_id', '=', user.partner_id.id)]</field>
+    </record>
+</odoo>

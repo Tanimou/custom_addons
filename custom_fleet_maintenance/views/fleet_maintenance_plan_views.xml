@@ -1,0 +1,86 @@
+<odoo>
+    <record id="fleet_maintenance_plan_view_tree" model="ir.ui.view">
+        <field name="name">fleet.maintenance.plan.tree</field>
+        <field name="model">fleet.maintenance.plan</field>
+        <field name="arch" type="xml">
+            <list sample="1">
+                <field name="name"/>
+                <field name="interval_type"/>
+                <field name="interval_value"/>
+                <field name="interval_unit"/>
+                <field name="odometer_interval"/>
+                <field name="vehicle_model_ids" widget="many2many_tags"/>
+                <field name="vehicle_ids" widget="many2many_tags" optional="hide"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="fleet_maintenance_plan_view_form" model="ir.ui.view">
+        <field name="name">fleet.maintenance.plan.form</field>
+        <field name="model">fleet.maintenance.plan</field>
+        <field name="arch" type="xml">
+            <form string="Plan de maintenance">
+                <header>
+                    <button name="action_generate_lines" string="Générer les lignes" type="object" class="btn btn-primary"/>
+                    <field name="active"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id"/>
+                            <field name="assignment_type"/>
+                            <field name="vehicle_model_ids" widget="many2many_tags"/>
+                            <field name="vehicle_ids" widget="many2many_tags" modifiers="{'invisible': [['assignment_type', '=', 'model']]}"/>
+                        </group>
+                        <group>
+                            <field name="interval_type"/>
+                            <field name="interval_value"/>
+                            <field name="interval_unit" modifiers="{'invisible': [['interval_type', '=', 'odometer']]}"/>
+                            <field name="odometer_interval" modifiers="{'invisible': [['interval_type', '=', 'time']]}"/>
+                            <field name="tolerance_days"/>
+                            <field name="tolerance_km"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Instructions">
+                            <field name="instruction_html" nolabel="1" widget="html"/>
+                        </page>
+                        <page string="Lignes">
+                            <field name="plan_line_ids" nolabel="1">
+                                <list editable="bottom" decoration-warning="state == 'due'" decoration-danger="state == 'late'">
+                                    <field name="vehicle_id"/>
+                                    <field name="responsible_id"/>
+                                    <field name="next_due_date"/>
+                                    <field name="next_due_odometer"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="last_execution_id" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="fleet_maintenance_plan_line_view_graph" model="ir.ui.view">
+        <field name="name">fleet.maintenance.plan.line.graph</field>
+        <field name="model">fleet.maintenance.plan.line</field>
+        <field name="arch" type="xml">
+            <graph string="Planifications" type="bar">
+                <field name="next_due_date" type="row"/>
+                <field name="vehicle_id" type="row"/>
+                <field name="state" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="fleet_maintenance_plan_action" model="ir.actions.act_window">
+        <field name="name">Plans de maintenance</field>
+        <field name="res_model">fleet.maintenance.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

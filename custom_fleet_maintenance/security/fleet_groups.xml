@@ -1,0 +1,25 @@
+<odoo>
+    <record id="res_groups_privilege_fleet_maintenance" model="res.groups.privilege">
+        <field name="name">Maintenance</field>
+        <field name="sequence">18</field>
+        <field name="category_id" ref="base.module_category_operations"/>
+    </record>
+
+    <record id="group_fleet_maintenance_user" model="res.groups">
+        <field name="name">Utilisateur maintenance flotte</field>
+        <field name="privilege_id" ref="custom_fleet_maintenance.res_groups_privilege_fleet_maintenance"/>
+        <field name="implied_ids" eval="[(4, ref('fleet.fleet_group_user'))]"/>
+    </record>
+
+    <record id="group_fleet_maintenance_manager" model="res.groups">
+        <field name="name">Responsable maintenance flotte</field>
+        <field name="privilege_id" ref="custom_fleet_maintenance.res_groups_privilege_fleet_maintenance"/>
+        <field name="implied_ids" eval="[(4, ref('group_fleet_maintenance_user')),(4, ref('fleet.fleet_group_manager'))]"/>
+    </record>
+
+    <record id="group_fleet_maintenance_driver" model="res.groups">
+        <field name="name">Conducteur - demandes de maintenance</field>
+        <field name="privilege_id" ref="custom_fleet_maintenance.res_groups_privilege_fleet_maintenance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+</odoo>

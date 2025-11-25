@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_maintenance_kpi">
+        <t t-call="web.external_layout">
+            <t t-set="interventions" t-value="docs"/>
+            <t t-set="currency" t-value="interventions and interventions[0].company_id.currency_id or env.company.currency_id"/>
+            <t t-set="preventive_count" t-value="len(interventions.filtered(lambda r: r.intervention_type == 'preventive'))"/>
+            <t t-set="curative_count" t-value="len(interventions.filtered(lambda r: r.intervention_type == 'curative'))"/>
+            <t t-set="closed_rate" t-value="interventions and round(len(interventions.filtered(lambda r: r.state == 'done')) / len(interventions) * 100, 2) or 0"/>
+            <t t-set="total_cost" t-value="sum(interventions.mapped('actual_total_amount'))"/>
+            <t t-set="vehicle_stats" t-value="interventions.get_vehicle_stats(limit=5)"/>
+            <div class="page">
+                <h2>Rapport KPI maintenance</h2>
+                <table class="table table-sm o_main_table">
+                    <thead>
+                        <tr>
+                            <th>Indicateur</th>
+                            <th>Valeur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nombre d'interventions</td>
+                            <td><t t-esc="len(interventions)"/></td>
+                        </tr>
+                        <tr>
+                            <td>Préventives / Curatives</td>
+                            <td><t t-esc="preventive_count"/> / <t t-esc="curative_count"/></td>
+                        </tr>
+                        <tr>
+                            <td>Taux de clôture</td>
+                            <td><t t-esc="'%s %%' % closed_rate"/></td>
+                        </tr>
+                        <tr>
+                            <td>Coût total engagé</td>
+                            <td><t t-esc="format_amount(total_cost, currency)"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h3>Top véhicules sollicités</h3>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Véhicule</th>
+                            <th>Interventions</th>
+                            <th>Coûts</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="vehicle_stats" t-as="stat">
+                            <tr>
+                                <td><t t-esc="stat['vehicle'].display_name"/></td>
+                                <td><t t-esc="stat['count']"/></td>
+                                <td><t t-esc="format_amount(stat['amount'], currency)"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <h3>Recommandations</h3>
+                <ul>
+                    <li t-if="curative_count &gt; preventive_count">Accroître la planification préventive pour réduire les interventions curatives.</li>
+                    <li t-if="closed_rate &lt; 80">Mettre en place un suivi quotidien pour clôturer plus rapidement les interventions ouvertes.</li>
+                    <li t-if="total_cost &gt; 0">Analyser les pièces les plus coûteuses pour identifier des fournisseurs alternatifs.</li>
+                </ul>
+            </div>
+        </t>
+    </template>
+
+    <report
+        id="maintenance_kpi_report_action"
+        model="fleet.maintenance.intervention"
+        string="Rapport KPI maintenance"
+        report_type="qweb-pdf"
+        name="custom_fleet_maintenance.report_maintenance_kpi"
+        file="custom_fleet_maintenance.report_maintenance_kpi"
+    />
+</odoo>

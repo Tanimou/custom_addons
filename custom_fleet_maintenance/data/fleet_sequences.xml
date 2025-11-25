@@ -1,0 +1,17 @@
+<odoo>
+    <record id="seq_curative_intervention" model="ir.sequence">
+        <field name="name">Intervention curative</field>
+        <field name="code">custom_fleet_maintenance.seq_curative_intervention</field>
+        <field name="prefix">MC-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_preventive_intervention" model="ir.sequence">
+        <field name="name">Intervention préventive</field>
+        <field name="code">custom_fleet_maintenance.seq_preventive_intervention</field>
+        <field name="prefix">MP-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>
