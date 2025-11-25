@@ -11,33 +11,33 @@ class SupplierCategory(models.Model):
     _order = 'name'
 
     name = fields.Char(
-        string='Category Name',
+        string='Nom de la catégorie',
         required=True,
         translate=True,
-        help="Name of the supplier category (e.g., Office Supplies, IT Services, Construction Works)"
+        help="Nom de la catégorie de fournisseur (par exemple, Fournitures de bureau, Services informatiques, Travaux de construction)"
     )
     code = fields.Char(
         string='Code',
-        help="Short code for the category"
+        help="Code court pour la catégorie"
     )
     description = fields.Text(
         string='Description',
         translate=True,
-        help="Detailed description of this supplier category"
+        help="Description détaillée de cette catégorie de fournisseur"
     )
     active = fields.Boolean(
         string='Active',
         default=True,
-        help="If unchecked, this category will be hidden"
+        help="Si décoché, cette catégorie sera masquée"
     )
     partner_count = fields.Integer(
-        string='Number of Suppliers',
+        string='Nombre de fournisseurs',
         compute='_compute_partner_count',
-        help="Number of suppliers in this category"
+        help="Nombre de fournisseur dans cette catégorie"
     )
 
     _sql_constraints = [
-        ('code_unique', 'UNIQUE(code)', 'The category code must be unique!'),
+        ('code_unique', 'UNIQUE(code)', 'Le code de la catégorie doit être unique.'),
     ]
 
     def _compute_partner_count(self):
@@ -53,7 +53,7 @@ class SupplierCategory(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Suppliers in %s', self.name),
+            'name': _('Fournisseurs dans %s', self.name),
             'res_model': 'res.partner',
             'view_mode': 'tree,form',
             'domain': [

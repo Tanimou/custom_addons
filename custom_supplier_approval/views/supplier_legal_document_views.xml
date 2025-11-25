@@ -28,12 +28,8 @@
                         <group>
                             <field name="issue_date"/>
                             <field name="expiry_date"/>
-                            <!-- <field name="attachment_id" widget="many2one_binary"/> -->
+                            <field name="attachment_id" widget="many2one_binary"/>
                         </group>
-                        <group name="attachment" string="Fichier Joint">
-                                <field name="attachment_id" widget="binary" filename="attachment_name"/>
-                                <field name="attachment_name" invisible="1"/>
-                            </group>
                     </group>
                     <group>
                         <field name="notes" placeholder="Additional notes about this document..."/>

@@ -7,3 +7,4 @@ access_supplier_approval_request_user,supplier.approval.request.user,model_suppl
 access_supplier_approval_request_manager,supplier.approval.request.manager,model_supplier_approval_request,purchase.group_purchase_manager,1,1,1,1
 access_supplier_evaluation_user,supplier.evaluation.user,model_supplier_evaluation,purchase.group_purchase_user,1,1,1,0
 access_supplier_evaluation_manager,supplier.evaluation.manager,model_supplier_evaluation,purchase.group_purchase_manager,1,1,1,1
+access_supplier_rejection_wizard_manager,supplier.rejection.wizard.manager,model_supplier_rejection_wizard,purchase.group_purchase_manager,1,1,1,1

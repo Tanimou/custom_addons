@@ -13,13 +13,13 @@ class SupplierEvaluation(models.Model):
     _order = 'evaluation_date desc, id desc'
 
     name = fields.Char(
-        string='Evaluation Name',
+        string='Nom de l\'évaluation',
         compute='_compute_name',
         store=True
     )
     partner_id = fields.Many2one(
         'res.partner',
-        string='Supplier',
+        string='Fournisseur',
         required=True,
         domain="[('supplier_rank', '>', 0)]",
         ondelete='cascade',
@@ -28,21 +28,21 @@ class SupplierEvaluation(models.Model):
     )
     evaluated_by = fields.Many2one(
         'res.users',
-        string='Evaluated By',
+        string='Évalué par',
         default=lambda self: self.env.user,
         required=True,
         tracking=True
     )
     evaluation_date = fields.Date(
-        string='Evaluation Date',
+        string='Date de l\'évaluation',
         default=fields.Date.context_today,
         required=True,
         tracking=True
     )
     purchase_order_id = fields.Many2one(
         'purchase.order',
-        string='Purchase Order',
-        help="Related purchase order for this evaluation"
+        string='Commande d\'achat',
+        help="Commande d'achat liée à cette évaluation"
     )
     
     # Rating fields (1-5 stars)
@@ -87,14 +87,14 @@ class SupplierEvaluation(models.Model):
     ], string='Commercial', required=True)
     
     overall_score = fields.Float(
-        string='Overall Score (%)',
+        string='Score global (%)',
         compute='_compute_overall_score',
         store=True,
-        help="Average score from all ratings (0-100)"
+        help="Moyenne des notes de toutes les évaluations (0-100)"
     )
     comments = fields.Text(
-        string='Comments',
-        help="Additional comments about this evaluation"
+        string='Commentaires',
+        help="Commentaires supplémentaires sur cette évaluation"
     )
 
     @api.depends('partner_id', 'evaluation_date')
@@ -130,7 +130,7 @@ class SupplierEvaluation(models.Model):
         for rec in self:
             if rec.purchase_order_id and rec.purchase_order_id.partner_id != rec.partner_id:
                 raise ValidationError(
-                    _('Purchase order %s does not belong to supplier %s!') % 
+                    _('La commande d\'achat %s n\'appartient pas au fournisseur %s!') % 
                     (rec.purchase_order_id.name, rec.partner_id.name)
                 )
 
@@ -141,7 +141,7 @@ class SupplierEvaluation(models.Model):
             return
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Purchase Order'),
+            'name': _('Commande d\'achat'),
             'res_model': 'purchase.order',
             'res_id': self.purchase_order_id.id,
             'view_mode': 'form',
@@ -153,7 +153,7 @@ class SupplierEvaluation(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Supplier'),
+            'name': _('Fournisseur'),
             'res_model': 'res.partner',
             'res_id': self.partner_id.id,
             'view_mode': 'form',

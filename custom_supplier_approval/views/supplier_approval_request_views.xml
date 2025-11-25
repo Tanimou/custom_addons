@@ -10,7 +10,7 @@
                 <header>
                     <button name="action_submit" string="Soumettre" type="object" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_approve" string="Approuver" type="object" class="oe_highlight" invisible="state != 'pending'" groups="purchase.group_purchase_manager"/>
-                    <button name="action_reject" string="Rejeter" type="object" invisible="state != 'pending'" groups="purchase.group_purchase_manager"/>
+                    <button name="%(custom_supplier_approval.action_supplier_rejection_wizard)d" string="Rejeter" type="action" invisible="state != 'pending'" groups="purchase.group_purchase_manager"/>
                     <button name="action_reset_to_draft" string="Réinitialiser au brouillon" type="object" invisible="state != 'rejected'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved"/>
                 </header>

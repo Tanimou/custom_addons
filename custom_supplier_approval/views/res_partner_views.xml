@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <!-- Add green ribbon for approved suppliers -->
             <xpath expr="//div[@name='button_box']" position="before">
-                <widget name="web_ribbon" title="Fourisser=ur Aggrée" bg_color="bg-success" invisible="not supplier_approved or supplier_rank == 0"/>
+                <widget name="web_ribbon" title="agrée" bg_color="bg-success" invisible="not supplier_approved or supplier_rank == 0"/>
             </xpath>
             
             <!-- Hide Documents smart button from documents module -->
@@ -37,7 +37,7 @@
                         class="oe_stat_button"
                         icon="fa-file-text"
                         invisible="supplier_rank == 0">
-                    <field name="supplier_legal_document_count" widget="statinfo" string="Legal Documents"/>
+                    <field name="supplier_legal_document_count" widget="statinfo" string="Documents Légaux"/>
                 </button>
                 <button name="action_create_approval_request"
                         type="object"
@@ -60,8 +60,8 @@
             <xpath expr="//page[@name='sales_purchases']//group[@name='purchase']" position="after">
                 <group string="Demande d'aggrément" invisible="supplier_rank == 0" name="supplier_approval">
                     <group>
-                        <field name="supplier_approval_date" readonly="1" invisible="not supplier_approved"/>
-                        <field name="supplier_satisfaction_rate" widget="percentage" readonly="1" invisible="not supplier_approved"/>
+                        <field name="supplier_approval_date" readonly="1"/>
+                        <field name="supplier_satisfaction_rate" widget="percentage" readonly="1"/>
                     </group>
                     <group>
                         <field name="valid_legal_documents" widget="boolean" readonly="1"/>

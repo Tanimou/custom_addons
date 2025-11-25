@@ -36,7 +36,7 @@
         * Email notifications and activity management
         * Full French language support
     """,
-    'depends': ['base', 'purchase', 'mail', 'base_automation'],
+    'depends': ['base', 'purchase', 'mail', 'base_automation','documents','board','contacts'],
     'data': [
         # Security
         'security/supplier_approval_groups.xml',
@@ -50,6 +50,11 @@
         'data/supplier_approval_automated_actions.xml',
         'data/supplier_approval_cron.xml',
         
+        # Wizards (must be loaded before views that reference them)
+        'wizards/supplier_rejection_wizard_views.xml',
+        'wizards/supplier_evaluation_wizard_views.xml',
+        'wizards/supplier_approval_bulk_wizard_views.xml',
+        
         # Views
         'views/supplier_category_views.xml',
         'views/supplier_legal_document_views.xml',
@@ -59,12 +64,8 @@
         'views/purchase_order_views.xml',
         'views/supplier_approval_menus.xml',
         'views/supplier_dashboard.xml',
-        'views/supplier_evaluation_pivot_view.xml',
-        'views/supplier_evaluation_graph_views.xml',
-        
-        # Wizards
-        'wizards/supplier_evaluation_wizard_views.xml',
-        'wizards/supplier_approval_bulk_wizard_views.xml',
+        # 'views/supplier_evaluation_pivot_view.xml',
+        # 'views/supplier_evaluation_graph_views.xml',
         
         # Reports
         'report/supplier_approval_report.xml',

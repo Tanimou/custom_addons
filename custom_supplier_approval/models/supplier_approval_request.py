@@ -22,7 +22,7 @@ class SupplierApprovalRequest(models.Model):
     )
     partner_id = fields.Many2one(
         'res.partner',
-        string='Supplier',
+        string='Fournisseur',
         required=True,
         ondelete='cascade',
         index=True,
@@ -30,45 +30,45 @@ class SupplierApprovalRequest(models.Model):
     )
     requested_by = fields.Many2one(
         'res.users',
-        string='Requested By',
+        string='Demandé par',
         default=lambda self: self.env.user,
         required=True,
         tracking=True
     )
     request_date = fields.Date(
-        string='Request Date',
+        string='Date de la demande',
         default=fields.Date.context_today,
         required=True,
         tracking=True
     )
     service_types = fields.Text(
-        string='Service Types',
-        help="Description of services or products provided by this supplier"
+        string='Types de services',
+        help="Description des services ou produits fournis par ce fournisseur"
     )
     initial_evaluation = fields.Text(
-        string='Initial Evaluation',
-        help="Initial assessment if supplier was already tested"
+        string='Évaluation initiale',
+        help="Évaluation initiale si le fournisseur a déjà été testé"
     )
     state = fields.Selection([
-        ('draft', 'Draft'),
-        ('pending', 'Pending Approval'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ], string='Status', default='draft', required=True, tracking=True)
+        ('draft', 'Brouillon'),
+        ('pending', 'En attente d\'approbation'),
+        ('approved', 'Approuvé'),
+        ('rejected', 'Rejeté'),
+    ], string='Statut', default='draft', required=True, tracking=True)
     
     approved_by = fields.Many2one(
         'res.users',
-        string='Approved By',
+        string='Approuvé par',
         readonly=True,
         tracking=True
     )
     approval_date = fields.Date(
-        string='Approval Date',
+        string='Date d\'approbation',
         readonly=True,
         tracking=True
     )
     rejection_reason = fields.Text(
-        string='Rejection Reason',
+        string='Raison du rejet',
         tracking=True
     )
 
@@ -92,7 +92,7 @@ class SupplierApprovalRequest(models.Model):
                 ])
                 if existing:
                     raise ValidationError(
-                        _('A pending approval request already exists for supplier %s!') % rec.partner_id.name
+                        _('Une demande d\'approbation en attente existe déjà pour le fournisseur %s!') % rec.partner_id.name
                     )
 
     @api.constrains('state', 'partner_id')
@@ -105,14 +105,14 @@ class SupplierApprovalRequest(models.Model):
                 )
                 if not valid_docs:
                     raise ValidationError(
-                        _('Cannot approve supplier %s without at least one valid legal document!') % rec.partner_id.name
+                        _('Impossible d\'approuver le fournisseur %s sans au moins un document légal valide!') % rec.partner_id.name
                     )
 
     def action_submit(self):
         """Submit request for approval - transition to pending state"""
         for rec in self:
             if rec.state != 'draft':
-                raise UserError(_('Only draft requests can be submitted!'))
+                raise UserError(_('Seules les demandes en brouillon peuvent être soumises!'))
             
             # Use sudo() to change state - this is a legitimate workflow transition
             # Security rules restrict write access to draft state only, but submit action
@@ -121,7 +121,7 @@ class SupplierApprovalRequest(models.Model):
             
             # Post message to chatter
             rec.message_post(
-                body=_('Approval request submitted by %s') % self.env.user.name,
+                body=_('Demande d\'approbation soumise par %s') % self.env.user.name,
                 message_type='notification'
             )
             
@@ -134,26 +134,18 @@ class SupplierApprovalRequest(models.Model):
             for manager in purchase_managers:
                 rec.activity_schedule(
                     activity_type_id=activity_type.id,
-                    summary=_('Supplier Approval Request to Review'),
-                    note=_('Please review approval request %s for supplier %s') % (rec.name, rec.partner_id.name),
+                    summary=_('Demande d\'approbation fournisseur à examiner'),
+                    note=_('Veuillez examiner la demande d\'approbation %s pour le fournisseur %s') % (rec.name, rec.partner_id.name),
                     user_id=manager.id
                 )
             
             # Notify purchase managers via message
             if purchase_managers:
                 rec.message_post(
-                    body=_('New supplier approval request requires your attention.'),
+                    body=_('Une nouvelle demande d\'approbation fournisseur nécessite votre attention.'),
                     message_type='notification',
                     partner_ids=purchase_managers.mapped('partner_id').ids,
                     subtype_xmlid='mail.mt_comment'
-                )
-            
-            # Send email notification to purchase managers
-            template = self.env.ref('custom_supplier_approval.mail_template_approval_request_submitted', raise_if_not_found=False)
-            if template:
-                rec.message_post_with_source(
-                    template,
-                    subtype_xmlid='mail.mt_comment',
                 )
 
     def action_approve(self):
@@ -161,13 +153,13 @@ class SupplierApprovalRequest(models.Model):
         # Only Purchase Managers can approve
         if not self.env.user.has_group('purchase.group_purchase_manager'):
             raise AccessError(_(
-                'Only Purchase Managers can approve supplier requests. '
-                'Please contact your administrator if you need this access.'
+                'Seuls les responsables des achats peuvent approuver les demandes de fournisseurs. '
+                'Veuillez contacter votre administrateur si vous avez besoin de cet accès.'
             ))
         
         for rec in self:
             if rec.state != 'pending':
-                raise UserError(_('Only pending requests can be approved!'))
+                raise UserError(_('Seules les demandes en attente peuvent être approuvées!'))
             
             # Validation is handled by @api.constrains
             # Use sudo() for state transition
@@ -189,18 +181,10 @@ class SupplierApprovalRequest(models.Model):
                 message_type='notification'
             )
             
-            # Send email notification to requester
-            template = self.env.ref('custom_supplier_approval.mail_template_approval_request_approved', raise_if_not_found=False)
-            if template:
-                rec.message_post_with_source(
-                    template,
-                    subtype_xmlid='mail.mt_comment',
-                )
-            
             # Notify requester
             if rec.requested_by.partner_id:
                 rec.message_post(
-                    body=_('Your approval request for supplier %s has been approved.') % rec.partner_id.name,
+                    body=_('Votre demande d\'approbation pour le fournisseur %s a été approuvée.') % rec.partner_id.name,
                     message_type='notification',
                     partner_ids=[rec.requested_by.partner_id.id],
                     subtype_xmlid='mail.mt_comment'
@@ -211,16 +195,16 @@ class SupplierApprovalRequest(models.Model):
         # Only Purchase Managers can reject
         if not self.env.user.has_group('purchase.group_purchase_manager'):
             raise AccessError(_(
-                'Only Purchase Managers can reject supplier requests. '
-                'Please contact your administrator if you need this access.'
+                'Seuls les responsables des achats peuvent rejeter les demandes de fournisseurs. '
+                'Veuillez contacter votre administrateur si vous avez besoin de cet accès.'
             ))
         
         for rec in self:
             if rec.state != 'pending':
-                raise UserError(_('Only pending requests can be rejected!'))
+                raise UserError(_('Seules les demandes en attente peuvent être rejetées!'))
             
             if not rec.rejection_reason:
-                raise UserError(_('Please provide a rejection reason before rejecting the request!'))
+                raise UserError(_('Veuillez fournir une raison de rejet avant de rejeter la demande!'))
             
             # Use sudo() for state transition
             rec.sudo().write({'state': 'rejected'})
@@ -230,22 +214,14 @@ class SupplierApprovalRequest(models.Model):
             
             # Post message to chatter
             rec.message_post(
-                body=_('Supplier rejected by %s. Reason: %s') % (self.env.user.name, rec.rejection_reason),
+                body=_('Fournisseur rejeté par %s. Raison : %s') % (self.env.user.name, rec.rejection_reason),
                 message_type='notification'
             )
-            
-            # Send email notification to requester
-            template = self.env.ref('custom_supplier_approval.mail_template_approval_request_rejected', raise_if_not_found=False)
-            if template:
-                rec.message_post_with_source(
-                    template,
-                    subtype_xmlid='mail.mt_comment',
-                )
             
             # Notify requester
             if rec.requested_by.partner_id:
                 rec.message_post(
-                    body=_('Your approval request for supplier %s has been rejected. Reason: %s') % (
+                    body=_('Votre demande d\'approbation pour le fournisseur %s a été rejetée. Raison : %s') % (
                         rec.partner_id.name, rec.rejection_reason
                     ),
                     message_type='notification',
@@ -257,7 +233,7 @@ class SupplierApprovalRequest(models.Model):
         """Reset rejected request to draft for resubmission"""
         for rec in self:
             if rec.state != 'rejected':
-                raise UserError(_('Only rejected requests can be reset to draft!'))
+                raise UserError(_('Seules les demandes rejetées peuvent être réinitialisées à l\'état brouillon!'))
             
             # Use sudo() for state transition - users can reset their own rejected requests
             rec.sudo().write({
@@ -269,7 +245,7 @@ class SupplierApprovalRequest(models.Model):
             
             # Post message to chatter
             rec.message_post(
-                body=_('Request reset to draft by %s') % self.env.user.name,
+                body=_('Demande réinitialisée à l\'état brouillon par %s') % self.env.user.name,
                 message_type='notification'
             )
 
@@ -278,7 +254,7 @@ class SupplierApprovalRequest(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Legal Documents'),
+            'name': _('Documents légaux'),
             'res_model': 'supplier.legal.document',
             'view_mode': 'list,form',
             'domain': [('partner_id', '=', self.partner_id.id)],

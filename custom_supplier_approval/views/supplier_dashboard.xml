@@ -27,7 +27,7 @@
 
     <!-- Add Dashboard to Main Menu (Top Level) -->
     <record id="menu_supplier_approval_dashboard" model="ir.ui.menu">
-        <field name="name">📊 Tableau de Bord</field>
+        <field name="name">Tableau de Bord</field>
         <field name="parent_id" ref="menu_supplier_approval_root"/>
         <field name="action" ref="action_supplier_approval_dashboard"/>
         <field name="sequence">1</field>

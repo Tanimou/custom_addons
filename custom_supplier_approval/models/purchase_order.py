@@ -15,9 +15,9 @@ class PurchaseOrder(models.Model):
         for order in self:
             if order.partner_id and not order.partner_id.supplier_approved:
                 raise UserError(
-                    _('Cannot confirm purchase order %s!\n\n'
-                      'Supplier "%s" must be approved before creating purchase orders.\n'
-                      'Please submit an approval request first.') % 
+                    _('Ne peut pas confirmer %s!\n\n'
+                      'Le fournisseur "%s" doit être agréé avant de créer des commandes d\'achat.\n'
+                      'Veuillez d\'abord soumettre une demande d\'approbation.') % 
                     (order.name, order.partner_id.name)
                 )
         

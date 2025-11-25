@@ -12,26 +12,26 @@ class ResPartner(models.Model):
     supplier_approval_request_ids = fields.One2many(
         'supplier.approval.request',
         'partner_id',
-        string='Approval Requests',
-        help="History of approval requests for this supplier"
+        string='Demandes d\'approbation des fournisseurs',
+        help="Historique des demandes d'approbation pour ce fournisseur"
     )
     supplier_approved = fields.Boolean(
-        string='Approved Supplier',
+        string='Fournisseur agréé',
         compute='_compute_supplier_approved',
         store=True,
         search='_search_supplier_approved',
-        help="True if this supplier has at least one approved request"
+        help="Vrai si ce fournisseur a au moins une demande approuvée"
     )
     supplier_approval_date = fields.Date(
-        string='Approval Date',
+        string='Date d\'approbation',
         compute='_compute_supplier_approval_date',
         store=True,
-        help="Date when the supplier was last approved"
+        help="Date à laquelle le fournisseur a été approuvé pour la dernière fois"
     )
     supplier_approval_request_count = fields.Integer(
-        string='Approval Requests Count',
+        string='Nombre de demandes d\'approbation',
         compute='_compute_supplier_approval_request_count',
-        help="Number of approval requests"
+        help="Nombre de demandes d'approbation"
     )
 
     # Supplier Category
@@ -40,26 +40,26 @@ class ResPartner(models.Model):
         'partner_supplier_category_rel',
         'partner_id',
         'category_id',
-        string='Supplier Categories',
-        help="Categories for classifying this supplier (supplies, services, works, etc.)"
+        string='Catégories de fournisseurs',
+        help="Catégories pour classer ce fournisseur (fournitures, services, travaux, etc.)"
     )
 
     # Legal Documents
     legal_document_ids = fields.One2many(
         'supplier.legal.document',
         'partner_id',
-        string='Legal Documents',
-        help="Legal documents for this supplier (RCCM, NCC, CNPS, etc.)"
+        string='Documents Légaux',
+        help="Documents légaux pour ce fournisseur (RCCM, NCC, CNPS, etc.)"
     )
     supplier_legal_document_count = fields.Integer(
-        string='Documents Count',
+        string='Nombre de documents',
         compute='_compute_supplier_legal_document_count',
-        help="Number of legal documents"
+        help="Nombre de documents légaux"
     )
     valid_legal_documents = fields.Boolean(
-        string='Has Valid Documents',
+        string='Documents valides',
         compute='_compute_valid_legal_documents',
-        help="True if supplier has at least one valid legal document"
+        help="Vrai si le fournisseur a au moins un document légal valide"
     )
 
     # Supplier Evaluation
@@ -67,26 +67,26 @@ class ResPartner(models.Model):
         'supplier.evaluation',
         'partner_id',
         string='Evaluations',
-        help="Performance evaluations for this supplier"
+        help="Evaluations de performance pour ce fournisseur"
     )
     supplier_evaluation_count = fields.Integer(
-        string='Evaluations Count',
+        string='Nombre d\'évaluations',
         compute='_compute_supplier_evaluation_count',
-        help="Number of evaluations"
+        help="Nombre d'évaluations"
     )
     supplier_satisfaction_rate = fields.Float(
-        string='Satisfaction Rate (%)',
+        string='Taux de satisfaction (%)',
         compute='_compute_supplier_satisfaction_rate',
         store=True,
-        help="Average satisfaction score from all evaluations (0-100)"
+        help="Score moyen de satisfaction de toutes les évaluations (0-100)"
     )
     
     # Supplier Toggle (bridges integer supplier_rank to boolean UI)
     is_supplier = fields.Boolean(
-        string='Is a Supplier',
+        string='Est un fournisseur',
         compute='_compute_is_supplier',
         inverse='_inverse_is_supplier',
-        help="Check to mark this contact as a supplier"
+        help="Cochez pour marquer ce contact comme un fournisseur"
     )
 
     @api.depends('supplier_approval_request_ids.state')

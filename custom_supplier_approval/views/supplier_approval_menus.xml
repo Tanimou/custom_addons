@@ -102,17 +102,17 @@
               sequence="20"/>
 
     <!-- Reports Menu - Top-level menu in Achats module (contains all analytical views) -->
-    <menuitem id="menu_supplier_approval_reports"
+    <!-- <menuitem id="menu_supplier_approval_reports"
               name="Rapports Fournisseurs"
               parent="purchase.menu_purchase_root"
-              sequence="55"/>
+              sequence="55"/> -->
 
     <!-- Cohort Analysis Menu (under Reports) -->
-    <menuitem id="menu_supplier_evaluation_cohort"
+    <!-- <menuitem id="menu_supplier_evaluation_cohort"
               name="Analyse de Cohorte"
               parent="menu_supplier_approval_reports"
               action="action_supplier_evaluation_cohort"
-              sequence="50"/>
+              sequence="50"/> -->
 
     <!-- Configuration Menu -->
     <menuitem id="menu_supplier_approval_config"

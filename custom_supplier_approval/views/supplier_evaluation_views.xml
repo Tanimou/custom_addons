@@ -13,13 +13,13 @@
                                 class="oe_stat_button"
                                 icon="fa-shopping-cart"
                                 invisible="not purchase_order_id">
-                            <span>Purchase Order</span>
+                            <span>Commande d'achat</span>
                         </button>
                         <button name="action_view_supplier"
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-building">
-                            <span>View Supplier</span>
+                            <span>Voir fournisseur</span>
                         </button>
                     </div>
                     <div class="oe_title">
