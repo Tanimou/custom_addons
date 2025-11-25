@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Mission Cancellation Wizard Form View -->
+    <record id="mission_cancellation_wizard_form" model="ir.ui.view">
+        <field name="name">fleet.mission.cancellation.wizard.form</field>
+        <field name="model">fleet.mission.cancellation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Annuler la mission">
+                <group>
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Attention!</strong> Vous êtes sur le point d'annuler la mission 
+                        <field name="mission_name" readonly="1" nolabel="1" class="fw-bold"/> 
+                        (Véhicule: <field name="vehicle_name" readonly="1" nolabel="1" class="fw-bold"/>).
+                        <br/><br/>
+                        Cette action mettra fin à la mission. Veuillez indiquer le motif d'annulation.
+                    </div>
+                </group>
+                <group>
+                    <field name="mission_id" invisible="1"/>
+                    <field name="cancellation_reason" placeholder="Entrez le motif d'annulation..." nolabel="1" colspan="2"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_cancellation" type="object" string="Confirmer l'annulation" class="btn-danger"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Mission Cancellation Wizard Action -->
+    <record id="action_mission_cancellation_wizard" model="ir.actions.act_window">
+        <field name="name">Annuler la mission</field>
+        <field name="res_model">fleet.mission.cancellation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_mission_id': active_id}</field>
+    </record>
+</odoo>

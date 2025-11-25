@@ -15,6 +15,16 @@
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 
+                <!-- Add "Créer une Mission" button in header -->
+                <xpath expr="//header" position="inside">
+                    <button name="action_create_mission" 
+                            type="object" 
+                            string="Créer une Mission" 
+                            class="oe_highlight"
+                            icon="fa-plus-circle"
+                            groups="custom_fleet_management.group_fleet_user"/>
+                </xpath>
+                
                 <!-- Add smart buttons at the top -->
                 <xpath expr="//div[@name='button_box']" position="inside">
                     
@@ -59,7 +69,16 @@
                            decoration-success="administrative_state == 'ok'"
                            decoration-warning="administrative_state == 'warning'"
                            decoration-danger="administrative_state == 'critical'"/>
-                    <field name="is_available" invisible="1"/>
+                </xpath>
+                
+                <!-- Hide plan_to_change_car field -->
+                <xpath expr="//field[@name='plan_to_change_car']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                
+                <!-- Add is_available after location field -->
+                <xpath expr="//field[@name='location']" position="after">
+                    <field name="is_available" widget="boolean_toggle" string="Disponible"/>
                 </xpath>
                 
                 <!-- Add new notebook page: Administration & Documents -->
@@ -76,7 +95,7 @@
                             </group>
                             
                             <group string="Disponibilité">
-                                <field name="is_available" widget="boolean_toggle"/>
+                                <field name="is_available" readonly="1" widget="boolean_toggle" string="Disponible"/>
                                 <field name="mission_count" readonly="1"/>
                                 <field name="current_mission_id" readonly="1"/>
                             </group>
@@ -106,15 +125,7 @@
                             </group>
                         </group>
                         
-                        <group string="Actions Rapides">
-                            <button name="action_create_mission" 
-                                    type="object" 
-                                    string="Créer une Mission" 
-                                    class="oe_highlight"
-                                    icon="fa-plus-circle"/>
-                        </group>
-                        
-                    </page>
+                        </page>
                 </xpath>
                 
             </field>

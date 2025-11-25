@@ -39,7 +39,7 @@
                         <button name="action_approve" string="Approuver" type="object" class="oe_highlight" invisible="state != 'submitted'" groups="custom_fleet_management.group_fleet_manager"/>
                         <button name="action_start" string="Démarrer" type="object" class="oe_highlight" invisible="state != 'approved'"/>
                         <button name="action_done" string="Terminer" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
-                        <button name="action_cancel" string="Annuler" type="object" invisible="state in ('done','cancelled')"/>
+                        <button name="%(custom_fleet_management.action_mission_cancellation_wizard)d" string="Annuler" type="action" invisible="state in ('done','cancelled')"/>
                         <button name="action_reset_to_draft" string="Réinitialiser" type="object" invisible="state != 'cancelled'" groups="custom_fleet_management.group_fleet_manager"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,in_progress,done"/>
                     </header>
@@ -114,7 +114,7 @@
                                         <field name="approved_by" readonly="1"/>
                                     </group>
                                     <group string="Détails">
-                                        <field name="passengers"/>
+                                        <field name="passenger_ids" widget="many2many_tags"/>
                                         <field name="payload_description"/>
                                         <field name="cancellation_reason" invisible="state != 'cancelled'"/>
                                     </group>

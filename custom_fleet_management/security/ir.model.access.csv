@@ -1,6 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_fleet_mission_user,fleet.mission.user,model_fleet_mission,group_fleet_user,1,1,1,0
 access_fleet_mission_manager,fleet.mission.manager,model_fleet_mission,group_fleet_manager,1,1,1,1
+access_mission_cancellation_wizard_user,fleet.mission.cancellation.wizard.user,model_fleet_mission_cancellation_wizard,group_fleet_user,1,1,1,1
+access_mission_cancellation_wizard_manager,fleet.mission.cancellation.wizard.manager,model_fleet_mission_cancellation_wizard,group_fleet_manager,1,1,1,1
 access_fleet_mission_driver,fleet.mission.driver,model_fleet_mission,group_fleet_driver_portal,1,0,0,0
 access_fleet_vehicle_document_user,fleet.vehicle.document.user,model_fleet_vehicle_document,group_fleet_user,1,0,0,0
 access_fleet_vehicle_document_manager,fleet.vehicle.document.manager,model_fleet_vehicle_document,group_fleet_manager,1,1,1,1

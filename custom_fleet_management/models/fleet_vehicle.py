@@ -127,7 +127,7 @@ class FleetVehicle(models.Model):
         string='Disponible',
         compute='_compute_is_available',
         store=True,
-        help="Indique si le véhicule est disponible pour une nouvelle mission"
+        help="Indique si le véhicule est actuellement en mission"
     )
     
     current_mission_id = fields.Many2one(

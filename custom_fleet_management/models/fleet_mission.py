@@ -25,7 +25,7 @@ class FleetMission(models.Model):
     _description = 'Mission Véhicule'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date_start desc, id desc'
-    _rec_names_search = ['name', 'route', 'vehicle_id.license_plate']
+    _rec_names_search = ['name', 'destination', 'vehicle_id.license_plate']
 
     # ========== IDENTIFICATION ==========
     
@@ -98,20 +98,12 @@ class FleetMission(models.Model):
     )
     
     driver_id = fields.Many2one(
-        'hr.employee',
+        'res.partner',
         string='Conducteur',
         required=True,
         tracking=True,
         domain="[('active', '=', True)]",
         help="Conducteur assigné à la mission"
-    )
-    
-    driver_partner_id = fields.Many2one(
-        'res.partner',
-        string='Conducteur (Partner)',
-        related='driver_id.work_contact_id',
-        store=True,
-        help="Lien vers le partner pour compatibilité fleet"
     )
     
     # ========== TYPE & DÉTAILS MISSION ==========
@@ -134,7 +126,6 @@ class FleetMission(models.Model):
     
     route = fields.Text(
         string='Itinéraire',
-        required=True,
         help="Description du parcours (départ, étapes, destination)"
     )
     
@@ -148,9 +139,13 @@ class FleetMission(models.Model):
         help="But et description détaillée de la mission"
     )
     
-    passengers = fields.Char(
+    passenger_ids = fields.Many2many(
+        'res.partner',
+        'fleet_mission_passenger_rel',
+        'mission_id',
+        'partner_id',
         string='Passagers',
-        help="Liste des passagers (si applicable)"
+        help="Liste des passagers transportés"
     )
     
     payload_description = fields.Char(
@@ -396,9 +391,9 @@ class FleetMission(models.Model):
             if mission.state != 'draft':
                 raise UserError(_("Seules les missions en brouillon peuvent être soumises."))
             
-            # Vérification des champs requis
-            if not mission.route or not mission.objective:
-                raise UserError(_("L'itinéraire et l'objectif sont obligatoires avant soumission."))
+            # Vérification des champs requis - destination et objective
+            if not mission.destination or not mission.objective:
+                raise UserError(_("La destination et l'objectif sont obligatoires avant soumission."))
             
             # Alerte si conflit (mais n'empêche pas)
             if mission.has_conflict:
@@ -493,10 +488,11 @@ class FleetMission(models.Model):
                 mission._create_calendar_event()
             
             # Notification au conducteur
-            if mission.driver_id.user_id:
+            driver_user = mission.driver_id.user_id if mission.driver_id else False
+            if driver_user:
                 mission.activity_schedule(
                     'mail.mail_activity_data_todo',
-                    user_id=mission.driver_id.user_id.id,
+                    user_id=driver_user.id,
                     date_deadline=mission.date_start.date(),
                     summary=_("Mission démarrée: %s", mission.name),
                     note=_("Mission en cours avec le véhicule %s. Kilométrage départ: %s km.", 
@@ -537,14 +533,11 @@ class FleetMission(models.Model):
     def action_cancel(self):
         """
         Annule la mission.
-        Possible depuis n'importe quel état sauf done.
+        Cette méthode est maintenant appelée par le wizard avec la raison déjà fournie.
         """
         for mission in self:
             if mission.state == 'done':
                 raise UserError(_("Impossible d'annuler une mission terminée."))
-            
-            if not mission.cancellation_reason:
-                raise UserError(_("Veuillez indiquer le motif d'annulation."))
             
             old_state = mission.state
             mission.write({'state': 'cancelled'})
@@ -553,12 +546,14 @@ class FleetMission(models.Model):
             if mission.calendar_event_id:
                 mission.calendar_event_id.unlink()
             
-            mission.message_post(
-                body=_("Mission annulée (état précédent: %s). Motif: %s", 
-                       dict(mission._fields['state'].selection)[old_state], 
-                       mission.cancellation_reason),
-                subject=_("Annulation")
-            )
+            # Message only if cancellation_reason was set directly (not via wizard)
+            if mission.cancellation_reason:
+                mission.message_post(
+                    body=_("Mission annulée (état précédent: %s). Motif: %s", 
+                           dict(mission._fields['state'].selection)[old_state], 
+                           mission.cancellation_reason),
+                    subject=_("Annulation")
+                )
     
     def action_reset_to_draft(self):
         """Remet en brouillon (seulement depuis cancelled ou submitted)."""
@@ -587,13 +582,21 @@ class FleetMission(models.Model):
         if self.calendar_event_id:
             return  # Déjà créé
         
+        description_parts = [f"Mission: {self.objective or 'Non spécifié'}"]
+        if self.route:
+            description_parts.append(f"Itinéraire: {self.route}")
+        if self.destination:
+            description_parts.append(f"Destination: {self.destination}")
+        description_parts.append(f"Véhicule: {self.vehicle_id.name}")
+        description_parts.append(f"Conducteur: {self.driver_id.name}")
+        
         event = self.env['calendar.event'].create({
             'name': f"Mission {self.name} - {self.vehicle_id.name}",
             'start': self.date_start,
             'stop': self.date_end,
-            'description': f"Mission: {self.objective}\nItinéraire: {self.route}\nVéhicule: {self.vehicle_id.name}\nConducteur: {self.driver_id.name}",
-            'partner_ids': [(4, self.driver_partner_id.id)] if self.driver_partner_id else [],
-            'user_id': self.driver_id.user_id.id if self.driver_id.user_id else self.env.user.id,
+            'description': "\n".join(description_parts),
+            'partner_ids': [(4, self.driver_id.id)] if self.driver_id else [],
+            'user_id': self.driver_id.user_id.id if self.driver_id and self.driver_id.user_id else self.env.user.id,
         })
         
         self.calendar_event_id = event.id
@@ -605,11 +608,19 @@ class FleetMission(models.Model):
         if not self.calendar_event_id:
             return
         
+        description_parts = [f"Mission: {self.objective or 'Non spécifié'}"]
+        if self.route:
+            description_parts.append(f"Itinéraire: {self.route}")
+        if self.destination:
+            description_parts.append(f"Destination: {self.destination}")
+        description_parts.append(f"Véhicule: {self.vehicle_id.name}")
+        description_parts.append(f"Conducteur: {self.driver_id.name}")
+        
         self.calendar_event_id.write({
             'name': f"Mission {self.name} - {self.vehicle_id.name}",
             'start': self.date_start,
             'stop': self.date_end,
-            'description': f"Mission: {self.objective}\nItinéraire: {self.route}\nVéhicule: {self.vehicle_id.name}\nConducteur: {self.driver_id.name}",
+            'description': "\n".join(description_parts),
         })
     
     # ========== ACTIONS VUE ==========

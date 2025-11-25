@@ -141,7 +141,7 @@ class FleetVehicleDocument(models.Model):
     attachment_name = fields.Char(
         related='attachment_id.name',
         string='Nom Fichier',
-        readonly=True
+        readonly=False
     )
     
     has_attachment = fields.Boolean(
@@ -426,42 +426,49 @@ class FleetVehicleDocument(models.Model):
             alert_offset_days
         )
         
-        # Grouper par véhicule pour envoyer un seul email par véhicule
+        # Grouper par véhicule pour poster un seul message par véhicule
         vehicles_with_alerts = {}
         for doc in docs_to_alert:
             if doc.vehicle_id not in vehicles_with_alerts:
                 vehicles_with_alerts[doc.vehicle_id] = []
             vehicles_with_alerts[doc.vehicle_id].append(doc)
         
-        # Récupérer le template d'alerte
-        template = self.env.ref(
-            'custom_fleet_management.mail_template_deadline_alert_j30',
-            raise_if_not_found=False
-        )
-        
-        if not template:
-            _logger.warning("Deadline alert template not found")
-            return
-        
-        # Traiter chaque véhicule
+        # Traiter chaque véhicule - poster un message simple dans le chatter
         alert_count = 0
         for vehicle, docs in vehicles_with_alerts.items():
             # Créer activités pour chaque document
             for doc in docs:
                 doc._schedule_renewal_activity()
             
-            # Envoyer email pour le véhicule (un seul email avec tous les documents)
+            # Construire le message simple pour le chatter
+            doc_list = []
+            for doc in docs:
+                days_left = (doc.expiry_date - date.today()).days
+                doc_list.append(f"• {doc.document_type}: expire le {doc.expiry_date.strftime('%d/%m/%Y')} ({days_left} jours)")
+            
+            message_body = _(
+                "⚠️ Alerte Échéance Administrative J-%d\n\n"
+                "Documents concernés:\n%s\n\n"
+                "Veuillez planifier le renouvellement de ces documents.",
+                alert_offset_days,
+                '\n'.join(doc_list)
+            )
+            
             try:
-                template.send_mail(vehicle.id, force_send=True)
+                vehicle.message_post(
+                    body=message_body,
+                    subject=_("Échéance Administrative J-%d: %s", alert_offset_days, vehicle.name),
+                    message_type='notification',
+                )
                 alert_count += 1
                 _logger.info(
-                    "Expiry alert sent for vehicle %s (%d documents)",
+                    "Expiry alert posted for vehicle %s (%d documents)",
                     vehicle.name,
                     len(docs)
                 )
             except Exception as e:
                 _logger.error(
-                    "Failed to send expiry alert for vehicle %s: %s",
+                    "Failed to post expiry alert for vehicle %s: %s",
                     vehicle.name,
                     str(e)
                 )
