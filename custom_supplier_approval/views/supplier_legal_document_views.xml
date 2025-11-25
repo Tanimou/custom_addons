@@ -10,16 +10,14 @@
                     <field name="state" widget="statusbar" statusbar_visible="pending,valid,expired"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle"/> Utilisez la section <strong>"Joindre des fichiers"</strong> dans le panneau de droite pour ajouter vos pièces jointes avec aperçu miniature.
+                    </div>
+
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_attachment"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-file-pdf-o"
-                                invisible="not attachment_id">
-                            <span>View Document</span>
-                        </button>
                     </div>
                     <group>
+
                         <group>
                             <field name="partner_id" domain="[('supplier_rank', '>', 0)]"/>
                             <field name="document_type"/>
@@ -28,7 +26,6 @@
                         <group>
                             <field name="issue_date"/>
                             <field name="expiry_date"/>
-                            <field name="attachment_id" widget="many2one_binary"/>
                         </group>
                     </group>
                     <group>
