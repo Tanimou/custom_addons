@@ -124,11 +124,6 @@ class FleetMission(models.Model):
         help="Nature de la mission"
     )
     
-    route = fields.Text(
-        string='Itinéraire',
-        help="Description du parcours (départ, étapes, destination)"
-    )
-    
     destination = fields.Char(
         string='Destination Principale',
         help="Lieu de destination principal"
@@ -583,8 +578,6 @@ class FleetMission(models.Model):
             return  # Déjà créé
         
         description_parts = [f"Mission: {self.objective or 'Non spécifié'}"]
-        if self.route:
-            description_parts.append(f"Itinéraire: {self.route}")
         if self.destination:
             description_parts.append(f"Destination: {self.destination}")
         description_parts.append(f"Véhicule: {self.vehicle_id.name}")
@@ -609,8 +602,6 @@ class FleetMission(models.Model):
             return
         
         description_parts = [f"Mission: {self.objective or 'Non spécifié'}"]
-        if self.route:
-            description_parts.append(f"Itinéraire: {self.route}")
         if self.destination:
             description_parts.append(f"Destination: {self.destination}")
         description_parts.append(f"Véhicule: {self.vehicle_id.name}")

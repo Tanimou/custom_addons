@@ -80,7 +80,6 @@
                             <group name="mission_details" string="Détails Mission">
                                 <field name="mission_type" required="1"/>
                                 <field name="destination"/>
-                                <field name="route" placeholder="Ex: Dakar → Thiès → Dakar"/>
                                 <field name="objective" placeholder="Objet de la mission..."/>
                             </group>
                             <group name="schedule" string="Planning">

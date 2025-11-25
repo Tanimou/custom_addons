@@ -15,13 +15,14 @@
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 
-                <!-- Add "Créer une Mission" button in header -->
+                <!-- Add "Créer une Mission" button in header (only visible when vehicle is available) -->
                 <xpath expr="//header" position="inside">
                     <button name="action_create_mission" 
                             type="object" 
                             string="Créer une Mission" 
                             class="oe_highlight"
                             icon="fa-plus-circle"
+                            invisible="not is_available"
                             groups="custom_fleet_management.group_fleet_user"/>
                 </xpath>
                 
