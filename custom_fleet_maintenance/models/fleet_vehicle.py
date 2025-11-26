@@ -54,11 +54,11 @@ class FleetVehicle(models.Model):
             if vehicle.maintenance_state != 'operational':
                 vehicle.is_available = False
             
-            # Also check for any active interventions
-            active_interventions = vehicle.maintenance_history_ids.filtered(
-                lambda i: i.state in ('submitted', 'in_progress')
+            # Also check for any in-progress interventions (submitted doesn't block vehicle)
+            in_progress_interventions = vehicle.maintenance_history_ids.filtered(
+                lambda i: i.state == 'in_progress'
             )
-            if active_interventions:
+            if in_progress_interventions:
                 vehicle.is_available = False
 
     maintenance_state = fields.Selection(
@@ -85,6 +85,12 @@ class FleetVehicle(models.Model):
         "vehicle_id",
         string="Historique des maintenances",
     )
+    # Total count of ALL maintenances for smart button
+    total_maintenance_count = fields.Integer(
+        string="Total maintenances",
+        compute="_compute_maintenance_counters",
+    )
+    # Count of active (non-done, non-cancelled) interventions
     active_intervention_count = fields.Integer(
         string="Interventions ouvertes",
         compute="_compute_maintenance_counters",
@@ -95,24 +101,51 @@ class FleetVehicle(models.Model):
     )
 
     def _compute_maintenance_counters(self):
-        read_group_result = self.env["fleet.maintenance.intervention"].read_group(
+        """Compute maintenance counters for vehicles."""
+        # Get total count of ALL maintenances per vehicle
+        total_result = self.env["fleet.maintenance.intervention"].read_group(
+            domain=[("vehicle_id", "in", self.ids)],
+            fields=["vehicle_id"],
+            groupby=["vehicle_id"],
+        )
+        total_counters = {
+            data["vehicle_id"][0]: data["vehicle_id_count"]
+            for data in total_result if data.get("vehicle_id")
+        }
+        
+        # Get active (non-done, non-cancelled) interventions per vehicle
+        active_result = self.env["fleet.maintenance.intervention"].read_group(
             domain=[
                 ("vehicle_id", "in", self.ids),
                 ("state", "not in", ["done", "cancelled"]),
             ],
-            fields=["vehicle_id", "intervention_type"],
-            groupby=["vehicle_id", "intervention_type"],
+            fields=["vehicle_id"],
+            groupby=["vehicle_id"],
         )
-        counters = {}
-        for data in read_group_result:
-            vehicle_id = data.get("vehicle_id") and data["vehicle_id"][0]
-            key = (vehicle_id, data.get("intervention_type"))
-            counters[key] = data.get("__count", 0)
+        active_counters = {
+            data["vehicle_id"][0]: data["vehicle_id_count"]
+            for data in active_result if data.get("vehicle_id")
+        }
+        
+        # Get preventive interventions count per vehicle (active only)
+        preventive_result = self.env["fleet.maintenance.intervention"].read_group(
+            domain=[
+                ("vehicle_id", "in", self.ids),
+                ("intervention_type", "=", "preventive"),
+                ("state", "not in", ["done", "cancelled"]),
+            ],
+            fields=["vehicle_id"],
+            groupby=["vehicle_id"],
+        )
+        preventive_counters = {
+            data["vehicle_id"][0]: data["vehicle_id_count"]
+            for data in preventive_result if data.get("vehicle_id")
+        }
+        
         for vehicle in self:
-            vehicle.active_intervention_count = (
-                counters.get((vehicle.id, "curative"), 0) + counters.get((vehicle.id, "preventive"), 0)
-            )
-            vehicle.preventive_intervention_count = counters.get((vehicle.id, "preventive"), 0)
+            vehicle.total_maintenance_count = total_counters.get(vehicle.id, 0)
+            vehicle.active_intervention_count = active_counters.get(vehicle.id, 0)
+            vehicle.preventive_intervention_count = preventive_counters.get(vehicle.id, 0)
 
     @api.constrains("km_actuel")
     def _check_km_actuel(self):

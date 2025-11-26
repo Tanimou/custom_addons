@@ -9,7 +9,7 @@
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_open_maintenance_history" type="object" class="oe_stat_button" icon="fa-stethoscope">
-                    <field name="active_intervention_count" widget="statinfo" string="Maintenances"/>
+                    <field name="total_maintenance_count" widget="statinfo" string="Maintenances"/>
                 </button>
             </xpath>
             <xpath expr="//notebook" position="inside">

@@ -52,10 +52,4 @@
         <field name="context">{'module': 'custom_fleet_maintenance'}</field>
     </record>
 
-    <menuitem id="menu_fleet_maintenance_configuration"
-              name="Configuration"
-              parent="menu_fleet_maintenance_root"
-              action="custom_fleet_maintenance.fleet_maintenance_config_action"
-              sequence="90"
-              groups="custom_fleet_maintenance.group_fleet_maintenance_manager"/>
 </odoo>

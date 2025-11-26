@@ -245,13 +245,14 @@ class FleetMaintenanceIntervention(models.Model):
                 record.vehicle_id.message_post(body=msg, message_type='notification')
             # Check if vehicle can be set available after maintenance completion
             if record.vehicle_id:
-                other_active = self.env['fleet.maintenance.intervention'].search([
+                # Only check for in_progress interventions - submitted doesn't block vehicle
+                other_in_progress = self.env['fleet.maintenance.intervention'].search([
                     ('vehicle_id', '=', record.vehicle_id.id),
                     ('id', '!=', record.id),
-                    ('state', 'in', ['submitted', 'in_progress'])
+                    ('state', '=', 'in_progress')
                 ])
-                if not other_active:
-                    # No other active interventions - set vehicle to operational
+                if not other_in_progress:
+                    # No other in-progress interventions - set vehicle to operational
                     record.vehicle_id.write({'maintenance_state': 'operational'})
 
     def action_cancel(self):
@@ -259,14 +260,14 @@ class FleetMaintenanceIntervention(models.Model):
         # Update vehicle availability after cancellation
         for record in self:
             if record.vehicle_id:
-                # Check if there are other active interventions
-                other_active = self.env['fleet.maintenance.intervention'].search([
+                # Only check for in_progress interventions - submitted doesn't block vehicle
+                other_in_progress = self.env['fleet.maintenance.intervention'].search([
                     ('vehicle_id', '=', record.vehicle_id.id),
                     ('id', '!=', record.id),
-                    ('state', 'in', ['submitted', 'in_progress'])
+                    ('state', '=', 'in_progress')
                 ])
-                if not other_active:
-                    # No other active interventions - set vehicle to operational
+                if not other_in_progress:
+                    # No other in-progress interventions - set vehicle to operational
                     record.vehicle_id.write({'maintenance_state': 'operational'})
 
     def _change_state(self, state, extra_vals=None):
