@@ -233,22 +233,18 @@ class FleetVehicle(models.Model):
                 count += 1
             vehicle.alert_count = count
     
-    @api.depends('mission_ids.state', 'mission_ids.date_start', 'mission_ids.date_end')
+    @api.depends('mission_ids.state', 'mission_ids.date_start', 'mission_ids.date_end', 'active')
     def _compute_is_available(self):
         """
         Vérifie si le véhicule est disponible.
         Un véhicule est indisponible s'il a une mission en cours (in_progress)
         ou une mission future approuvée.
+        Note: la vérification de l'état maintenance est faite dans custom_fleet_maintenance.
         """
         today = date.today()
         for vehicle in self:
             # Véhicule non actif = non disponible
             if not vehicle.active:
-                vehicle.is_available = False
-                continue
-            
-            # Véhicule en maintenance = non disponible
-            if vehicle.state_id and 'maintenance' in vehicle.state_id.name.lower():
                 vehicle.is_available = False
                 continue
             

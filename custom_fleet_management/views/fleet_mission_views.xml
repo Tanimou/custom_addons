@@ -70,7 +70,7 @@
                                 <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                             </group>
                             <group name="vehicle_driver_info" string="Véhicule et Conducteur">
-                                <field name="vehicle_id" options="{'no_create': True}" required="1"/>
+                                <field name="vehicle_id" options="{'no_create': True}" required="1" domain="[('is_available', '=', True)]"/>
                                 <field name="driver_id" widget="many2one_avatar_user" options="{'no_create': True}" required="1"/>
                                 <field name="approved_by" readonly="1" invisible="state not in ('approved','in_progress','done')"/>
                             </group>
