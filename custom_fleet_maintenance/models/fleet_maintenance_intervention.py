@@ -18,6 +18,23 @@ class FleetMaintenanceIntervention(models.Model):
         default="curative",
         tracking=True,
     )
+    failure_type = fields.Selection(
+        selection=[
+            ("moteur", "Moteur"),
+            ("transmission", "Transmission"),
+            ("electrique", "Électrique"),
+            ("pneu", "Pneu"),
+            ("freins", "Freins"),
+            ("carrosserie", "Carrosserie"),
+            ("climatisation", "Climatisation"),
+            ("direction", "Direction"),
+            ("suspension", "Suspension"),
+            ("autre", "Autre"),
+        ],
+        string="Type de panne",
+        tracking=True,
+        help="Type de panne ou dysfonctionnement signalé",
+    )
     origin = fields.Char(string="Origine")
     vehicle_id = fields.Many2one(
         "fleet.vehicle",
@@ -59,11 +76,15 @@ class FleetMaintenanceIntervention(models.Model):
     )
     description = fields.Html(string="Description", sanitize_style=True)
     failure_note = fields.Text(string="Diagnostic")
+    intervention_report = fields.Html(
+        string="Rapport d'intervention",
+        sanitize_style=True,
+        help="Rapport détaillé de l'intervention réalisée (pièces remplacées, travaux effectués, observations)",
+    )
     state = fields.Selection(
         selection=[
             ("draft", "Brouillon"),
             ("submitted", "Soumise"),
-            ("diagnosed", "Diagnostiquee"),
             ("in_progress", "En cours"),
             ("done", "Terminee"),
             ("cancelled", "Annulee"),
@@ -119,6 +140,14 @@ class FleetMaintenanceIntervention(models.Model):
                 record.driver_id = record.vehicle_id.driver_id
             if record.intervention_type == "curative" and record.vehicle_id:
                 record.vehicle_id.maintenance_state = "breakdown"
+
+    @api.onchange('intervention_type')
+    def _onchange_filter_available_vehicles(self):
+        """Filter vehicle dropdown to show only available vehicles if the field exists."""
+        # Check if is_available field exists (defined in custom_fleet_management)
+        if 'is_available' in self.env['fleet.vehicle']._fields:
+            return {'domain': {'vehicle_id': [('is_available', '=', True)]}}
+        return {'domain': {'vehicle_id': []}}
 
     def write(self, vals):
         res = super().write(vals)
@@ -200,6 +229,20 @@ class FleetMaintenanceIntervention(models.Model):
                 record.plan_line_id.last_execution_id = record
                 record.plan_line_id._compute_next_threshold()
             record.vehicle_id._update_preventive_dates()
+            # Update vehicle mileage if odometer was recorded
+            if record.odometer and record.vehicle_id:
+                if record.odometer > record.vehicle_id.odometer:
+                    record.vehicle_id.odometer = record.odometer
+            # Log completion in vehicle chatter
+            if record.vehicle_id:
+                failure_label = dict(record._fields['failure_type'].selection).get(record.failure_type, '') if record.failure_type else ''
+                msg = _("Intervention %s terminée. %s Coût total: %s %s") % (
+                    record.name,
+                    f"Type de panne: {failure_label}. " if failure_label else "",
+                    record.actual_total_amount,
+                    record.currency_id.symbol or '',
+                )
+                record.vehicle_id.message_post(body=msg, message_type='notification')
             # Check if vehicle can be set available after maintenance completion
             if record.vehicle_id:
                 other_active = self.env['fleet.maintenance.intervention'].search([
@@ -212,6 +255,18 @@ class FleetMaintenanceIntervention(models.Model):
 
     def action_cancel(self):
         self._change_state("cancelled")
+        # Update vehicle availability after cancellation
+        for record in self:
+            if record.vehicle_id:
+                # Check if there are other active interventions
+                other_active = self.env['fleet.maintenance.intervention'].search([
+                    ('vehicle_id', '=', record.vehicle_id.id),
+                    ('id', '!=', record.id),
+                    ('state', 'in', ['submitted', 'in_progress'])
+                ])
+                if not other_active:
+                    # No other active interventions - vehicle is available
+                    record.vehicle_id.write({'is_available': True})
 
     def _change_state(self, state, extra_vals=None):
         values = {"state": state}

@@ -14,6 +14,24 @@ class FleetMaintenancePlan(models.Model):
         string="Société",
         default=lambda self: self.env.company,
     )
+    preventive_intervention_type = fields.Selection(
+        selection=[
+            ("vidange", "Vidange"),
+            ("controle_technique", "Contrôle technique"),
+            ("pneus", "Pneus"),
+            ("freins", "Freins"),
+            ("climatisation", "Climatisation"),
+            ("batterie", "Batterie"),
+            ("filtres", "Filtres"),
+            ("courroie", "Courroie de distribution"),
+            ("revision", "Révision générale"),
+            ("autre", "Autre"),
+        ],
+        string="Type d'intervention",
+        default="revision",
+        required=True,
+        tracking=True,
+    )
     vehicle_model_ids = fields.Many2many("fleet.vehicle.model", string="Modèles concernés")
     vehicle_ids = fields.Many2many(
         "fleet.vehicle",
@@ -188,6 +206,10 @@ class FleetMaintenancePlanLine(models.Model):
         planned_date = self.next_due_date or fields.Date.context_today(self)
         follower_users = self.plan_id.message_partner_ids.mapped("user_ids")
         fallback_user_id = follower_users[:1].id if follower_users else False
+        # Include intervention type in description
+        type_labels = dict(self.plan_id._fields['preventive_intervention_type'].selection)
+        intervention_label = type_labels.get(self.plan_id.preventive_intervention_type, 'Maintenance')
+        description = f"<p><strong>{intervention_label}</strong></p>" + (self.plan_id.instruction_html or '')
         values = {
             "intervention_type": "preventive",
             "vehicle_id": self.vehicle_id.id,
@@ -198,8 +220,9 @@ class FleetMaintenancePlanLine(models.Model):
             "scheduled_end": planned_date,
             "next_planned_date": planned_date + self.plan_id._get_interval_delta(),
             "next_planned_odometer": self.next_due_odometer and self.next_due_odometer + (self.plan_id.odometer_interval or 0.0),
-            "description": self.plan_id.instruction_html,
+            "description": description,
             "responsible_id": self.responsible_id.id or fallback_user_id,
+            "origin": f"{self.plan_id.name} - {intervention_label}",
         }
         if self.plan_id.interval_type in ("odometer", "hybrid") and self.plan_id.odometer_interval:
             values.setdefault("next_planned_odometer", (self.next_due_odometer or self.vehicle_id.km_actuel) + self.plan_id.odometer_interval)

@@ -5,6 +5,62 @@ from odoo.exceptions import ValidationError
 class FleetVehicle(models.Model):
     _inherit = "fleet.vehicle"
 
+    # Field to check if vehicle is on mission (for button visibility)
+    # This field may also be defined in custom_fleet_management if installed
+    is_on_mission = fields.Boolean(
+        string="En mission",
+        compute="_compute_is_on_mission",
+        store=False,
+        help="Indique si le vehicule est actuellement en mission.",
+    )
+
+    @api.depends_context('uid')
+    def _compute_is_on_mission(self):
+        """Check if vehicle has active missions. Safe fallback if fleet.mission doesn't exist."""
+        for vehicle in self:
+            vehicle.is_on_mission = False
+            # Check if fleet.mission model exists (custom_fleet_management installed)
+            if 'fleet.mission' in self.env:
+                active_mission = self.env['fleet.mission'].search([
+                    ('vehicle_id', '=', vehicle.id),
+                    ('state', 'in', ['confirmed', 'in_progress']),
+                ], limit=1)
+                vehicle.is_on_mission = bool(active_mission)
+
+    # Add is_available field for this module (may be overridden if custom_fleet_management is installed)
+    is_available = fields.Boolean(
+        string='Disponible',
+        compute='_compute_is_available',
+        store=True,
+        help="Indique si le véhicule est disponible (pas en mission ni en maintenance)"
+    )
+
+    @api.depends('maintenance_state', 'maintenance_history_ids.state')
+    def _compute_is_available(self):
+        """
+        Compute vehicle availability based on maintenance state.
+        If custom_fleet_management is installed, this extends its logic.
+        """
+        for vehicle in self:
+            # Check if super() method exists (custom_fleet_management installed)
+            # and call it first
+            if hasattr(super(FleetVehicle, vehicle), '_compute_is_available'):
+                super(FleetVehicle, vehicle)._compute_is_available()
+            else:
+                # Default: vehicle is available if active
+                vehicle.is_available = vehicle.active if hasattr(vehicle, 'active') else True
+            
+            # Additional check: if maintenance_state is not operational, vehicle is not available
+            if vehicle.maintenance_state != 'operational':
+                vehicle.is_available = False
+            
+            # Also check for any active interventions
+            active_interventions = vehicle.maintenance_history_ids.filtered(
+                lambda i: i.state in ('submitted', 'in_progress')
+            )
+            if active_interventions:
+                vehicle.is_available = False
+
     maintenance_state = fields.Selection(
         selection=[
             ("operational", "Fonctionnel"),

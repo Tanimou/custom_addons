@@ -5,7 +5,7 @@
         <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_create_curative_intervention" type="object" string="Déclarer une panne" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_user"/>
+                <button name="action_create_curative_intervention" type="object" string="Déclarer une panne" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_user" invisible="is_on_mission"/>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_open_maintenance_history" type="object" class="oe_stat_button" icon="fa-stethoscope">

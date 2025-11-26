@@ -14,6 +14,7 @@
         "mail",
         "calendar",
         "web",
+        "custom_fleet_management",
     ],
     "data": [
         "security/fleet_groups.xml",
