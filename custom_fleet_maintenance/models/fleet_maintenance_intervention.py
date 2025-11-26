@@ -213,9 +213,9 @@ class FleetMaintenanceIntervention(models.Model):
         for record in self:
             if record.state != "submitted":
                 raise UserError(_("L'intervention doit etre soumise avant de demarrer."))
-            # Set vehicle unavailable when maintenance starts
+            # Set vehicle in maintenance state when intervention starts
             if record.vehicle_id:
-                record.vehicle_id.write({'is_available': False})
+                record.vehicle_id.write({'maintenance_state': 'maintenance'})
         self._change_state("in_progress", {"actual_start": fields.Datetime.now()})
 
     def action_done(self):
@@ -251,7 +251,8 @@ class FleetMaintenanceIntervention(models.Model):
                     ('state', 'in', ['submitted', 'in_progress'])
                 ])
                 if not other_active:
-                    record.vehicle_id.write({'is_available': True})
+                    # No other active interventions - set vehicle to operational
+                    record.vehicle_id.write({'maintenance_state': 'operational'})
 
     def action_cancel(self):
         self._change_state("cancelled")
@@ -265,8 +266,8 @@ class FleetMaintenanceIntervention(models.Model):
                     ('state', 'in', ['submitted', 'in_progress'])
                 ])
                 if not other_active:
-                    # No other active interventions - vehicle is available
-                    record.vehicle_id.write({'is_available': True})
+                    # No other active interventions - set vehicle to operational
+                    record.vehicle_id.write({'maintenance_state': 'operational'})
 
     def _change_state(self, state, extra_vals=None):
         values = {"state": state}
