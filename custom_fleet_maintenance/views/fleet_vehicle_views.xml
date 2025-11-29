@@ -3,7 +3,19 @@
         <field name="name">fleet.vehicle.form.maintenance</field>
         <field name="model">fleet.vehicle</field>
         <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
+            
+            <!-- Add status ribbon banners (shows vehicle availability status) -->
+            <xpath expr="//div[@name='button_box']" position="before">
+                <widget name="web_ribbon" text="En Mission" bg_color="text-bg-warning" 
+                        invisible="not is_on_mission or maintenance_state == 'maintenance'"/>
+                <widget name="web_ribbon" text="En Maintenance" bg_color="text-bg-danger" 
+                        invisible="maintenance_state != 'maintenance'"/>
+                <widget name="web_ribbon" text="Disponible" bg_color="text-bg-success" 
+                        invisible="is_on_mission or maintenance_state == 'maintenance'"/>
+            </xpath>
+            
             <xpath expr="//header" position="inside">
                 <button name="action_create_curative_intervention" type="object" string="Déclarer une panne" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_user" invisible="is_on_mission"/>
             </xpath>
