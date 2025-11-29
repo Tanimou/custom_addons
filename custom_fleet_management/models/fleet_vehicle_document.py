@@ -131,7 +131,7 @@ class FleetVehicleDocument(models.Model):
     
     # ========== PIÈCE JOINTE ==========
     
-    attachment_id = fields.Many2one(
+    attachment_id = fields.Many2many(
         'ir.attachment',
         string='Fichier Attaché',
         ondelete='cascade',

@@ -69,7 +69,7 @@
                                 <field name="alert_level" widget="priority" readonly="1"/>
                             </group>
                             <group name="attachment" string="Fichier Joint">
-                                <field name="attachment_id" widget="binary" filename="attachment_name"/>
+                                 <field name="attachment_id" widget="many2many_binary" options="{'filename': 'name'}"/>
                                 <field name="attachment_name" invisible="1"/>
                             </group>
                         </group>

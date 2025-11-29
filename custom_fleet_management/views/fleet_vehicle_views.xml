@@ -26,16 +26,6 @@
                             groups="custom_fleet_management.group_fleet_user"/>
                 </xpath>
                 
-                <!-- Add status ribbon banners -->
-                <xpath expr="//div[@name='button_box']" position="after">
-                    <widget name="web_ribbon" text="En Mission" bg_color="text-bg-warning" 
-                            invisible="not is_on_mission or maintenance_state == 'maintenance'"/>
-                    <widget name="web_ribbon" text="En Maintenance" bg_color="text-bg-danger" 
-                            invisible="maintenance_state != 'maintenance'"/>
-                    <widget name="web_ribbon" text="Disponible" bg_color="text-bg-success" 
-                            invisible="is_on_mission or maintenance_state == 'maintenance'"/>
-                </xpath>
-                
                 <!-- Add smart buttons at the top -->
                 <xpath expr="//div[@name='button_box']" position="inside">
                     
@@ -91,7 +81,6 @@
                 <xpath expr="//field[@name='location']" position="after">
                     <field name="is_available" invisible="1"/>
                     <field name="is_on_mission" invisible="1"/>
-                    <field name="maintenance_state" invisible="1"/>
                 </xpath>
                 
                 <!-- Add new notebook page: Administration & Documents -->
