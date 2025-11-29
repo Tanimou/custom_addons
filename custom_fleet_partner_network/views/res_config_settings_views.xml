@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Extend Fleet Settings with Partner Network Configuration -->
+        <record id="res_config_settings_view_form_inherit_fleet_partner" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.fleet.partner</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="95"/>
+            <field name="inherit_id" ref="fleet.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <!-- Add Partner Network blocks after Fleet Management block -->
+                <xpath expr="//block[@id='end_contract_setting']" position="after">
+                    
+                    <!-- Block 1: Alertes & Notifications -->
+                    <block title="Partner Network - Alerts &amp; Notifications" id="fleet_partner_alerts">
+                        <setting string="Contract Expiration Alert">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label string="Alert Offset (days)" for="fleet_partner_alert_offset" class="col-lg-3 o_light_label"/>
+                                    <field name="fleet_partner_alert_offset" class="oe_inline"/>
+                                </div>
+                                <div class="text-muted mt8">
+                                    Send alerts when a contract expires within this many days
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <setting string="Weekly Digest">
+                            <field name="fleet_partner_enable_weekly_digest" class="oe_inline"/>
+                            <div class="content-group mt16" invisible="not fleet_partner_enable_weekly_digest">
+                                <div class="row">
+                                    <label string="Digest Day" for="fleet_partner_digest_day" class="col-lg-3 o_light_label"/>
+                                    <field name="fleet_partner_digest_day" class="oe_inline"/>
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <setting string="Responsible Users">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label string="Notify these users" for="fleet_partner_responsible_ids" class="col-lg-3 o_light_label"/>
+                                    <field name="fleet_partner_responsible_ids" widget="many2many_tags" class="oe_inline"/>
+                                </div>
+                                <div class="text-muted mt8">
+                                    Users who will receive alerts about expiring contracts
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    
+                    <!-- Block 2: Partenaires par Défaut -->
+                    <block title="Partner Network - Default Partners" id="fleet_partner_defaults">
+                        <setting string="Default Insurance Partner">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label string="Insurer" for="fleet_partner_default_insurer_id" class="col-lg-3 o_light_label"/>
+                                    <field name="fleet_partner_default_insurer_id" 
+                                           domain="[('partner_type', '=', 'assureur'), ('company_id', 'in', [company_id, False])]"
+                                           context="{'default_partner_type': 'assureur'}"
+                                           class="oe_inline"/>
+                                </div>
+                                <div class="text-muted mt8">
+                                    Default insurance partner for new vehicles
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <setting string="Default Garages">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label string="Garages" for="fleet_partner_default_garage_ids" class="col-lg-3 o_light_label"/>
+                                    <field name="fleet_partner_default_garage_ids" 
+                                           widget="many2many_tags"
+                                           domain="[('partner_type', '=', 'garage'), ('company_id', 'in', [company_id, False])]"
+                                           context="{'default_partner_type': 'garage'}"
+                                           class="oe_inline"/>
+                                </div>
+                                <div class="text-muted mt8">
+                                    Default authorized garages for new vehicles
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <setting string="Default Tow Partner">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label string="Tow Partner" for="fleet_partner_default_tow_id" class="col-lg-3 o_light_label"/>
+                                    <field name="fleet_partner_default_tow_id" 
+                                           domain="[('partner_type', '=', 'remorqueur'), ('company_id', 'in', [company_id, False])]"
+                                           context="{'default_partner_type': 'remorqueur'}"
+                                           class="oe_inline"/>
+                                </div>
+                                <div class="text-muted mt8">
+                                    Default tow partner for new vehicles
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    
+                    <!-- Block 3: Contrats -->
+                    <block title="Partner Network - Contract Management" id="fleet_partner_contracts">
+                        <setting string="Default Contract Duration">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label string="Duration (days)" for="fleet_partner_default_contract_duration" class="col-lg-3 o_light_label"/>
+                                    <field name="fleet_partner_default_contract_duration" class="oe_inline"/>
+                                </div>
+                                <div class="text-muted mt8">
+                                    Default duration in days for new contracts (e.g., 365 for 1 year)
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <setting string="Auto-Expire Contracts" help="Automatically mark contracts as expired when end date is reached">
+                            <field name="fleet_partner_auto_expire_contracts" class="oe_inline"/>
+                        </setting>
+                        
+                        <setting string="Require Contract Approval" help="New contracts must be approved before activation">
+                            <field name="fleet_partner_require_contract_approval" class="oe_inline"/>
+                        </setting>
+                    </block>
+                    
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
+

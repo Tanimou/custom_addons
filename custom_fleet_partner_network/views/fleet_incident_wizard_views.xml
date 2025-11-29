@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ================================================================= -->
+        <!-- FLEET INCIDENT WIZARD VIEWS (Phase 3 - TASK-010)                  -->
+        <!-- ================================================================= -->
+
+        <!-- Wizard Form View -->
+        <record id="fleet_incident_wizard_view_form" model="ir.ui.view">
+            <field name="name">fleet.incident.wizard.form</field>
+            <field name="model">fleet.incident.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Déclarer un incident">
+                    <sheet>
+                        <div class="alert alert-info" role="alert">
+                            <i class="fa fa-info-circle me-2"/>
+                            Utilisez cet assistant pour déclarer rapidement un incident véhicule.
+                            Un ticket sera créé avec les informations saisies.
+                        </div>
+                        <group>
+                            <group string="Véhicule">
+                                <field name="vehicle_id" options="{'no_create': True}"/>
+                                <field name="license_plate"/>
+                                <field name="driver_id" options="{'no_create': True}"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                            <group string="Incident">
+                                <field name="name" placeholder="Ex: Panne moteur sur autoroute"/>
+                                <field name="incident_type"/>
+                                <field name="incident_date"/>
+                                <field name="incident_location" placeholder="Ex: A6 sortie 15"/>
+                                <field name="priority" widget="priority"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Description" name="page_description">
+                                <field name="description" placeholder="Décrivez les circonstances de l'incident..."/>
+                            </page>
+                            <page string="Partenaires" name="page_partners">
+                                <group>
+                                    <group>
+                                        <field name="towing_partner_id" options="{'no_create': True}"/>
+                                    </group>
+                                    <group>
+                                        <field name="garage_partner_id" options="{'no_create': True}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Options" name="page_options">
+                                <group>
+                                    <group string="Workflow">
+                                        <field name="start_towing"/>
+                                        <field name="create_intervention"/>
+                                    </group>
+                                    <group string="Attribution">
+                                        <field name="responsible_id" widget="many2one_avatar_user"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <footer>
+                        <button name="action_create_incident"
+                            string="Créer le ticket"
+                            type="object"
+                            class="btn-primary"/>
+                        <button name="action_create_and_new"
+                            string="Créer et nouveau"
+                            type="object"
+                            class="btn-secondary"/>
+                        <button string="Annuler" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Wizard Action -->
+        <record id="action_fleet_incident_wizard" model="ir.actions.act_window">
+            <field name="name">Déclarer un incident</field>
+            <field name="res_model">fleet.incident.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{}</field>
+        </record>
+
+        <!-- Server Action for wizard from vehicle form -->
+        <record id="action_vehicle_declare_incident" model="ir.actions.server">
+            <field name="name">Déclarer un incident</field>
+            <field name="model_id" ref="fleet.model_fleet_vehicle"/>
+            <field name="binding_model_id" ref="fleet.model_fleet_vehicle"/>
+            <field name="binding_view_types">form</field>
+            <field name="state">code</field>
+            <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Déclarer un incident',
+    'res_model': 'fleet.incident.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'default_vehicle_id': record.id,
+        'default_driver_id': record.driver_id.id if record.driver_id else False,
+        'default_company_id': record.company_id.id if record.company_id else env.company.id,
+    },
+}
+            </field>
+        </record>
+
+    </data>
+</odoo>

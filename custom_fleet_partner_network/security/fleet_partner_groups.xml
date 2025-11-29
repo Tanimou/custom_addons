@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- ================================================================= -->
+        <!-- PRIVILEGE RÉSEAU PARTENAIRES (apparaît dans les paramètres user) -->
+        <!-- ================================================================= -->
+        
+        <record model="res.groups.privilege" id="res_groups_privilege_fleet_partner">
+            <field name="name">Réseau Partenaires</field>
+            <field name="sequence">18</field>
+            <field name="category_id" ref="base.module_category_human_resources"/>
+        </record>
+
+        <!-- ================================================================= -->
+        <!-- GROUPES RÉSEAU PARTENAIRES                                        -->
+        <!-- ================================================================= -->
+
+        <record id="group_fleet_partner_user" model="res.groups">
+            <field name="name">Utilisateur Réseau Partenaires</field>
+            <field name="sequence">10</field>
+            <field name="privilege_id" ref="res_groups_privilege_fleet_partner"/>
+            <field name="implied_ids" eval="[(4, ref('custom_fleet_management.group_fleet_user'))]"/>
+            <field name="comment">
+                Accès opérationnel aux fiches partenaires, contrats et incidents.
+                Hérite des droits Fleet User pour rester cohérent avec le module de gestion
+                du parc.
+            </field>
+        </record>
+
+        <record id="group_fleet_partner_manager" model="res.groups">
+            <field name="name">Responsable Réseau Partenaires</field>
+            <field name="sequence">20</field>
+            <field name="privilege_id" ref="res_groups_privilege_fleet_partner"/>
+            <field name="implied_ids" eval="[(4, ref('group_fleet_partner_user')), (4, ref('custom_fleet_management.group_fleet_manager'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+            <field name="comment">
+                Supervise l'ensemble des partenaires, approuve les contrats et paramètre
+                les alertes. Hérite aussi du rôle Fleet Manager pour administrer les
+                véhicules.
+            </field>
+        </record>
+
+        <record id="group_fleet_partner_portal" model="res.groups">
+            <field name="name">Conducteur - Réseau Partenaires (Portal)</field>
+            <field name="sequence">5</field>
+            <field name="privilege_id" ref="res_groups_privilege_fleet_partner"/>
+            <field name="implied_ids" eval="[(4, ref('custom_fleet_management.group_fleet_driver_portal'))]"/>
+            <field name="comment">
+                Accès portal restreint permettant aux conducteurs de consulter leurs
+                incidents/remorquages liés.
+            </field>
+        </record>
+
+    </data>
+</odoo>

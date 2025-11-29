@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ================================================================= -->
+        <!-- MAIL TEMPLATES FOR FLEET INCIDENTS (Phase 3 - TASK-011)           -->
+        <!-- ================================================================= -->
+
+        <!-- Template: Towing Scheduled Notification -->
+        <record id="mail_template_towing_scheduled" model="mail.template">
+            <field name="name">Fleet Incident: Remorquage planifié</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="subject">Remorquage planifié - {{ object.reference }}</field>
+            <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+            <field name="email_to">{{ object.towing_contact_id.email }}</field>
+            <field name="partner_to">{{ object.towing_contact_id.id }}</field>
+            <field name="lang">{{ object.towing_contact_id.lang }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p>Bonjour,</p>
+    <p>Un remorquage a été planifié pour le véhicule suivant:</p>
+    <table style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Référence</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.reference"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Véhicule</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.vehicle_id.display_name"/> (<t t-out="object.license_plate"/>)</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Type d'incident</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="dict(object._fields['incident_type'].selection).get(object.incident_type, object.incident_type)"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Lieu</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.incident_location or 'Non spécifié'"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Destination</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.towing_destination or 'Non spécifiée'"/></td>
+        </tr>
+        <tr t-if="object.towing_scheduled_date">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Date planifiée</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="format_datetime(object.towing_scheduled_date, dt_format='medium')"/></td>
+        </tr>
+    </table>
+    <p t-if="object.description">
+        <strong>Description:</strong><br/>
+        <t t-out="object.description"/>
+    </p>
+    <p>
+        Merci de confirmer votre disponibilité.
+    </p>
+    <p>Cordialement,<br/>
+    <t t-out="object.company_id.name"/></p>
+</div>
+            </field>
+        </record>
+
+        <!-- Template: Repair Completed Notification -->
+        <record id="mail_template_repair_completed" model="mail.template">
+            <field name="name">Fleet Incident: Réparation terminée</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="subject">Réparation terminée - {{ object.reference }}</field>
+            <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+            <field name="email_to">{{ object.responsible_id.email }}</field>
+            <field name="partner_to">{{ object.responsible_id.partner_id.id }}</field>
+            <field name="lang">{{ object.responsible_id.lang }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p>Bonjour,</p>
+    <p>L'incident suivant a été clôturé:</p>
+    <table style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Référence</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.reference"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Véhicule</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.vehicle_id.display_name"/> (<t t-out="object.license_plate"/>)</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Garage</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.garage_partner_id.partner_id.name if object.garage_partner_id else 'Non spécifié'"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Coût total réel</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="format_amount(object.total_actual_cost, object.currency_id)"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Date de clôture</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="format_datetime(object.close_date, dt_format='medium')"/></td>
+        </tr>
+    </table>
+    <p t-if="object.close_notes">
+        <strong>Notes de clôture:</strong><br/>
+        <t t-out="object.close_notes"/>
+    </p>
+    <p>Cordialement,<br/>
+    <t t-out="object.company_id.name"/></p>
+</div>
+            </field>
+        </record>
+
+        <!-- Template: Daily Incident Alert -->
+        <record id="mail_template_incident_alert" model="mail.template">
+            <field name="name">Fleet Incident: Alerte quotidienne</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="subject">Alerte: Incident {{ object.reference }} en attente</field>
+            <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+            <field name="email_to">{{ object.responsible_id.email }}</field>
+            <field name="partner_to">{{ object.responsible_id.partner_id.id }}</field>
+            <field name="lang">{{ object.responsible_id.lang }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p>Bonjour,</p>
+    <p>L'incident suivant nécessite votre attention:</p>
+    <table style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Référence</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.reference"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Titre</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.name"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Véhicule</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="object.vehicle_id.display_name"/> (<t t-out="object.license_plate"/>)</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>État</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="dict(object._fields['state'].selection).get(object.state, object.state)"/></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Date incident</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="format_datetime(object.incident_date, dt_format='medium')"/></td>
+        </tr>
+        <tr t-if="object.towing_scheduled_date">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Remorquage planifié</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="format_datetime(object.towing_scheduled_date, dt_format='medium')"/></td>
+        </tr>
+    </table>
+    <p>Veuillez prendre les mesures nécessaires pour faire avancer le traitement de cet incident.</p>
+    <p>Cordialement,<br/>
+    <t t-out="object.company_id.name"/></p>
+</div>
+            </field>
+        </record>
+
+        <!-- Template: Weekly Incident Digest -->
+        <record id="mail_template_incident_digest" model="mail.template">
+            <field name="name">Fleet Incident: Digest hebdomadaire</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="subject">Récapitulatif hebdomadaire des incidents - {{ object.company_id.name }}</field>
+            <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+            <field name="email_to">{{ object.responsible_id.email }}</field>
+            <field name="partner_to">{{ object.responsible_id.partner_id.id }}</field>
+            <field name="lang">{{ object.responsible_id.lang }}</field>
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p>Bonjour,</p>
+    <p>Voici le récapitulatif des incidents ouverts qui vous sont assignés:</p>
+    <table style="border-collapse: collapse; width: 100%;">
+        <tr style="background-color: #f2f2f2;">
+            <th style="padding: 8px; border: 1px solid #ddd;">Référence</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Véhicule</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Type</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">État</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Date</th>
+        </tr>
+        <t t-set="incidents" t-value="ctx.get('incidents', object)"/>
+        <t t-foreach="incidents" t-as="incident">
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="incident.reference"/></td>
+                <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="incident.vehicle_id.display_name"/></td>
+                <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="dict(incident._fields['incident_type'].selection).get(incident.incident_type, incident.incident_type)"/></td>
+                <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="dict(incident._fields['state'].selection).get(incident.state, incident.state)"/></td>
+                <td style="padding: 8px; border: 1px solid #ddd;"><t t-out="format_datetime(incident.incident_date, dt_format='short')"/></td>
+            </tr>
+        </t>
+    </table>
+    <p>
+        <strong>Total:</strong> <t t-out="len(incidents)"/> incident(s) ouvert(s)
+    </p>
+    <p>Cordialement,<br/>
+    <t t-out="object.company_id.name"/></p>
+</div>
+            </field>
+        </record>
+
+    </data>
+</odoo>

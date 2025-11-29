@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Actions spécifiques seront ajoutées dans les autres fichiers -->
+
+        <!-- ========== MENUS PARTENAIRES ========= -->
+        <menuitem id="menu_fleet_partners"
+                  name="Réseau Partenaires"
+                  parent="fleet.menu_root"
+                  sequence="15"
+                  groups="custom_fleet_partner_network.group_fleet_partner_user,custom_fleet_partner_network.group_fleet_partner_manager"/>
+
+        <menuitem id="menu_fleet_partner_profiles"
+                  name="Profils Partenaires"
+                  parent="menu_fleet_partners"
+                  action="custom_fleet_partner_network.action_fleet_partner_profile"
+                  sequence="10"
+                  groups="custom_fleet_partner_network.group_fleet_partner_user,custom_fleet_partner_network.group_fleet_partner_manager"/>
+
+        <!-- ========== MENUS INCIDENTS (Phase 3) ========= -->
+        <menuitem id="menu_fleet_incidents"
+                  name="Incidents"
+                  parent="fleet.menu_root"
+                  sequence="20"
+                  groups="custom_fleet_partner_network.group_fleet_partner_user,custom_fleet_partner_network.group_fleet_partner_manager"/>
+
+        <menuitem id="menu_fleet_incident_tickets"
+                  name="Tickets d'incident"
+                  parent="menu_fleet_incidents"
+                  action="custom_fleet_partner_network.action_fleet_incident_ticket"
+                  sequence="10"
+                  groups="custom_fleet_partner_network.group_fleet_partner_user,custom_fleet_partner_network.group_fleet_partner_manager"/>
+
+        <menuitem id="menu_fleet_incident_wizard"
+                  name="Déclarer un incident"
+                  parent="menu_fleet_incidents"
+                  action="custom_fleet_partner_network.action_fleet_incident_wizard"
+                  sequence="20"
+                  groups="custom_fleet_partner_network.group_fleet_partner_user,custom_fleet_partner_network.group_fleet_partner_manager"/>
+    </data>
+</odoo>
