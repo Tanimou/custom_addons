@@ -196,6 +196,7 @@ class FleetMaintenanceIntervention(models.Model):
             record.total_amount = part_amount + labor_amount + subcontract_amount + other_amount
             record.actual_total_amount = record.total_amount + purchase_amount
 
+    @api.depends("purchase_order_ids")
     def _compute_purchase_order_count(self):
         for record in self:
             record.purchase_order_count = len(record.purchase_order_ids)

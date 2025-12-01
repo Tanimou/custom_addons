@@ -38,7 +38,7 @@
                             <field name="maintenance_location_id" readonly="1"/>
                         </group>
                     </group>
-                    <field name="maintenance_history_ids" nolabel="1" mode="list,form"/>
+                    <field name="maintenance_history_ids" nolabel="1" mode="list,form" readonly="1" options="{'create': false, 'delete': false}"/>
                 </page>
             </xpath>
         </field>

@@ -61,13 +61,14 @@
         <field name="model">fleet.maintenance.intervention</field>
         <field name="arch" type="xml">
             <form string="Intervention de maintenance">
+                <field name="purchase_order_count" invisible="1"/>
                 <header>
-                    <button name="action_submit" string="Soumettre" type="object" class="btn btn-primary" modifiers="{'invisible': [['state', '!=', 'draft']]}"/>
-                    <button name="action_start" string="Démarrer" type="object" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_manager" modifiers="{'invisible': [['state', '!=', 'submitted']]}"/>
-                    <button name="action_done" string="Terminer" type="object" class="btn btn-success" groups="custom_fleet_maintenance.group_fleet_maintenance_manager" modifiers="{'invisible': [['state', '!=', 'in_progress']]}"/>
-                    <button name="action_cancel" string="Annuler" type="object" class="btn btn-danger" groups="custom_fleet_maintenance.group_fleet_maintenance_manager" modifiers="{'invisible': [['state', 'not in', ['draft', 'submitted']]]}"/>
-                    <button name="action_create_purchase_order" string="Créer une commande" type="object" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_manager"/>
-                    <button name="action_view_purchase_orders" string="Voir commandes" type="object" modifiers="{'invisible': [['purchase_order_count', '=', 0]]}"/>
+                    <button name="action_submit" string="Soumettre" type="object" class="btn btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start" string="Démarrer" type="object" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_manager" invisible="state != 'submitted'"/>
+                    <button name="action_done" string="Terminer" type="object" class="btn btn-success" groups="custom_fleet_maintenance.group_fleet_maintenance_manager" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Annuler" type="object" class="btn btn-danger" groups="custom_fleet_maintenance.group_fleet_maintenance_manager" invisible="state not in ('draft', 'submitted')"/>
+                    <button name="action_create_purchase_order" string="Créer une commande" type="object" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_manager" invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_view_purchase_orders" string="Voir commandes" type="object" invisible="purchase_order_count == 0"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,in_progress,done"/>
                 </header>
                 <sheet>
