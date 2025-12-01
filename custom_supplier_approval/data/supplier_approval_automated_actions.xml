@@ -45,7 +45,7 @@ for record in records:
                 user_id=activity_user.id,
                 summary='Évaluer le fournisseur',
                 note=f'Bon de commande {record.name} confirmé. Veuillez évaluer le fournisseur {record.partner_id.name} dans un délai de 7 jours.',
-                date_deadline=fields.Date.context_today(record) + relativedelta(days=7)
+                date_deadline=datetime.date.today() + datetime.timedelta(days=7)
             )
         </field>
     </record>
@@ -119,7 +119,7 @@ Actions recommandées:
 3. Envisager des alternatives si aucune amélioration n'est constatée
 
 Veuillez traiter cette alerte dans les plus brefs délais.''',
-                        date_deadline=fields.Date.context_today(evaluation)
+                        date_deadline=datetime.date.today()
                     )
                     
                     # Also post message on supplier chatter

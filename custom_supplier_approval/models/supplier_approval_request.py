@@ -97,9 +97,27 @@ class SupplierApprovalRequest(models.Model):
 
     @api.constrains('state', 'partner_id')
     def _check_legal_documents_before_approval(self):
-        """Ensure supplier has valid legal documents before approval"""
+        """Ensure supplier has valid legal documents before approval.
+        
+        Exception: Suppliers with fleet partner profiles of type 'garage' or 
+        'remorqueur' are exempt from this requirement.
+        """
         for rec in self:
             if rec.state == 'approved':
+                # Check if partner has a fleet profile with garage or remorqueur type
+                # This exempts them from the legal document requirement
+                is_fleet_partner_exempt = False
+                if 'fleet.partner.profile' in self.env:
+                    fleet_profiles = self.env['fleet.partner.profile'].search([
+                        ('partner_id', '=', rec.partner_id.id),
+                        ('partner_type', 'in', ['garage', 'remorqueur']),
+                    ], limit=1)
+                    is_fleet_partner_exempt = bool(fleet_profiles)
+                
+                if is_fleet_partner_exempt:
+                    # Skip legal document check for garage/remorqueur fleet partners
+                    continue
+                
                 valid_docs = rec.partner_id.legal_document_ids.filtered(
                     lambda d: d.state == 'valid'
                 )

@@ -10,7 +10,7 @@
         <field name="interval_type">days</field>
         <field name="code">
 # Find all legal documents that have expired (expiry_date &lt; today and state != 'expired')
-today = fields.Date.context_today(env.user)
+today = datetime.date.today()
 
 expired_docs = env['supplier.legal.document'].search([
     ('expiry_date', '&lt;', today),
@@ -91,9 +91,9 @@ if expired_docs:
 # 3. Have no evaluation yet
 # 4. Supplier is approved
 
-# Note: datetime and relativedelta are pre-imported in Odoo's safe_eval context
-today = fields.Date.context_today(env.user)
-thirty_days_ago = today - relativedelta(days=30)
+# Note: datetime is available in Odoo's safe_eval context
+today = datetime.date.today()
+thirty_days_ago = today - datetime.timedelta(days=30)
 
 # Get all approved suppliers
 approved_suppliers = env['supplier.approval.request'].search([
