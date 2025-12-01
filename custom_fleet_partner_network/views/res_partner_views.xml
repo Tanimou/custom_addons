@@ -15,13 +15,13 @@
                             icon="fa-sitemap"
                             groups="custom_fleet_partner_network.group_fleet_partner_user,custom_fleet_partner_network.group_fleet_partner_manager"
                             invisible="fleet_partner_profile_count == 0">
-                        <field name="fleet_partner_profile_count" widget="statinfo" string="Profils Fleet"/>
+                        <field name="fleet_partner_profile_count" widget="statinfo" string="Profils Parc Auto"/>
                     </button>
                     <button name="action_create_fleet_partner_profile"
                             type="object"
                             class="oe_stat_button"
                             icon="fa-plus"
-                            string="Créer un profil Fleet"
+                            string="Créer un profil Parc Auto"
                             groups="custom_fleet_partner_network.group_fleet_partner_manager"/>
                 </xpath>
                 <xpath expr="//group[@name='supplier_approval']" position="after">

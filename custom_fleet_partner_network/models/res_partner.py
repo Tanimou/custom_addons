@@ -2,7 +2,7 @@
 """Extension de res.partner pour le réseau de partenaires Fleet."""
 
 from odoo import api, fields, models
-from odoo.tools import safe_eval
+from odoo.tools.safe_eval import safe_eval
 
 
 class ResPartner(models.Model):
@@ -81,7 +81,7 @@ class ResPartner(models.Model):
         action['views'] = [(False, 'form')]
         context = {
             'default_partner_id': self.id,
-            'default_partner_type': 'insurer' if self.supplier_approved else False,
+            'default_partner_type': 'assureur' if self.supplier_approved else False,
         }
         action['domain'] = [('id', '=', False)]
         action['context'] = context

@@ -94,7 +94,7 @@
                     <field name="sla_response_hours"/>
                     <field name="sla_resolution_hours"/>
                     <templates>
-                        <t t-name="kanban-box">
+                        <t t-name="card">
                             <div class="o_kanban_record">
                                 <div class="o_kanban_primary_left">
                                     <strong><field name="name"/></strong>
