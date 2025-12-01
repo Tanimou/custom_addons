@@ -13,14 +13,6 @@
             <field name="groups" eval="[(4, ref('custom_fleet_partner_network.group_fleet_partner_user')), (4, ref('custom_fleet_partner_network.group_fleet_partner_manager'))]"/>
         </record>
 
-        <!-- Isolement multi-société pour les contrats partenaires -->
-        <record id="fleet_partner_contract_company_rule" model="ir.rule">
-            <field name="name">Fleet Partner Contract: Multi-company</field>
-            <field name="model_id" ref="model_fleet_partner_contract"/>
-            <field name="domain_force">[("company_id", "in", company_ids)]</field>
-            <field name="groups" eval="[(4, ref('custom_fleet_partner_network.group_fleet_partner_user')), (4, ref('custom_fleet_partner_network.group_fleet_partner_manager'))]"/>
-        </record>
-
         <!-- ================================================================= -->
         <!-- PHASE 3: Incident Ticket Rules                                    -->
         <!-- ================================================================= -->

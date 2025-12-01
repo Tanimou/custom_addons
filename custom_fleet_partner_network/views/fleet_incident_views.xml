@@ -88,14 +88,6 @@
                                     <span class="o_stat_text">Intervention</span>
                                 </div>
                             </button>
-                            <button name="action_view_purchase_orders"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-shopping-cart"
-                                invisible="purchase_order_count == 0">
-                                <field name="purchase_order_count" class="o_stat_value"/>
-                                <span class="o_stat_text">Commandes</span>
-                            </button>
                             <button name="%(base.action_attachment)d"
                                 type="action"
                                 class="oe_stat_button"
@@ -188,13 +180,6 @@
                                             icon="fa-wrench"
                                             invisible="intervention_id or state == 'draft'"
                                             groups="custom_fleet_partner_network.group_fleet_partner_user"/>
-                                        <button name="action_create_purchase_order"
-                                            string="Créer bon de commande"
-                                            type="object"
-                                            class="btn-secondary"
-                                            icon="fa-shopping-cart"
-                                            invisible="not garage_partner_id or state == 'draft'"
-                                            groups="custom_fleet_partner_network.group_fleet_partner_manager"/>
                                     </group>
                                 </group>
                             </page>

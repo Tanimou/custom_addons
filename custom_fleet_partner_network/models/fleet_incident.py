@@ -308,21 +308,6 @@ class FleetIncidentTicket(models.Model):
     )
 
     # =========================================================================
-    # FIELDS - Purchase Orders
-    # =========================================================================
-    purchase_order_ids = fields.Many2many(
-        "purchase.order",
-        "fleet_incident_purchase_rel",
-        "incident_id",
-        "order_id",
-        string="Bons de commande",
-    )
-    purchase_order_count = fields.Integer(
-        compute="_compute_purchase_order_count",
-        string="Nombre de commandes",
-    )
-
-    # =========================================================================
     # SQL CONSTRAINTS
     # =========================================================================
     _sql_constraints = [
@@ -351,11 +336,6 @@ class FleetIncidentTicket(models.Model):
     def _compute_attachment_count(self):
         for record in self:
             record.attachment_count = len(record.attachment_ids)
-
-    @api.depends("purchase_order_ids")
-    def _compute_purchase_order_count(self):
-        for record in self:
-            record.purchase_order_count = len(record.purchase_order_ids)
 
     # =========================================================================
     # ONCHANGE METHODS
@@ -416,6 +396,7 @@ class FleetIncidentTicket(models.Model):
     def write(self, vals):
         # Track state changes for chatter
         old_states = {r.id: r.state for r in self}
+        old_interventions = {r.id: r.intervention_id for r in self}
         res = super().write(vals)
         if "state" in vals:
             for record in self:
@@ -429,7 +410,47 @@ class FleetIncidentTicket(models.Model):
                         ),
                         message_type="notification",
                     )
+            # Synchronize state to linked intervention (avoid infinite loop)
+            if not self.env.context.get("_sync_from_intervention"):
+                self._sync_state_to_intervention(vals["state"])
+        # Sync back-reference when intervention_id is changed
+        if "intervention_id" in vals:
+            for record in self:
+                old_intervention = old_interventions.get(record.id)
+                # Clear back-reference on old intervention
+                if old_intervention and old_intervention.incident_ticket_id == record:
+                    old_intervention.write({"incident_ticket_id": False})
+                # Set back-reference on new intervention
+                if record.intervention_id:
+                    record.intervention_id.write({"incident_ticket_id": record.id})
         return res
+
+    def _sync_state_to_intervention(self, ticket_state):
+        """Synchronize ticket state to linked maintenance intervention.
+        
+        State mapping:
+        - repair → in_progress
+        - closed → done
+        - cancelled → cancelled
+        """
+        state_mapping = {
+            "repair": "in_progress",
+            "closed": "done",
+            "cancelled": "cancelled",
+        }
+        intervention_state = state_mapping.get(ticket_state)
+        if not intervention_state:
+            return
+        
+        for record in self:
+            if record.intervention_id:
+                # Check if intervention state needs to be updated
+                current_intervention_state = record.intervention_id.state
+                if current_intervention_state != intervention_state:
+                    # Use context flag to prevent infinite loop
+                    record.intervention_id.with_context(
+                        _sync_from_ticket=True
+                    ).write({"state": intervention_state})
 
     # =========================================================================
     # GROUP EXPAND FOR KANBAN
@@ -559,6 +580,7 @@ class FleetIncidentTicket(models.Model):
             "vendor_id": self.garage_contact_id.id if self.garage_contact_id else False,
             "company_id": self.company_id.id,
             "state": "submitted",
+            "incident_ticket_id": self.id,  # Set back-reference to this ticket
         }
         
         # Add failure_type if breakdown
@@ -637,42 +659,6 @@ class FleetIncidentTicket(models.Model):
             "view_mode": "form",
             "target": "current",
         }
-
-    def action_create_purchase_order(self):
-        """Create a purchase order for the garage partner."""
-        self.ensure_one()
-        if not self.garage_contact_id:
-            raise UserError(_("Veuillez sélectionner un garage avant de créer un bon de commande."))
-        
-        order_vals = {
-            "partner_id": self.garage_contact_id.id,
-            "origin": self.reference,
-            "company_id": self.company_id.id,
-            "currency_id": self.currency_id.id,
-        }
-        order = self.env["purchase.order"].sudo().create(order_vals)
-        self.purchase_order_ids = [(4, order.id)]
-        
-        self.message_post(
-            body=_("Bon de commande %s créé") % order.name,
-            message_type="notification",
-        )
-        
-        action = self.env.ref("purchase.purchase_form_action").sudo().read()[0]
-        action["res_id"] = order.id
-        action["views"] = [(self.env.ref("purchase.purchase_order_form").id, "form")]
-        return action
-
-    def action_view_purchase_orders(self):
-        """View purchase orders linked to this incident."""
-        self.ensure_one()
-        action = self.env.ref("purchase.purchase_form_action").sudo().read()[0]
-        if len(self.purchase_order_ids) == 1:
-            action["res_id"] = self.purchase_order_ids.id
-            action["views"] = [(self.env.ref("purchase.purchase_order_form").id, "form")]
-        else:
-            action["domain"] = [("id", "in", self.purchase_order_ids.ids)]
-        return action
 
     # =========================================================================
     # CRON METHODS

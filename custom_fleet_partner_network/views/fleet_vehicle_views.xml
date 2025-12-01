@@ -1,28 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Extension fleet.vehicle avec partenaires (Phase 2 - TASK-007) -->
+        <!-- Extension fleet.vehicle avec partenaires -->
         
         <record id="fleet_vehicle_view_form_partner_network" model="ir.ui.view">
             <field name="name">fleet.vehicle.form.partner.network</field>
             <field name="model">fleet.vehicle</field>
             <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
             <field name="arch" type="xml">
-                
-                <!-- Smart Button: Contrats Partenaires -->
-                <xpath expr="//div[@name='button_box']" position="inside">
-                    <button name="action_view_partner_contracts"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-file-text-o"
-                        invisible="partner_contract_count == 0">
-                        <div class="o_stat_info">
-                            <field name="partner_contract_count" class="o_stat_value"/>
-                            <span class="o_stat_text">Contrats</span>
-                        </div>
-                    </button>
-                    <field name="active_contract_count" invisible="1"/>
-                </xpath>
                 
                 <!-- Onglet Administration: Partenaires -->
                 <xpath expr="//notebook" position="inside">
@@ -37,40 +22,13 @@
                                     options="{'no_create': True}"
                                     help="Compagnie d'assurance actuellement active"/>
                             </group>
-                            <group name="group_insurance_dates">
-                                <field name="insurance_contract_start"
-                                    help="Date de début du contrat d'assurance actuel"/>
-                                <field name="insurance_contract_end"
-                                    help="Date d'expiration du contrat d'assurance actuel"/>
-                                <field name="insurance_contract_status" widget="badge"
-                                    decoration-success="insurance_contract_status == 'active'"
-                                    decoration-warning="insurance_contract_status == 'expiring_soon'"
-                                    decoration-danger="insurance_contract_status == 'expired'"
-                                    decoration-muted="insurance_contract_status == 'none'"
-                                    help="Statut du contrat basé sur les dates"/>
-                                <field name="insurance_days_remaining"
-                                    invisible="insurance_contract_status not in ('active', 'expiring_soon')"
-                                    help="Nombre de jours avant expiration"/>
-                            </group>
-                            <group colspan="2">
+                            <group name="group_insurance_actions">
                                 <button name="action_view_insurance_details"
                                     type="object"
                                     string="Voir Assureur"
                                     class="btn-secondary"
                                     icon="fa-building-o"
                                     invisible="not insurance_partner_id"/>
-                                <button name="action_renew_insurance"
-                                    type="object"
-                                    string="Renouveler"
-                                    class="btn-secondary"
-                                    icon="fa-refresh"
-                                    invisible="not insurance_partner_id or insurance_contract_status not in ('expiring_soon', 'expired')"/>
-                                <button name="action_create_partner_contract"
-                                    type="object"
-                                    string="Nouveau Contrat"
-                                    class="btn-primary"
-                                    icon="fa-plus"
-                                    context="{'default_contract_type': 'assurance', 'default_profile_id': insurance_partner_id}"/>
                             </group>
                         </group>
                         
@@ -100,31 +58,6 @@
                                 help="Liste des remorqueurs agréés pour ce véhicule"
                                 nolabel="1"/>
                             <field name="tow_partner_count" invisible="1"/>
-                        </group>
-                        
-                        <separator/>
-                        
-                        <!-- Section: Historique des Contrats -->
-                        <group string="Historique des Contrats" name="group_contracts_history">
-                            <field name="partner_contract_ids" nolabel="1" colspan="2">
-                                <list string="Contrats"
-                                    decoration-success="status == 'active'"
-                                    decoration-muted="status == 'expired'"
-                                    decoration-info="status == 'draft'"
-                                    decoration-warning="status == 'cancelled'">
-                                    <field name="contract_reference" string="Réf."/>
-                                    <field name="partner_id" string="Partenaire"/>
-                                    <field name="contract_type" string="Type"/>
-                                    <field name="date_start" string="Début"/>
-                                    <field name="date_end" string="Fin"/>
-                                    <field name="status" string="Statut" widget="badge"
-                                        decoration-success="status == 'active'"
-                                        decoration-warning="status == 'expired'"
-                                        decoration-danger="status == 'cancelled'"/>
-                                    <field name="cost" string="Coût" widget="monetary" sum="Total"/>
-                                    <field name="currency_id" column_invisible="1"/>
-                                </list>
-                            </field>
                         </group>
                         
                     </page>

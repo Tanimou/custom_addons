@@ -7,7 +7,7 @@ vehicle contracts, incidents, config settings, etc.).
 
 from . import (
     fleet_incident,
-    fleet_partner_contract,
+    fleet_maintenance_intervention,
     fleet_partner_profile,
     fleet_vehicle,
     res_config_settings,

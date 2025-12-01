@@ -44,6 +44,7 @@ Supplier Approval.
         'views/res_partner_views.xml',
         'views/fleet_vehicle_views.xml',
         'views/fleet_incident_views.xml',
+        'views/fleet_maintenance_intervention_views.xml',
         'views/res_config_settings_views.xml',
         'views/fleet_partner_dashboard.xml',
 

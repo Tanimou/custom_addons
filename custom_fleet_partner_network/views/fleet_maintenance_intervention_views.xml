@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Extend intervention form view to add incident ticket link -->
+    <record id="fleet_maintenance_intervention_view_form_inherit_incident" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.form.inherit.incident</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="inherit_id" ref="custom_fleet_maintenance.fleet_maintenance_intervention_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add incident_ticket_id field near the origin field -->
+            <xpath expr="//field[@name='plan_line_id']" position="after">
+                <field name="incident_ticket_id" readonly="1" options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
