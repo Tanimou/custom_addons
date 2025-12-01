@@ -53,7 +53,9 @@ class FleetPartnerProfile(models.Model):
     contact_id = fields.Many2one(
         'res.partner',
         string='Contact principal',
-        tracking=True,
+        related='partner_id',
+        store=True,
+        readonly=True,
         help='Contact opérationnel principal côté partenaire (remonté sur les incidents).'
     )
     color = fields.Integer(string='Couleur Kanban', default=0)
