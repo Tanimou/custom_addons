@@ -10,9 +10,6 @@
                     <field name="state" widget="statusbar" statusbar_visible="pending,valid,expired"/>
                 </header>
                 <sheet>
-                    <div class="alert alert-info" role="alert">
-                        <i class="fa fa-info-circle"/> Utilisez la section <strong>"Joindre des fichiers"</strong> dans le panneau de droite pour ajouter vos pièces jointes avec aperçu miniature.
-                    </div>
 
                     <div class="oe_button_box" name="button_box">
                     </div>
@@ -26,6 +23,7 @@
                         <group>
                             <field name="issue_date"/>
                             <field name="expiry_date"/>
+                            <field name="attachment_id" widget="many2many_binary"/>
                         </group>
                     </group>
                     <group>

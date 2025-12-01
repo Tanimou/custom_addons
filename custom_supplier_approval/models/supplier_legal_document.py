@@ -54,7 +54,7 @@ class SupplierLegalDocument(models.Model):
         string='Date d\'expiration',
         help="Date à laquelle le document expire (le cas échéant)"
     )
-    attachment_id = fields.Many2one(
+    attachment_id = fields.Many2many(
         'ir.attachment',
         string='Pièce jointe',
         help="Copie scannée ou PDF du document",
