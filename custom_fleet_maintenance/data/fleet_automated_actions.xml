@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- =================================================================
+             AUTOMATED ACTIONS / SERVER ACTIONS FOR FLEET MAINTENANCE
+             
+             Ces actions automatisées réagissent aux changements de données
+             pour déclencher des notifications, activités et alertes.
+             ================================================================= -->
+        
+        <!-- ========== INTERVENTION: STATE CHANGES ========== -->
+        
+        <!-- Action serveur: Notifier quand une intervention est soumise -->
+        <record id="action_server_intervention_submitted" model="ir.actions.server">
+            <field name="name">📢 Notification Intervention Soumise</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier les maintenance managers qu'une intervention est soumise pour validation
+for intervention in records:
+    if intervention.state != 'submitted':
+        continue
+    
+    # Get intervention type label
+    type_labels = dict(intervention._fields['intervention_type'].selection)
+    intervention_label = type_labels.get(intervention.intervention_type, 'Intervention')
+    
+    # Chercher les maintenance managers
+    manager_group = env.ref('custom_fleet_maintenance.group_fleet_maintenance_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        
+        for manager in managers:
+            # Notification interne
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=f"""
+                <h4>📋 Intervention Soumise pour Validation</h4>
+                <p><strong>Référence:</strong> {intervention.name}</p>
+                <p><strong>Type:</strong> {intervention_label}</p>
+                <p><strong>Véhicule:</strong> {intervention.vehicle_id.name}</p>
+                <p><strong>Demandeur:</strong> {intervention.responsible_id.name if intervention.responsible_id else '-'}</p>
+                <p><strong>Priorité:</strong> {dict(intervention._fields['priority'].selection).get(intervention.priority, '')}</p>
+                <p><strong>Date prévue:</strong> {intervention.scheduled_start.strftime('%d/%m/%Y') if intervention.scheduled_start else '-'}</p>
+                <p><em>Cette intervention nécessite votre validation.</em></p>
+                """,
+                subject=f"📋 Validation requise: {intervention.name} - {intervention.vehicle_id.name}",
+                model='fleet.maintenance.intervention',
+                res_id=intervention.id,
+            )
+            
+            # Créer activité de validation
+            intervention.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=manager.id,
+                summary=f"🔍 Valider intervention: {intervention.name}",
+                note=f"Intervention {intervention.name} soumise pour validation.\n"
+                     f"Véhicule: {intervention.vehicle_id.name}\nType: {intervention_label}",
+                date_deadline=datetime.date.today() + datetime.timedelta(days=2),
+            )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand intervention passe à "submitted" -->
+        <record id="base_automation_intervention_submitted" model="base.automation">
+            <field name="name">🔔 Intervention Soumise pour Validation</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'submitted')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'draft')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_intervention_submitted'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- Action serveur: Notifier quand une intervention est en cours -->
+        <record id="action_server_intervention_in_progress" model="ir.actions.server">
+            <field name="name">📢 Notification Intervention En Cours</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier le conducteur et poster dans le chatter du véhicule
+for intervention in records:
+    if intervention.state != 'in_progress':
+        continue
+    
+    # Get intervention type label
+    type_labels = dict(intervention._fields['intervention_type'].selection)
+    intervention_label = type_labels.get(intervention.intervention_type, 'Intervention')
+    
+    # Notifier le conducteur du véhicule
+    if intervention.vehicle_id.driver_id:
+        driver_partner = intervention.vehicle_id.driver_id
+        if driver_partner:
+            env['mail.thread'].message_notify(
+                partner_ids=driver_partner.ids,
+                body=f"""
+                <h4>🔧 Maintenance Démarrée</h4>
+                <p><strong>Intervention:</strong> {intervention.name}</p>
+                <p><strong>Véhicule:</strong> {intervention.vehicle_id.name}</p>
+                <p><strong>Type:</strong> {intervention_label}</p>
+                <p><strong>Technicien:</strong> {intervention.responsible_id.name if intervention.responsible_id else '-'}</p>
+                <p><em>Les travaux de maintenance sont en cours.</em></p>
+                """,
+                subject=f"🔧 Maintenance en cours: {intervention.vehicle_id.name}",
+                model='fleet.maintenance.intervention',
+                res_id=intervention.id,
+            )
+    
+    # Poster dans le chatter du véhicule
+    if intervention.vehicle_id:
+        intervention.vehicle_id.message_post(
+            body=f"""
+            <p>🔧 <strong>Maintenance démarrée</strong></p>
+            <ul>
+                <li>Intervention: <a href="#" data-oe-model="fleet.maintenance.intervention" data-oe-id="{intervention.id}">{intervention.name}</a></li>
+                <li>Type: {intervention_label}</li>
+                <li>Technicien: {intervention.responsible_id.name if intervention.responsible_id else '-'}</li>
+            </ul>
+            """,
+            message_type='notification',
+            subtype_xmlid='mail.mt_note',
+        )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand intervention passe à "in_progress" -->
+        <record id="base_automation_intervention_in_progress" model="base.automation">
+            <field name="name">🔔 Intervention En Cours</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'in_progress')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'submitted')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_intervention_in_progress'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- Action serveur: Notifier quand une intervention est terminée -->
+        <record id="action_server_intervention_done" model="ir.actions.server">
+            <field name="name">📢 Notification Intervention Terminée</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier les stakeholders de la fin de l'intervention
+for intervention in records:
+    if intervention.state != 'done':
+        continue
+    
+    # Get intervention type label
+    type_labels = dict(intervention._fields['intervention_type'].selection)
+    intervention_label = type_labels.get(intervention.intervention_type, 'Intervention')
+    
+    # Calculate costs
+    total_cost = (intervention.part_amount or 0) + (intervention.labor_amount or 0) + (intervention.subcontract_amount or 0)
+    
+    # Build cost details
+    cost_html = f"""
+    <ul>
+        <li>Pièces: {intervention.part_amount:.2f} €</li>
+        <li>Main d'œuvre: {intervention.labor_amount:.2f} €</li>
+        <li>Sous-traitance: {intervention.subcontract_amount:.2f} €</li>
+    </ul>
+    """
+    
+    # Notifier les maintenance managers
+    manager_group = env.ref('custom_fleet_maintenance.group_fleet_maintenance_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=f"""
+                <h4>✅ Intervention Terminée</h4>
+                <p><strong>Référence:</strong> {intervention.name}</p>
+                <p><strong>Type:</strong> {intervention_label}</p>
+                <p><strong>Véhicule:</strong> {intervention.vehicle_id.name}</p>
+                <p><strong>Coût total:</strong> {total_cost:.2f} €</p>
+                {cost_html}
+                <p><em>Le véhicule est de nouveau disponible.</em></p>
+                """,
+                subject=f"✅ Maintenance terminée: {intervention.name} - {intervention.vehicle_id.name}",
+                model='fleet.maintenance.intervention',
+                res_id=intervention.id,
+            )
+    
+    # Notifier le conducteur
+    if intervention.vehicle_id.driver_id:
+        driver_partner = intervention.vehicle_id.driver_id
+        if driver_partner:
+            env['mail.thread'].message_notify(
+                partner_ids=driver_partner.ids,
+                body=f"""
+                <h4>✅ Votre véhicule est prêt</h4>
+                <p>La maintenance <strong>{intervention.name}</strong> sur {intervention.vehicle_id.name} est terminée.</p>
+                <p>Le véhicule est de nouveau disponible.</p>
+                """,
+                subject=f"✅ Véhicule disponible: {intervention.vehicle_id.name}",
+                model='fleet.maintenance.intervention',
+                res_id=intervention.id,
+            )
+    
+    # Poster dans le chatter du véhicule
+    if intervention.vehicle_id:
+        intervention.vehicle_id.message_post(
+            body=f"""
+            <p>✅ <strong>Maintenance terminée</strong></p>
+            <ul>
+                <li>Intervention: <a href="#" data-oe-model="fleet.maintenance.intervention" data-oe-id="{intervention.id}">{intervention.name}</a></li>
+                <li>Type: {intervention_label}</li>
+                <li>Coût: {total_cost:.2f} €</li>
+            </ul>
+            """,
+            message_type='notification',
+            subtype_xmlid='mail.mt_note',
+        )
+    
+    # Clôturer les activités liées
+    intervention.activity_ids.filtered(lambda a: a.state != 'done').action_done()
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand intervention passe à "done" -->
+        <record id="base_automation_intervention_done" model="base.automation">
+            <field name="name">🔔 Intervention Terminée</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'done')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'in_progress')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_intervention_done'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- Action serveur: Notifier quand une intervention est annulée -->
+        <record id="action_server_intervention_cancelled" model="ir.actions.server">
+            <field name="name">📢 Notification Intervention Annulée</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier et nettoyer les activités quand une intervention est annulée
+for intervention in records:
+    if intervention.state != 'cancelled':
+        continue
+    
+    # Notifier le responsable
+    if intervention.responsible_id and intervention.responsible_id.partner_id:
+        env['mail.thread'].message_notify(
+            partner_ids=intervention.responsible_id.partner_id.ids,
+            body=f"""
+            <h4>❌ Intervention Annulée</h4>
+            <p><strong>Référence:</strong> {intervention.name}</p>
+            <p><strong>Véhicule:</strong> {intervention.vehicle_id.name}</p>
+            <p><em>Cette intervention a été annulée.</em></p>
+            """,
+            subject=f"❌ Intervention annulée: {intervention.name}",
+            model='fleet.maintenance.intervention',
+            res_id=intervention.id,
+        )
+    
+    # Supprimer les activités liées
+    intervention.activity_ids.unlink()
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand intervention passe à "cancelled" -->
+        <record id="base_automation_intervention_cancelled" model="base.automation">
+            <field name="name">🔔 Intervention Annulée</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'cancelled')]</field>
+            <field name="filter_pre_domain">[('state', 'in', ['draft', 'submitted', 'in_progress'])]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_intervention_cancelled'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== INTERVENTION: PRIORITY ESCALATION ========== -->
+        
+        <!-- Action serveur: Escalade pour priorité haute -->
+        <record id="action_server_intervention_high_priority" model="ir.actions.server">
+            <field name="name">📢 Escalade Intervention Priorité Haute</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Escalader les interventions haute priorité aux managers
+for intervention in records:
+    if intervention.priority not in ('2', '3'):
+        continue
+    
+    priority_labels = {'2': 'Haute', '3': 'Urgente'}
+    priority_icons = {'2': '🟠', '3': '🔴'}
+    
+    # Notifier les maintenance managers
+    manager_group = env.ref('custom_fleet_maintenance.group_fleet_maintenance_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=f"""
+                <h4>{priority_icons.get(intervention.priority, '⚠️')} Intervention Priorité {priority_labels.get(intervention.priority, 'Haute')}</h4>
+                <p><strong>Référence:</strong> {intervention.name}</p>
+                <p><strong>Véhicule:</strong> {intervention.vehicle_id.name}</p>
+                <p><strong>État:</strong> {dict(intervention._fields['state'].selection).get(intervention.state, '')}</p>
+                <p><em>Cette intervention nécessite une attention immédiate.</em></p>
+                """,
+                subject=f"{priority_icons.get(intervention.priority, '⚠️')} URGENT: {intervention.name}",
+                model='fleet.maintenance.intervention',
+                res_id=intervention.id,
+            )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher sur changement de priorité haute -->
+        <record id="base_automation_intervention_high_priority" model="base.automation">
+            <field name="name">🔔 Escalade Priorité Haute</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('priority', 'in', ['2', '3'])]</field>
+            <field name="filter_pre_domain">[('priority', 'in', ['0', '1'])]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_intervention_high_priority'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== INTERVENTION: OVERDUE ALERT ========== -->
+        
+        <!-- Action serveur: Alerte intervention en retard -->
+        <record id="action_server_intervention_overdue" model="ir.actions.server">
+            <field name="name">📢 Alerte Intervention En Retard</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Alerter quand une intervention devient en retard
+for intervention in records:
+    if not intervention.is_overdue:
+        continue
+    
+    if intervention.state not in ('draft', 'submitted', 'in_progress'):
+        continue
+    
+    # Notifier le responsable
+    if intervention.responsible_id and intervention.responsible_id.partner_id:
+        env['mail.thread'].message_notify(
+            partner_ids=intervention.responsible_id.partner_id.ids,
+            body=f"""
+            <h4>🔴 Intervention en RETARD</h4>
+            <p><strong>Référence:</strong> {intervention.name}</p>
+            <p><strong>Véhicule:</strong> {intervention.vehicle_id.name}</p>
+            <p><strong>Date fin prévue:</strong> {intervention.scheduled_end.strftime('%d/%m/%Y') if intervention.scheduled_end else '-'}</p>
+            <p><strong>État actuel:</strong> {dict(intervention._fields['state'].selection).get(intervention.state, '')}</p>
+            <p><em>⚠️ Action urgente requise!</em></p>
+            """,
+            subject=f"🔴 RETARD: {intervention.name}",
+            model='fleet.maintenance.intervention',
+            res_id=intervention.id,
+        )
+    
+    # Notifier les managers
+    manager_group = env.ref('custom_fleet_maintenance.group_fleet_maintenance_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            if manager != intervention.responsible_id:
+                env['mail.thread'].message_notify(
+                    partner_ids=manager.partner_id.ids,
+                    body=f"""
+                    <h4>🔴 Intervention en RETARD</h4>
+                    <p><strong>Référence:</strong> {intervention.name}</p>
+                    <p><strong>Véhicule:</strong> {intervention.vehicle_id.name}</p>
+                    <p><strong>Responsable:</strong> {intervention.responsible_id.name if intervention.responsible_id else '-'}</p>
+                    <p><strong>Date fin prévue:</strong> {intervention.scheduled_end.strftime('%d/%m/%Y') if intervention.scheduled_end else '-'}</p>
+                    <p><em>⚠️ Action urgente requise!</em></p>
+                    """,
+                    subject=f"🔴 Intervention en retard: {intervention.name}",
+                    model='fleet.maintenance.intervention',
+                    res_id=intervention.id,
+                )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand intervention devient en retard -->
+        <record id="base_automation_intervention_overdue" model="base.automation">
+            <field name="name">🔔 Alerte Intervention En Retard</field>
+            <field name="model_id" ref="model_fleet_maintenance_intervention"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('is_overdue', '=', True), ('state', 'in', ['draft', 'submitted', 'in_progress'])]</field>
+            <field name="filter_pre_domain">[('is_overdue', '=', False)]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_intervention_overdue'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== PLAN LINE: STATE ALERTS ========== -->
+        
+        <!-- Action serveur: Alerte ligne de plan en retard -->
+        <record id="action_server_plan_line_late" model="ir.actions.server">
+            <field name="name">📢 Alerte Ligne Plan En Retard</field>
+            <field name="model_id" ref="model_fleet_maintenance_plan_line"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Alerter quand une ligne de plan passe en retard
+for line in records:
+    if line.state != 'late':
+        continue
+    
+    # Notifier le responsable
+    if line.responsible_id and line.responsible_id.partner_id:
+        env['mail.thread'].message_notify(
+            partner_ids=line.responsible_id.partner_id.ids,
+            body=f"""
+            <h4>🔴 Maintenance Préventive en RETARD</h4>
+            <p><strong>Plan:</strong> {line.plan_id.name}</p>
+            <p><strong>Véhicule:</strong> {line.vehicle_id.name}</p>
+            <p><strong>Date due:</strong> {line.next_due_date.strftime('%d/%m/%Y') if line.next_due_date else '-'}</p>
+            <p><strong>Km seuil:</strong> {line.next_due_odometer or '-'}</p>
+            <p><em>⚠️ La maintenance préventive est en retard!</em></p>
+            """,
+            subject=f"🔴 RETARD maintenance: {line.vehicle_id.name}",
+            model='fleet.maintenance.plan.line',
+            res_id=line.id,
+        )
+    
+    # Notifier les managers
+    manager_group = env.ref('custom_fleet_maintenance.group_fleet_maintenance_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=f"""
+                <h4>🔴 Maintenance Préventive en RETARD</h4>
+                <p><strong>Plan:</strong> {line.plan_id.name}</p>
+                <p><strong>Véhicule:</strong> {line.vehicle_id.name}</p>
+                <p><strong>Date due:</strong> {line.next_due_date.strftime('%d/%m/%Y') if line.next_due_date else '-'}</p>
+                <p><strong>Responsable:</strong> {line.responsible_id.name if line.responsible_id else '-'}</p>
+                <p><em>⚠️ La maintenance préventive est en retard!</em></p>
+                """,
+                subject=f"🔴 Maintenance préventive en retard: {line.vehicle_id.name}",
+                model='fleet.maintenance.plan.line',
+                res_id=line.id,
+            )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand ligne de plan passe à "late" -->
+        <record id="base_automation_plan_line_late" model="base.automation">
+            <field name="name">🔔 Alerte Plan Maintenance En Retard</field>
+            <field name="model_id" ref="model_fleet_maintenance_plan_line"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'late')]</field>
+            <field name="filter_pre_domain">[('state', 'in', ['ok', 'due'])]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_plan_line_late'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== VEHICLE: BREAKDOWN STATE ========== -->
+        
+        <!-- Action serveur: Alerte véhicule en panne -->
+        <record id="action_server_vehicle_breakdown" model="ir.actions.server">
+            <field name="name">📢 Alerte Véhicule En Panne</field>
+            <field name="model_id" ref="fleet.model_fleet_vehicle"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Alerter les maintenance managers quand un véhicule passe en panne
+for vehicle in records:
+    # Check if vehicle has a state_id and if it indicates breakdown
+    state_id = vehicle.state_id if 'state_id' in vehicle._fields else False
+    if not state_id:
+        continue
+    
+    state_name = state_id.name.lower() if state_id and state_id.name else ''
+    if 'panne' not in state_name and 'breakdown' not in state_name:
+        continue
+    
+    # Notifier les maintenance managers
+    manager_group = env.ref('custom_fleet_maintenance.group_fleet_maintenance_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=f"""
+                <h4>🚨 Véhicule en PANNE</h4>
+                <p><strong>Véhicule:</strong> {vehicle.name}</p>
+                <p><strong>Immatriculation:</strong> {vehicle.license_plate or '-'}</p>
+                <p><strong>Conducteur:</strong> {vehicle.driver_id.name if vehicle.driver_id else '-'}</p>
+                <p><em>⚠️ Ce véhicule nécessite une intervention de maintenance urgente.</em></p>
+                """,
+                subject=f"🚨 PANNE: {vehicle.name}",
+                model='fleet.vehicle',
+                res_id=vehicle.id,
+            )
+            
+            # Créer activité urgente
+            vehicle.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=manager.id,
+                summary=f"🚨 Véhicule en panne: {vehicle.name}",
+                note=f"Le véhicule {vehicle.name} est en panne.\n"
+                     f"Créer une intervention curative urgente.",
+                date_deadline=datetime.date.today(),
+            )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher sur changement d'état du véhicule -->
+        <record id="base_automation_vehicle_breakdown" model="base.automation">
+            <field name="name">🔔 Alerte Véhicule En Panne</field>
+            <field name="model_id" ref="fleet.model_fleet_vehicle"/>
+            <field name="trigger">on_write</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_vehicle_breakdown'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+    </data>
+</odoo>

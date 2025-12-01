@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import logging
 from datetime import date, datetime, timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class FleetVehicle(models.Model):
@@ -382,59 +385,149 @@ class FleetVehicle(models.Model):
         """
         Cron job: Envoi digest hebdomadaire (tous les lundis à 07:00)
         Envoie un rapport récapitulatif aux responsables du parc automobile.
+        Envoie également des notifications internes et crée des activités.
         """
         ConfigParam = self.env['ir.config_parameter'].sudo()
-        MailTemplate = self.env['mail.template']
         
         # Vérifier si le digest est activé
         weekly_alert_enabled = ConfigParam.get_param('fleet.weekly_alert_enabled', 'True') == 'True'
         if not weekly_alert_enabled:
+            _logger.info("Weekly fleet digest is disabled")
             return
         
-        # Récupérer le template de digest
-        template = self.env.ref('custom_fleet_management.mail_template_weekly_digest', raise_if_not_found=False)
-        if not template:
-            _logger.warning("Weekly digest template not found")
+        # Récupérer les fleet managers
+        fleet_manager_group = self.env.ref('custom_fleet_management.group_fleet_manager', raise_if_not_found=False)
+        if not fleet_manager_group:
+            _logger.warning("Fleet manager group not found")
             return
         
-        # Envoyer le digest par company
-        for company in self.env['res.company'].search([]):
-            # Récupérer les responsables pour cette company
-            responsible_ids_str = ConfigParam.get_param('fleet.responsible_ids', '')
-            if not responsible_ids_str:
-                continue
+        fleet_managers = self.env['res.users'].search([
+            ('group_ids', 'in', fleet_manager_group.ids),
+            ('active', '=', True),
+        ])
+        
+        if not fleet_managers:
+            _logger.info("No fleet managers found for weekly digest")
+            return
+        
+        # Collecter les statistiques pour toutes les sociétés
+        today = date.today()
+        week_ago = today - timedelta(days=7)
+        week_ahead = today + timedelta(days=7)
+        
+        # Véhicules avec alertes
+        vehicles_critical = self.search([
+            ('administrative_state', '=', 'critical'),
+            ('active', '=', True),
+        ])
+        vehicles_warning = self.search([
+            ('administrative_state', '=', 'warning'),
+            ('active', '=', True),
+        ])
+        
+        # Missions en attente d'approbation
+        missions_pending = self.env['fleet.mission'].search([
+            ('state', '=', 'submitted'),
+        ])
+        
+        # Missions terminées cette semaine
+        missions_done = self.env['fleet.mission'].search([
+            ('state', '=', 'done'),
+            ('write_date', '>=', week_ago),
+        ])
+        
+        # Missions à venir
+        missions_upcoming = self.env['fleet.mission'].search([
+            ('state', 'in', ['approved', 'in_progress']),
+            ('date_start', '<=', week_ahead),
+        ])
+        
+        # Documents expirant bientôt
+        docs_expiring = self.env['fleet.vehicle.document'].search([
+            ('state', '=', 'expiring_soon'),
+        ])
+        
+        # Construire le message de notification
+        notification_body = _(
+            """
+            <h3>📊 Digest Hebdomadaire Parc Automobile</h3>
+            <p><strong>Semaine du %s</strong></p>
             
+            <h4>🚨 Alertes</h4>
+            <ul>
+                <li>Véhicules critiques: <strong style="color: red;">%d</strong></li>
+                <li>Véhicules en alerte: <strong style="color: orange;">%d</strong></li>
+                <li>Documents expirant: <strong>%d</strong></li>
+            </ul>
+            
+            <h4>🚗 Missions</h4>
+            <ul>
+                <li>En attente d'approbation: <strong>%d</strong></li>
+                <li>Terminées cette semaine: <strong>%d</strong></li>
+                <li>À venir (7 jours): <strong>%d</strong></li>
+            </ul>
+            """,
+            today.strftime('%d/%m/%Y'),
+            len(vehicles_critical),
+            len(vehicles_warning),
+            len(docs_expiring),
+            len(missions_pending),
+            len(missions_done),
+            len(missions_upcoming),
+        )
+        
+        # Envoyer notification interne à chaque fleet manager
+        for manager in fleet_managers:
             try:
-                responsible_ids = [int(uid) for uid in responsible_ids_str.split(',') if uid.strip()]
-                responsible_users = self.env['res.users'].browse(responsible_ids)
-                responsible_users = responsible_users.filtered(lambda u: u.company_id == company)
+                # Notification interne via message_notify
+                self.env['mail.thread'].message_notify(
+                    partner_ids=manager.partner_id.ids,
+                    body=notification_body,
+                    subject=_("Digest Hebdomadaire Parc Auto - Semaine %s") % today.strftime('%W/%Y'),
+                    model='fleet.vehicle',
+                    res_id=False,
+                )
                 
-                if not responsible_users:
-                    continue
+                # Créer activité si missions en attente d'approbation
+                if missions_pending:
+                    # Trouver ou créer un véhicule pour attacher l'activité (utiliser le premier critique ou le premier de la liste)
+                    ref_vehicle = vehicles_critical[:1] or vehicles_warning[:1] or self.search([], limit=1)
+                    if ref_vehicle:
+                        # Vérifier si activité similaire existe déjà
+                        existing_activity = self.env['mail.activity'].search([
+                            ('res_model', '=', 'fleet.mission'),
+                            ('user_id', '=', manager.id),
+                            ('summary', 'ilike', 'approbation'),
+                            ('date_deadline', '>=', today),
+                        ], limit=1)
+                        
+                        if not existing_activity:
+                            for mission in missions_pending[:5]:  # Limit to 5 activities
+                                mission.activity_schedule(
+                                    'mail.mail_activity_data_todo',
+                                    user_id=manager.id,
+                                    summary=_("Mission en attente d'approbation: %s") % mission.name,
+                                    note=_("Cette mission attend votre validation depuis le %s") % mission.date_request.strftime('%d/%m/%Y'),
+                                    date_deadline=today + timedelta(days=2),
+                                )
                 
-                # Créer le contexte pour le template
-                ctx = {
-                    'lang': company.partner_id.lang or self.env.user.lang,
-                    'company_id': company.id,
-                }
+                _logger.info("Weekly digest sent to %s", manager.name)
                 
-                # Envoyer l'email
-                for user in responsible_users:
-                    if user.email:
-                        template.with_context(ctx).send_mail(
-                            company.id,
-                            force_send=True,
-                            email_values={'email_to': user.email}
-                        )
-                        _logger.info(
-                            "Weekly fleet digest sent to %s (company: %s)",
-                            user.name,
-                            company.name
-                        )
-            
-            except (ValueError, TypeError) as e:
-                _logger.error("Error sending weekly digest for company %s: %s", company.name, str(e))
+            except Exception as e:
+                _logger.error("Error sending weekly digest to %s: %s", manager.name, str(e))
                 continue
+        
+        # Envoyer email aux responsables configurés
+        template = self.env.ref('custom_fleet_management.mail_template_weekly_digest', raise_if_not_found=False)
+        if template:
+            for company in self.env['res.company'].search([]):
+                try:
+                    template.send_mail(company.id, force_send=False)
+                    _logger.info("Weekly digest email sent for company %s", company.name)
+                except Exception as e:
+                    _logger.error("Error sending weekly digest email for company %s: %s", company.name, str(e))
+        
+        _logger.info("Weekly fleet digest completed")
     
     @api.constrains('date_prochaine_visite', 'date_fin_assurance')
     def _check_deadline_dates(self):

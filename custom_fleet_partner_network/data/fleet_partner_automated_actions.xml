@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- =================================================================
+             AUTOMATED ACTIONS / SERVER ACTIONS FOR FLEET PARTNER NETWORK
+             
+             Ces actions automatisées réagissent aux changements de données
+             pour déclencher des notifications, activités et alertes.
+             Utilise le trigger on_write avec filter_domain/filter_pre_domain
+             pour une compatibilité maximale avec Odoo 19.
+             ================================================================= -->
+        
+        <!-- ========== INCIDENT: STATE CHANGES ========== -->
+        
+        <!-- Action serveur: Notifier quand un incident passe en remorquage -->
+        <record id="action_server_incident_towing" model="ir.actions.server">
+            <field name="name">📢 Notification Incident en Remorquage</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier le remorqueur et les managers quand un incident passe en remorquage
+for incident in records:
+    if incident.state != 'towing':
+        continue
+    
+    # Get incident type label
+    type_labels = dict(incident._fields['incident_type'].selection)
+    incident_label = type_labels.get(incident.incident_type, 'Incident')
+    
+    # Build notification body
+    body = f"""
+    <h4>🚛 Remorquage Assigné</h4>
+    <p><strong>Référence:</strong> {incident.reference}</p>
+    <p><strong>Véhicule:</strong> {incident.vehicle_id.name} ({incident.license_plate or '-'})</p>
+    <p><strong>Type:</strong> {incident_label}</p>
+    <p><strong>Lieu:</strong> {incident.incident_location or 'Non spécifié'}</p>
+    <p><strong>Destination:</strong> {incident.towing_destination or 'Non spécifiée'}</p>
+    """
+    
+    if incident.towing_scheduled_date:
+        body += f"<p><strong>Date planifiée:</strong> {incident.towing_scheduled_date.strftime('%d/%m/%Y %H:%M')}</p>"
+    
+    # Notify towing partner
+    if incident.towing_contact_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.towing_contact_id.ids,
+            body=body + "<p><em>Veuillez confirmer votre disponibilité.</em></p>",
+            subject=f"🚛 Mission remorquage: {incident.reference}",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+    
+    # Notify managers
+    manager_group = env.ref('custom_fleet_partner_network.group_fleet_partner_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=body + f"<p><strong>Remorqueur:</strong> {incident.towing_partner_id.name if incident.towing_partner_id else '-'}</p>",
+                subject=f"🚛 Incident en remorquage: {incident.reference}",
+                model='fleet.incident.ticket',
+                res_id=incident.id,
+            )
+    
+    # Notify driver
+    if incident.driver_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.driver_id.ids,
+            body=f"""
+            <h4>🚛 Remorquage en cours</h4>
+            <p>Votre véhicule <strong>{incident.vehicle_id.name}</strong> est pris en charge par le service de remorquage.</p>
+            <p><strong>Destination:</strong> {incident.towing_destination or 'À confirmer'}</p>
+            """,
+            subject=f"🚛 Votre véhicule en remorquage",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand incident passe à "towing" -->
+        <record id="base_automation_incident_towing" model="base.automation">
+            <field name="name">🔔 Incident Passé en Remorquage</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'towing')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'draft')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_incident_towing'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- Action serveur: Notifier quand un incident passe en réparation -->
+        <record id="action_server_incident_repair" model="ir.actions.server">
+            <field name="name">📢 Notification Incident en Réparation</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier le garage et créer des activités quand un incident passe en réparation
+for incident in records:
+    if incident.state != 'repair':
+        continue
+    
+    # Get incident type label
+    type_labels = dict(incident._fields['incident_type'].selection)
+    incident_label = type_labels.get(incident.incident_type, 'Incident')
+    
+    body = f"""
+    <h4>🔧 Réparation Démarrée</h4>
+    <p><strong>Référence:</strong> {incident.reference}</p>
+    <p><strong>Véhicule:</strong> {incident.vehicle_id.name} ({incident.license_plate or '-'})</p>
+    <p><strong>Type:</strong> {incident_label}</p>
+    <p><strong>Date début:</strong> {incident.repair_start_date.strftime('%d/%m/%Y') if incident.repair_start_date else "Aujourd'hui"}</p>
+    """
+    
+    if incident.estimated_repair_cost:
+        body += f"<p><strong>Coût estimé:</strong> {incident.estimated_repair_cost:.2f} {incident.currency_id.symbol or '€'}</p>"
+    
+    # Notify garage partner
+    if incident.garage_contact_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.garage_contact_id.ids,
+            body=body + "<p><em>Merci de nous tenir informés de l'avancement.</em></p>",
+            subject=f"🔧 Véhicule en réparation: {incident.reference}",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+        
+        # Create activity for garage follow-up
+        if incident.responsible_id:
+            incident.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=incident.responsible_id.id,
+                summary=f"📞 Suivi réparation: {incident.reference}",
+                note=f"Contacter le garage {incident.garage_partner_id.name if incident.garage_partner_id else ''} "
+                     f"pour le suivi de la réparation du véhicule {incident.vehicle_id.name}.",
+                date_deadline=datetime.date.today() + datetime.timedelta(days=3),
+            )
+    
+    # Notify managers
+    manager_group = env.ref('custom_fleet_partner_network.group_fleet_partner_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=body + f"<p><strong>Garage:</strong> {incident.garage_partner_id.name if incident.garage_partner_id else '-'}</p>",
+                subject=f"🔧 Incident en réparation: {incident.reference}",
+                model='fleet.incident.ticket',
+                res_id=incident.id,
+            )
+    
+    # Post in vehicle chatter
+    if incident.vehicle_id:
+        incident.vehicle_id.message_post(
+            body=f"""
+            <p>🔧 <strong>Réparation démarrée</strong></p>
+            <ul>
+                <li>Incident: <a href="#" data-oe-model="fleet.incident.ticket" data-oe-id="{incident.id}">{incident.reference}</a></li>
+                <li>Garage: {incident.garage_partner_id.name if incident.garage_partner_id else '-'}</li>
+            </ul>
+            """,
+            message_type='notification',
+            subtype_xmlid='mail.mt_note',
+        )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand incident passe à "repair" -->
+        <record id="base_automation_incident_repair" model="base.automation">
+            <field name="name">🔔 Incident Passé en Réparation</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'repair')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'towing')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_incident_repair'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- Action serveur: Notifier quand un incident est clôturé -->
+        <record id="action_server_incident_closed" model="ir.actions.server">
+            <field name="name">📢 Notification Incident Clôturé</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier tous les stakeholders quand un incident est clôturé
+for incident in records:
+    if incident.state != 'closed':
+        continue
+    
+    # Get incident type label
+    type_labels = dict(incident._fields['incident_type'].selection)
+    incident_label = type_labels.get(incident.incident_type, 'Incident')
+    
+    # Calculate total cost
+    total_cost = incident.total_actual_cost or 0
+    currency = incident.currency_id.symbol or '€'
+    
+    body = f"""
+    <h4>✅ Incident Clôturé</h4>
+    <p><strong>Référence:</strong> {incident.reference}</p>
+    <p><strong>Véhicule:</strong> {incident.vehicle_id.name} ({incident.license_plate or '-'})</p>
+    <p><strong>Type:</strong> {incident_label}</p>
+    <p><strong>Coût total:</strong> {total_cost:.2f} {currency}</p>
+    <ul>
+        <li>Remorquage: {(incident.actual_towing_cost or 0):.2f} {currency}</li>
+        <li>Réparation: {(incident.actual_repair_cost or 0):.2f} {currency}</li>
+    </ul>
+    """
+    
+    if incident.close_notes:
+        body += f"<p><strong>Notes:</strong> {incident.close_notes}</p>"
+    
+    # Notify managers
+    manager_group = env.ref('custom_fleet_partner_network.group_fleet_partner_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=body + "<p><em>Le véhicule est de nouveau disponible.</em></p>",
+                subject=f"✅ Incident clôturé: {incident.reference} - Coût: {total_cost:.2f} {currency}",
+                model='fleet.incident.ticket',
+                res_id=incident.id,
+            )
+    
+    # Notify driver
+    if incident.driver_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.driver_id.ids,
+            body=f"""
+            <h4>✅ Votre véhicule est prêt</h4>
+            <p>L'incident <strong>{incident.reference}</strong> concernant le véhicule 
+               <strong>{incident.vehicle_id.name}</strong> a été résolu.</p>
+            <p>Le véhicule est de nouveau disponible.</p>
+            """,
+            subject=f"✅ Véhicule disponible: {incident.vehicle_id.name}",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+    
+    # Close related activities
+    incident.activity_ids.filtered(lambda a: a.state != 'done').action_done()
+    
+    # Post in vehicle chatter
+    if incident.vehicle_id:
+        incident.vehicle_id.message_post(
+            body=f"""
+            <p>✅ <strong>Incident résolu</strong></p>
+            <ul>
+                <li>Référence: <a href="#" data-oe-model="fleet.incident.ticket" data-oe-id="{incident.id}">{incident.reference}</a></li>
+                <li>Coût total: {total_cost:.2f} {currency}</li>
+            </ul>
+            """,
+            message_type='notification',
+            subtype_xmlid='mail.mt_note',
+        )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand incident passe à "closed" -->
+        <record id="base_automation_incident_closed" model="base.automation">
+            <field name="name">🔔 Incident Clôturé</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'closed')]</field>
+            <field name="filter_pre_domain">[('state', 'in', ['towing', 'repair'])]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_incident_closed'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- Action serveur: Notifier quand un incident est annulé -->
+        <record id="action_server_incident_cancelled" model="ir.actions.server">
+            <field name="name">📢 Notification Incident Annulé</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Nettoyer les activités et notifier quand un incident est annulé
+for incident in records:
+    if incident.state != 'cancelled':
+        continue
+    
+    body = f"""
+    <h4>❌ Incident Annulé</h4>
+    <p><strong>Référence:</strong> {incident.reference}</p>
+    <p><strong>Véhicule:</strong> {incident.vehicle_id.name}</p>
+    <p><em>Cet incident a été annulé.</em></p>
+    """
+    
+    # Notify responsible
+    if incident.responsible_id and incident.responsible_id.partner_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.responsible_id.partner_id.ids,
+            body=body,
+            subject=f"❌ Incident annulé: {incident.reference}",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+    
+    # Notify towing partner if was assigned
+    if incident.towing_contact_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.towing_contact_id.ids,
+            body=body + "<p><em>La mission de remorquage est annulée.</em></p>",
+            subject=f"❌ Annulation mission remorquage: {incident.reference}",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+    
+    # Notify garage if was assigned
+    if incident.garage_contact_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.garage_contact_id.ids,
+            body=body + "<p><em>La réparation est annulée.</em></p>",
+            subject=f"❌ Annulation réparation: {incident.reference}",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+    
+    # Delete related activities
+    incident.activity_ids.unlink()
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand incident passe à "cancelled" -->
+        <record id="base_automation_incident_cancelled" model="base.automation">
+            <field name="name">🔔 Incident Annulé</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'cancelled')]</field>
+            <field name="filter_pre_domain">[('state', 'in', ['draft', 'towing', 'repair'])]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_incident_cancelled'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== INCIDENT: PRIORITY ESCALATION ========== -->
+        
+        <!-- Action serveur: Escalade pour priorité haute/critique -->
+        <record id="action_server_incident_priority_escalation" model="ir.actions.server">
+            <field name="name">📢 Escalade Incident Priorité Haute</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Escalader les incidents haute priorité aux managers
+for incident in records:
+    if incident.priority not in ('2', '3'):
+        continue
+    
+    priority_labels = {'2': 'Urgente', '3': 'Critique'}
+    priority_icons = {'2': '🟠', '3': '🔴'}
+    
+    # Get incident type label
+    type_labels = dict(incident._fields['incident_type'].selection)
+    incident_label = type_labels.get(incident.incident_type, 'Incident')
+    state_label = dict(incident._fields['state'].selection).get(incident.state, '')
+    
+    body = f"""
+    <h4>{priority_icons.get(incident.priority, '⚠️')} ESCALADE - Priorité {priority_labels.get(incident.priority, 'Haute')}</h4>
+    <p><strong>Référence:</strong> {incident.reference}</p>
+    <p><strong>Véhicule:</strong> {incident.vehicle_id.name} ({incident.license_plate or '-'})</p>
+    <p><strong>Type:</strong> {incident_label}</p>
+    <p><strong>État:</strong> {state_label}</p>
+    <p><strong>Responsable:</strong> {incident.responsible_id.name if incident.responsible_id else '-'}</p>
+    <p><em>⚠️ Cet incident nécessite une attention immédiate!</em></p>
+    """
+    
+    # Notify managers
+    manager_group = env.ref('custom_fleet_partner_network.group_fleet_partner_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=body,
+                subject=f"{priority_icons.get(incident.priority, '⚠️')} URGENT: {incident.reference}",
+                model='fleet.incident.ticket',
+                res_id=incident.id,
+            )
+            
+            # Create urgent activity
+            if incident.priority == '3':  # Critical
+                incident.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    user_id=manager.id,
+                    summary=f"🔴 CRITIQUE: {incident.reference}",
+                    note=f"Incident critique nécessitant une action immédiate.\n"
+                         f"Véhicule: {incident.vehicle_id.name}\n"
+                         f"Type: {incident_label}",
+                    date_deadline=datetime.date.today(),
+                )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher sur changement de priorité haute -->
+        <record id="base_automation_incident_priority" model="base.automation">
+            <field name="name">🔔 Escalade Priorité Haute/Critique</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('priority', 'in', ['2', '3'])]</field>
+            <field name="filter_pre_domain">[('priority', 'in', ['0', '1'])]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_incident_priority_escalation'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== PARTNER PROFILE: EXPIRATION/STATUS ========== -->
+        
+        <!-- Action serveur: Alerte quand un partenaire n'est plus approuvé -->
+        <record id="action_server_partner_unapproved" model="ir.actions.server">
+            <field name="name">📢 Alerte Partenaire Non Approuvé</field>
+            <field name="model_id" ref="model_fleet_partner_profile"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Alerter quand un partenaire perd son approbation
+for profile in records:
+    if profile.supplier_approved:
+        continue  # Still approved, skip
+    
+    type_labels = {'assureur': 'Assureur', 'garage': 'Garage Agréé', 'remorqueur': 'Remorqueur'}
+    type_label = type_labels.get(profile.partner_type, profile.partner_type or '')
+    
+    body = f"""
+    <h4>⚠️ Partenaire Non Approuvé</h4>
+    <p><strong>Profil:</strong> {profile.name}</p>
+    <p><strong>Partenaire:</strong> {profile.partner_id.name}</p>
+    <p><strong>Type:</strong> {type_label}</p>
+    <p><em>Ce partenaire n'est plus dans la liste des fournisseurs approuvés.
+    Les incidents ne pourront plus lui être assignés.</em></p>
+    """
+    
+    # Notify managers
+    manager_group = env.ref('custom_fleet_partner_network.group_fleet_partner_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=body,
+                subject=f"⚠️ Partenaire non approuvé: {profile.partner_id.name}",
+                model='fleet.partner.profile',
+                res_id=profile.id,
+            )
+            
+            # Create activity
+            profile.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=manager.id,
+                summary=f"⚠️ Réviser partenaire: {profile.name}",
+                note=f"Le partenaire {profile.partner_id.name} n'est plus approuvé.\n"
+                     f"Veuillez mettre à jour les assignments d'incidents en cours.",
+                date_deadline=datetime.date.today() + datetime.timedelta(days=3),
+            )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand supplier_approved devient False -->
+        <record id="base_automation_partner_unapproved" model="base.automation">
+            <field name="name">🔔 Partenaire Non Approuvé</field>
+            <field name="model_id" ref="model_fleet_partner_profile"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('supplier_approved', '=', False)]</field>
+            <field name="filter_pre_domain">[('supplier_approved', '=', True)]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_partner_unapproved'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== INCIDENT: ACCIDENT TYPE SPECIAL HANDLING ========== -->
+        
+        <!-- Action serveur: Notification spéciale pour accidents -->
+        <record id="action_server_incident_accident" model="ir.actions.server">
+            <field name="name">📢 Notification Accident</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notification spéciale pour les accidents - inclut l'assureur
+for incident in records:
+    if incident.incident_type != 'accident':
+        continue
+    
+    body = f"""
+    <h4>🚨 Nouvel Accident Signalé</h4>
+    <p><strong>Référence:</strong> {incident.reference}</p>
+    <p><strong>Véhicule:</strong> {incident.vehicle_id.name} ({incident.license_plate or '-'})</p>
+    <p><strong>Conducteur:</strong> {incident.driver_id.name if incident.driver_id else '-'}</p>
+    <p><strong>Date:</strong> {incident.incident_date.strftime('%d/%m/%Y %H:%M') if incident.incident_date else '-'}</p>
+    <p><strong>Lieu:</strong> {incident.incident_location or 'Non spécifié'}</p>
+    """
+    
+    # Notify insurance partner if assigned
+    if incident.insurance_partner_id and incident.insurance_partner_id.partner_id:
+        env['mail.thread'].message_notify(
+            partner_ids=incident.insurance_partner_id.partner_id.ids,
+            body=body + """
+            <p><em>Merci de nous contacter pour la déclaration de sinistre.</em></p>
+            """,
+            subject=f"🚨 Déclaration accident: {incident.reference}",
+            model='fleet.incident.ticket',
+            res_id=incident.id,
+        )
+    
+    # Always notify managers for accidents
+    manager_group = env.ref('custom_fleet_partner_network.group_fleet_partner_manager', raise_if_not_found=False)
+    if manager_group:
+        managers = env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+        for manager in managers:
+            env['mail.thread'].message_notify(
+                partner_ids=manager.partner_id.ids,
+                body=body + f"""
+                <p><strong>Assureur:</strong> {incident.insurance_partner_id.name if incident.insurance_partner_id else 'Non assigné'}</p>
+                <p><em>⚠️ Un accident a été signalé. Veuillez assurer le suivi.</em></p>
+                """,
+                subject=f"🚨 ACCIDENT: {incident.reference} - {incident.vehicle_id.name}",
+                model='fleet.incident.ticket',
+                res_id=incident.id,
+            )
+            
+            # Create urgent activity for accident follow-up
+            incident.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=manager.id,
+                summary=f"🚨 Suivi accident: {incident.reference}",
+                note=f"Un accident a été signalé.\n"
+                     f"Véhicule: {incident.vehicle_id.name}\n"
+                     f"Conducteur: {incident.driver_id.name if incident.driver_id else '-'}\n"
+                     f"Vérifier la déclaration auprès de l'assureur.",
+                date_deadline=datetime.date.today(),
+            )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher pour nouveaux accidents -->
+        <record id="base_automation_incident_accident" model="base.automation">
+            <field name="name">🔔 Nouvel Accident Signalé</field>
+            <field name="model_id" ref="model_fleet_incident_ticket"/>
+            <field name="trigger">on_create</field>
+            <field name="filter_domain">[('incident_type', '=', 'accident')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_incident_accident'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+    </data>
+</odoo>

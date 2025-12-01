@@ -52,6 +52,7 @@ Ce module personnalisé pour Odoo 19 Enterprise offre une solution complète pou
         'fleet',
         'hr',
         'mail',
+        'base_automation',
         'calendar',
         'web',
         'board',
@@ -67,6 +68,7 @@ Ce module personnalisé pour Odoo 19 Enterprise offre une solution complète pou
         'data/fleet_document_types.xml',
         'data/mail_template_fleet.xml',
         'data/fleet_cron.xml',
+        'data/fleet_automated_actions.xml',
         
         # Wizards (must be loaded before views that reference them)
         'wizards/mission_cancellation_wizard_views.xml',

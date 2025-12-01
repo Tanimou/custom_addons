@@ -14,6 +14,7 @@
         "mail",
         "calendar",
         "web",
+        "base_automation",
         "custom_fleet_management",
     ],
     "data": [
@@ -23,6 +24,7 @@
         "data/fleet_sequences.xml",
         "data/mail_template_fleet.xml",
         "data/fleet_cron.xml",
+        "data/fleet_automated_actions.xml",
         "views/fleet_vehicle_views.xml",
         "views/fleet_maintenance_plan_views.xml",
         "views/fleet_maintenance_intervention_views.xml",

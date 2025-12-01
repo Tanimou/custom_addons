@@ -621,6 +621,83 @@ class FleetMission(models.Model):
         self.ensure_one()
         return self.env.ref('custom_fleet_management.action_report_mission_order').report_action(self)
     
+    @api.model
+    def action_send_mission_reminders(self):
+        """
+        Cron job: Envoie des rappels pour les missions du lendemain.
+        Appelé quotidiennement par ir_cron_mission_reminder.
+        """
+        import logging
+        from datetime import timedelta
+        _logger = logging.getLogger(__name__)
+        
+        tomorrow = date.today() + timedelta(days=1)
+        tomorrow_start = datetime.combine(tomorrow, datetime.min.time())
+        tomorrow_end = datetime.combine(tomorrow, datetime.max.time())
+        
+        # Rechercher les missions approuvées qui commencent demain
+        missions = self.search([
+            ('state', '=', 'approved'),
+            ('date_start', '>=', tomorrow_start),
+            ('date_start', '<=', tomorrow_end),
+        ])
+        
+        _logger.info("Found %d missions starting tomorrow to send reminders", len(missions))
+        
+        reminder_count = 0
+        for mission in missions:
+            try:
+                # Notifier le conducteur
+                if mission.driver_id and hasattr(mission.driver_id, 'user_id') and mission.driver_id.user_id:
+                    driver_user = mission.driver_id.user_id
+                    if driver_user.partner_id:
+                        self.env['mail.thread'].message_notify(
+                            partner_ids=driver_user.partner_id.ids,
+                            body=_(
+                                """<h4>⏰ Rappel: Mission demain</h4>
+                                <p><strong>Mission:</strong> %s</p>
+                                <p><strong>Véhicule:</strong> %s</p>
+                                <p><strong>Heure de départ:</strong> %s</p>
+                                <p><strong>Destination:</strong> %s</p>
+                                """,
+                                mission.name,
+                                mission.vehicle_id.name,
+                                mission.date_start.strftime('%H:%M') if mission.date_start else '-',
+                                mission.destination or '-'
+                            ),
+                            subject=_("⏰ Rappel: Mission demain - %s", mission.name),
+                            model='fleet.mission',
+                            res_id=mission.id,
+                        )
+                        reminder_count += 1
+                
+                # Notifier le demandeur
+                if mission.requester_id and mission.requester_id.partner_id:
+                    self.env['mail.thread'].message_notify(
+                        partner_ids=mission.requester_id.partner_id.ids,
+                        body=_(
+                            """<h4>⏰ Rappel: Mission demain</h4>
+                            <p><strong>Mission:</strong> %s</p>
+                            <p><strong>Conducteur:</strong> %s</p>
+                            <p><strong>Véhicule:</strong> %s</p>
+                            """,
+                            mission.name,
+                            mission.driver_id.name if mission.driver_id else '-',
+                            mission.vehicle_id.name
+                        ),
+                        subject=_("⏰ Mission demain - %s", mission.name),
+                        model='fleet.mission',
+                        res_id=mission.id,
+                    )
+                    reminder_count += 1
+                
+            except Exception as e:
+                _logger.error("Error sending reminder for mission %s: %s", mission.name, str(e))
+                continue
+        
+        _logger.info("Sent %d mission reminders", reminder_count)
+        return True
+    
     @api.constrains('date_start', 'date_end')
     def _check_mission_dates(self):
         """Validation métier des dates."""

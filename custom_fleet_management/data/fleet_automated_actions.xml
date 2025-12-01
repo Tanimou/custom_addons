@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- =================================================================
+             AUTOMATED ACTIONS / SERVER ACTIONS FOR FLEET MANAGEMENT
+             
+             Ces actions automatisées réagissent aux changements de données
+             pour déclencher des notifications, activités et alertes.
+             ================================================================= -->
+        
+        <!-- ========== DOCUMENT: EXPIRATION ALERTS ========== -->
+        
+        <!-- Action serveur: Notifier quand un document devient "expired" -->
+        <record id="action_server_document_expired" model="ir.actions.server">
+            <field name="name">📢 Notification Document Expiré</field>
+            <field name="model_id" ref="model_fleet_vehicle_document"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Envoyer notification et créer activité quand un document expire
+for doc in records:
+    if doc.state == 'expired':
+        # 1. Poster dans le chatter du véhicule
+        doc.vehicle_id.message_post(
+            body=f"🔴 <strong>Document Expiré:</strong> {doc.name}<br/>"
+                 f"Type: {doc.document_type}<br/>"
+                 f"Date expiration: {doc.expiry_date}",
+            subject=f"⚠️ Document Expiré - {doc.name}",
+            message_type='notification',
+        )
+        
+        # 2. Notification aux fleet managers
+        fleet_manager_group = env.ref('custom_fleet_management.group_fleet_manager', raise_if_not_found=False)
+        if fleet_manager_group:
+            managers = env['res.users'].search([
+                ('group_ids', 'in', fleet_manager_group.ids),
+                ('active', '=', True),
+            ])
+            for manager in managers:
+                env['mail.thread'].message_notify(
+                    partner_ids=manager.partner_id.ids,
+                    body=f"🔴 <strong>URGENT: Document Expiré</strong><br/>"
+                         f"Véhicule: {doc.vehicle_id.name}<br/>"
+                         f"Document: {doc.name}<br/>"
+                         f"Date expiration: {doc.expiry_date}",
+                    subject=f"🔴 Document Expiré - {doc.vehicle_id.name}",
+                    model='fleet.vehicle.document',
+                    res_id=doc.id,
+                )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher sur changement d'état du document -->
+        <record id="base_automation_document_expired" model="base.automation">
+            <field name="name">🔔 Alerte Document Expiré</field>
+            <field name="model_id" ref="model_fleet_vehicle_document"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'expired')]</field>
+            <field name="filter_pre_domain">[('state', '!=', 'expired')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_document_expired'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Action serveur: Notifier quand un document devient "expiring_soon" -->
+        <record id="action_server_document_expiring" model="ir.actions.server">
+            <field name="name">📢 Notification Document Expire Bientôt</field>
+            <field name="model_id" ref="model_fleet_vehicle_document"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Envoyer notification quand un document passe en état "expire bientôt"
+for doc in records:
+    if doc.state == 'expiring_soon':
+        days_left = (doc.expiry_date - datetime.date.today()).days if doc.expiry_date else 0
+        
+        # Poster dans le chatter du document
+        doc.message_post(
+            body=f"🟠 Ce document expire dans <strong>{days_left} jours</strong> ({doc.expiry_date}).<br/>"
+                 f"Veuillez planifier son renouvellement.",
+            subject=f"Alerte: Document expire bientôt",
+            message_type='notification',
+        )
+        
+        # Créer activité pour le responsable
+        if doc.responsible_id:
+            doc.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=doc.responsible_id.id,
+                summary=f"Renouveler: {doc.name}",
+                note=f"Ce document expire le {doc.expiry_date} ({days_left} jours restants)",
+                date_deadline=doc.expiry_date,
+            )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher sur passage à "expiring_soon" -->
+        <record id="base_automation_document_expiring" model="base.automation">
+            <field name="name">🔔 Alerte Document Expire Bientôt</field>
+            <field name="model_id" ref="model_fleet_vehicle_document"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'expiring_soon')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'valid')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_document_expiring'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== MISSION: WORKFLOW NOTIFICATIONS ========== -->
+        
+        <!-- Action serveur: Notifier quand une mission est soumise -->
+        <record id="action_server_mission_submitted" model="ir.actions.server">
+            <field name="name">📢 Notification Mission Soumise</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier les fleet managers qu'une mission est en attente d'approbation
+for mission in records:
+    if mission.state == 'submitted':
+        # Chercher les fleet managers
+        fleet_manager_group = env.ref('custom_fleet_management.group_fleet_manager', raise_if_not_found=False)
+        if fleet_manager_group:
+            managers = env['res.users'].search([
+                ('group_ids', 'in', fleet_manager_group.ids),
+                ('active', '=', True),
+            ])
+            
+            for manager in managers:
+                # Notification interne
+                env['mail.thread'].message_notify(
+                    partner_ids=manager.partner_id.ids,
+                    body=f"📋 <strong>Nouvelle mission à approuver</strong><br/><br/>"
+                         f"<strong>Mission:</strong> {mission.name}<br/>"
+                         f"<strong>Véhicule:</strong> {mission.vehicle_id.name}<br/>"
+                         f"<strong>Conducteur:</strong> {mission.driver_id.name if mission.driver_id else 'Non assigné'}<br/>"
+                         f"<strong>Date:</strong> {mission.date_start} → {mission.date_end}<br/>"
+                         f"<strong>Demandé par:</strong> {mission.requester_id.name if mission.requester_id else '-'}<br/><br/>"
+                         f"<em>Cliquez pour voir la mission et l'approuver.</em>",
+                    subject=f"📋 Mission à approuver: {mission.name}",
+                    model='fleet.mission',
+                    res_id=mission.id,
+                )
+                
+                # Créer activité
+                mission.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    user_id=manager.id,
+                    summary=f"Approuver mission: {mission.name}",
+                    note=f"Mission soumise le {mission.date_request.strftime('%d/%m/%Y') if mission.date_request else 'N/A'}. "
+                         f"Véhicule: {mission.vehicle_id.name}",
+                    date_deadline=datetime.date.today() + datetime.timedelta(days=2),
+                )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand mission passe à "submitted" -->
+        <record id="base_automation_mission_submitted" model="base.automation">
+            <field name="name">🔔 Nouvelle Mission à Approuver</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'submitted')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'draft')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_mission_submitted'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Action serveur: Notifier quand une mission est approuvée -->
+        <record id="action_server_mission_approved" model="ir.actions.server">
+            <field name="name">📢 Notification Mission Approuvée</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Notifier le demandeur et le conducteur que la mission est approuvée
+for mission in records:
+    if mission.state == 'approved':
+        # Notifier le demandeur
+        if mission.requester_id and mission.requester_id.partner_id:
+            env['mail.thread'].message_notify(
+                partner_ids=mission.requester_id.partner_id.ids,
+                body=f"✅ <strong>Votre mission a été approuvée</strong><br/><br/>"
+                     f"<strong>Mission:</strong> {mission.name}<br/>"
+                     f"<strong>Véhicule:</strong> {mission.vehicle_id.name}<br/>"
+                     f"<strong>Date:</strong> {mission.date_start} → {mission.date_end}<br/>"
+                     f"<strong>Approuvée par:</strong> {mission.approved_by.name if mission.approved_by else '-'}",
+                subject=f"✅ Mission Approuvée: {mission.name}",
+                model='fleet.mission',
+                res_id=mission.id,
+            )
+        
+        # Notifier le conducteur
+        if mission.driver_id and 'user_id' in mission.driver_id._fields and mission.driver_id.user_id:
+            driver_user = mission.driver_id.user_id
+            if driver_user.partner_id:
+                env['mail.thread'].message_notify(
+                    partner_ids=driver_user.partner_id.ids,
+                    body=f"🚗 <strong>Vous avez une nouvelle mission</strong><br/><br/>"
+                         f"<strong>Mission:</strong> {mission.name}<br/>"
+                         f"<strong>Véhicule:</strong> {mission.vehicle_id.name}<br/>"
+                         f"<strong>Date:</strong> {mission.date_start} → {mission.date_end}<br/>"
+                         f"<strong>Destination:</strong> {mission.destination or '-'}",
+                    subject=f"🚗 Nouvelle mission: {mission.name}",
+                    model='fleet.mission',
+                    res_id=mission.id,
+                )
+                
+                # Créer activité pour le conducteur
+                mission.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    user_id=driver_user.id,
+                    summary=f"Mission: {mission.name}",
+                    note=f"Départ prévu le {mission.date_start}. Véhicule: {mission.vehicle_id.name}",
+                    date_deadline=mission.date_start.date() if mission.date_start else datetime.date.today(),
+                )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand mission passe à "approved" -->
+        <record id="base_automation_mission_approved" model="base.automation">
+            <field name="name">🔔 Mission Approuvée</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('state', '=', 'approved')]</field>
+            <field name="filter_pre_domain">[('state', '=', 'submitted')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_mission_approved'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Action serveur: Rappel mission commence demain -->
+        <record id="action_server_mission_reminder" model="ir.actions.server">
+            <field name="name">📢 Rappel Mission Demain</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Envoyer rappel pour les missions qui commencent demain
+tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+
+# Rechercher les missions approuvées qui commencent demain
+missions = env['fleet.mission'].search([
+    ('state', '=', 'approved'),
+    ('date_start', '>=', datetime.datetime.combine(tomorrow, datetime.time.min)),
+    ('date_start', '<=', datetime.datetime.combine(tomorrow, datetime.time.max)),
+])
+
+for mission in missions:
+    # Notifier le conducteur
+    if mission.driver_id and 'user_id' in mission.driver_id._fields and mission.driver_id.user_id:
+        driver_user = mission.driver_id.user_id
+        if driver_user.partner_id:
+            env['mail.thread'].message_notify(
+                partner_ids=driver_user.partner_id.ids,
+                body=f"⏰ <strong>Rappel: Mission demain</strong><br/><br/>"
+                     f"<strong>Mission:</strong> {mission.name}<br/>"
+                     f"<strong>Véhicule:</strong> {mission.vehicle_id.name}<br/>"
+                     f"<strong>Heure de départ:</strong> {mission.date_start}<br/>"
+                     f"<strong>Destination:</strong> {mission.destination or '-'}",
+                subject=f"⏰ Rappel: Mission demain - {mission.name}",
+                model='fleet.mission',
+                res_id=mission.id,
+            )
+    
+    # Notifier le demandeur
+    if mission.requester_id and mission.requester_id.partner_id:
+        env['mail.thread'].message_notify(
+            partner_ids=mission.requester_id.partner_id.ids,
+            body=f"⏰ <strong>Rappel: Mission demain</strong><br/><br/>"
+                 f"<strong>Mission:</strong> {mission.name}<br/>"
+                 f"<strong>Conducteur:</strong> {mission.driver_id.name if mission.driver_id else '-'}<br/>"
+                 f"<strong>Véhicule:</strong> {mission.vehicle_id.name}",
+            subject=f"⏰ Mission demain - {mission.name}",
+            model='fleet.mission',
+            res_id=mission.id,
+        )
+]]></field>
+        </record>
+        
+        
+        <!-- ========== VEHICLE: ADMINISTRATIVE STATE ALERTS ========== -->
+        
+        <!-- Action serveur: Alerte véhicule en état critique -->
+        <record id="action_server_vehicle_critical" model="ir.actions.server">
+            <field name="name">📢 Alerte Véhicule Critique</field>
+            <field name="model_id" ref="model_fleet_vehicle"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Alerter quand un véhicule passe en état administratif critique
+for vehicle in records:
+    if vehicle.administrative_state == 'critical':
+        # Poster dans le chatter
+        vehicle.message_post(
+            body=f"🔴 <strong>ALERTE CRITIQUE</strong><br/>"
+                 f"Ce véhicule a des documents administratifs expirés ou manquants.<br/>"
+                 f"<strong>Action requise immédiatement!</strong>",
+            subject=f"🔴 Véhicule en état critique: {vehicle.name}",
+            message_type='notification',
+        )
+        
+        # Notifier les fleet managers
+        fleet_manager_group = env.ref('custom_fleet_management.group_fleet_manager', raise_if_not_found=False)
+        if fleet_manager_group:
+            managers = env['res.users'].search([
+                ('group_ids', 'in', fleet_manager_group.ids),
+                ('active', '=', True),
+            ])
+            
+            for manager in managers:
+                env['mail.thread'].message_notify(
+                    partner_ids=manager.partner_id.ids,
+                    body=f"🔴 <strong>VÉHICULE EN ÉTAT CRITIQUE</strong><br/><br/>"
+                         f"<strong>Véhicule:</strong> {vehicle.name}<br/>"
+                         f"<strong>Immatriculation:</strong> {vehicle.license_plate}<br/><br/>"
+                         f"Ce véhicule a des documents administratifs expirés.<br/>"
+                         f"<strong>Action immédiate requise!</strong>",
+                    subject=f"🔴 URGENT: Véhicule critique - {vehicle.name}",
+                    model='fleet.vehicle',
+                    res_id=vehicle.id,
+                )
+                
+                # Créer activité urgente
+                vehicle.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    user_id=manager.id,
+                    summary=f"🔴 URGENT: {vehicle.name} - Documents critiques",
+                    note=f"Ce véhicule est en état administratif critique. "
+                         f"Vérifier et renouveler les documents expirés immédiatement.",
+                    date_deadline=datetime.date.today(),
+                )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand véhicule passe en "critical" -->
+        <record id="base_automation_vehicle_critical" model="base.automation">
+            <field name="name">🔔 Véhicule État Critique</field>
+            <field name="model_id" ref="model_fleet_vehicle"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('administrative_state', '=', 'critical')]</field>
+            <field name="filter_pre_domain">[('administrative_state', '!=', 'critical')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_vehicle_critical'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Action serveur: Alerte véhicule en état warning -->
+        <record id="action_server_vehicle_warning" model="ir.actions.server">
+            <field name="name">📢 Alerte Véhicule Attention</field>
+            <field name="model_id" ref="model_fleet_vehicle"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+# Alerter quand un véhicule passe en état d'attention
+for vehicle in records:
+    if vehicle.administrative_state == 'warning':
+        # Poster dans le chatter
+        vehicle.message_post(
+            body=f"🟠 <strong>ATTENTION</strong><br/>"
+                 f"Ce véhicule a des documents administratifs qui expirent bientôt.<br/>"
+                 f"Veuillez planifier leur renouvellement.",
+            subject=f"🟠 Documents à renouveler: {vehicle.name}",
+            message_type='notification',
+        )
+]]></field>
+        </record>
+        
+        <!-- Action automatisée: Déclencher quand véhicule passe en "warning" -->
+        <record id="base_automation_vehicle_warning" model="base.automation">
+            <field name="name">🔔 Véhicule État Attention</field>
+            <field name="model_id" ref="model_fleet_vehicle"/>
+            <field name="trigger">on_write</field>
+            <field name="filter_domain">[('administrative_state', '=', 'warning')]</field>
+            <field name="filter_pre_domain">[('administrative_state', '=', 'ok')]</field>
+            <field name="action_server_ids" eval="[(4, ref('action_server_vehicle_warning'))]"/>
+            <field name="active" eval="True"/>
+        </record>
+        
+        
+        <!-- ========== CRON: MISSION REMINDER (Scheduled Action) ========== -->
+        
+        <!-- Cron pour rappel des missions du lendemain -->
+        <record id="ir_cron_mission_reminder" model="ir.cron">
+            <field name="name">🚗 Fleet: Rappel Missions J-1</field>
+            <field name="model_id" ref="model_fleet_mission"/>
+            <field name="state">code</field>
+            <field name="code">model.action_send_mission_reminders()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+    </data>
+</odoo>

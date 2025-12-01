@@ -1,7 +1,10 @@
+import logging
 from datetime import datetime, timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class FleetMaintenanceIntervention(models.Model):
@@ -447,52 +450,281 @@ class FleetMaintenanceIntervention(models.Model):
 
     @api.model
     def cron_send_alerts(self):
+        """
+        Cron job: Envoi d'alertes quotidiennes pour les maintenances à venir.
+        
+        Envoie:
+        - Emails via template
+        - Notifications internes aux responsables et managers
+        - Activités de suivi
+        """
         config = self.env["ir.config_parameter"].sudo()
         offset = int(config.get_param("custom_fleet_maintenance.alert_offset_days", 30))
         today = fields.Date.context_today(self)
         limit_date = today + timedelta(days=offset)
         now_time = fields.Datetime.now().time()
+        
         domain = [
             ("state", "in", ["draft", "submitted"]),
             ("scheduled_start", "!=", False),
             ("scheduled_start", "<=", datetime.combine(limit_date, now_time)),
         ]
         interventions = self.search(domain)
+        
+        _logger.info("Checking %d interventions for maintenance alerts (J-%d)", len(interventions), offset)
+        
+        if not interventions:
+            _logger.info("No interventions requiring alerts")
+            return
+        
         template = self.env.ref("custom_fleet_maintenance.mail_template_maintenance_alert", raise_if_not_found=False)
         todo_activity = self.env.ref("mail.mail_activity_data_todo", raise_if_not_found=False)
         responsible_param = int(config.get_param("custom_fleet_maintenance.default_responsible_id", 0) or 0)
         fallback_user = responsible_param or self.env.user.id
+        
+        # Get maintenance managers for notifications
+        maintenance_managers = self._get_maintenance_managers()
+        
+        alert_count = 0
+        notification_count = 0
+        activity_count = 0
+        
         for intervention in interventions:
-            if template:
-                template.send_mail(intervention.id, force_send=False)
-            user_id = intervention.responsible_id.id or fallback_user
-            existing_activity = self.env["mail.activity"]
-            if todo_activity:
-                existing_activity = intervention.activity_ids.filtered(
-                    lambda act: act.activity_type_id == todo_activity and act.user_id.id == user_id and act.state == "planned"
-                )
-            if not existing_activity:
-                intervention.activity_schedule(
-                    "mail.mail_activity_data_todo",
-                    summary=_("Maintenance a planifier"),
-                    note=_("L'intervention %s arrive a echeance.") % intervention.name,
-                    user_id=user_id,
-                )
+            try:
+                # 1. Send email via template
+                if template:
+                    template.send_mail(intervention.id, force_send=False)
+                    alert_count += 1
+                
+                user_id = intervention.responsible_id.id or fallback_user
+                
+                # 2. Create activity if not exists
+                existing_activity = self.env["mail.activity"]
+                if todo_activity:
+                    existing_activity = intervention.activity_ids.filtered(
+                        lambda act: act.activity_type_id == todo_activity and act.user_id.id == user_id and act.state == "planned"
+                    )
+                
+                if not existing_activity:
+                    days_until = (intervention.scheduled_start.date() - today).days if intervention.scheduled_start else 0
+                    urgency = "🔴" if days_until <= 7 else "🟠" if days_until <= 15 else "🟡"
+                    intervention.activity_schedule(
+                        "mail.mail_activity_data_todo",
+                        summary=_("%s Maintenance à planifier", urgency),
+                        note=_("L'intervention %s arrive à échéance dans %d jours.") % (intervention.name, days_until),
+                        user_id=user_id,
+                        date_deadline=intervention.scheduled_start.date() if intervention.scheduled_start else today,
+                    )
+                    activity_count += 1
+                
+                # 3. Send internal notification to responsible
+                if intervention.responsible_id and intervention.responsible_id.partner_id:
+                    days_until = (intervention.scheduled_start.date() - today).days if intervention.scheduled_start else 0
+                    self.env['mail.thread'].message_notify(
+                        partner_ids=intervention.responsible_id.partner_id.ids,
+                        body=_(
+                            """<h4>🔧 Alerte Maintenance</h4>
+                            <p><strong>Intervention:</strong> %s</p>
+                            <p><strong>Véhicule:</strong> %s</p>
+                            <p><strong>Type:</strong> %s</p>
+                            <p><strong>Échéance:</strong> %s (%d jours)</p>
+                            <p><em>Veuillez planifier cette intervention.</em></p>
+                            """,
+                            intervention.name,
+                            intervention.vehicle_id.name,
+                            dict(intervention._fields['intervention_type'].selection).get(intervention.intervention_type, ''),
+                            intervention.scheduled_start.strftime('%d/%m/%Y') if intervention.scheduled_start else '-',
+                            days_until
+                        ),
+                        subject=_("🔧 Maintenance à planifier: %s", intervention.name),
+                        model='fleet.maintenance.intervention',
+                        res_id=intervention.id,
+                    )
+                    notification_count += 1
+                
+                # 4. Notify managers for urgent interventions (< 7 days)
+                if maintenance_managers:
+                    days_until = (intervention.scheduled_start.date() - today).days if intervention.scheduled_start else 0
+                    if days_until <= 7:
+                        for manager in maintenance_managers:
+                            if manager != intervention.responsible_id:
+                                self.env['mail.thread'].message_notify(
+                                    partner_ids=manager.partner_id.ids,
+                                    body=_(
+                                        """<h4>🔴 Alerte Maintenance URGENTE</h4>
+                                        <p><strong>Intervention:</strong> %s</p>
+                                        <p><strong>Véhicule:</strong> %s</p>
+                                        <p><strong>Échéance:</strong> %d jours</p>
+                                        """,
+                                        intervention.name,
+                                        intervention.vehicle_id.name,
+                                        days_until
+                                    ),
+                                    subject=_("🔴 URGENT: %s - %d jours", intervention.name, days_until),
+                                    model='fleet.maintenance.intervention',
+                                    res_id=intervention.id,
+                                )
+                                notification_count += 1
+            
+            except Exception as e:
+                _logger.error("Error processing alert for intervention %s: %s", intervention.name, str(e))
+                continue
+        
+        _logger.info(
+            "Maintenance alerts completed: %d emails, %d notifications, %d activities",
+            alert_count, notification_count, activity_count
+        )
 
     @api.model
     def cron_send_digest(self):
+        """
+        Cron job: Envoi du digest hebdomadaire de maintenance.
+        
+        Envoie:
+        - Emails récapitulatifs aux responsables
+        - Notifications internes aux managers
+        - Activités pour interventions en retard
+        """
         config = self.env["ir.config_parameter"].sudo()
         weekly_enabled = config.get_param("custom_fleet_maintenance.weekly_digest_enabled", "True")
         if str(weekly_enabled).lower() in ("false", "0"):
+            _logger.info("Weekly maintenance digest is disabled")
             return
-        interventions = self.search([("state", "in", ["submitted", "in_progress"]), ("company_id", "=", self.env.company.id)])
+        
+        interventions = self.search([
+            ("state", "in", ["submitted", "in_progress"]),
+            ("company_id", "=", self.env.company.id)
+        ])
+        
         if not interventions:
+            _logger.info("No pending interventions for weekly digest")
             return
+        
+        _logger.info("Preparing weekly digest for %d interventions", len(interventions))
+        
         template = self.env.ref("custom_fleet_maintenance.mail_template_weekly_digest", raise_if_not_found=False)
+        maintenance_managers = self._get_maintenance_managers()
+        today = fields.Date.context_today(self)
+        
+        # Collect statistics
+        overdue = interventions.filtered(lambda i: i.is_overdue)
+        in_progress = interventions.filtered(lambda i: i.state == 'in_progress')
+        submitted = interventions.filtered(lambda i: i.state == 'submitted')
+        urgent = interventions.filtered(lambda i: i.priority in ('2', '3'))
+        
+        # Build digest notification for managers
+        digest_body = _(
+            """
+            <h3>📊 Digest Hebdomadaire Maintenance</h3>
+            <p><strong>Semaine du %s</strong></p>
+            
+            <h4>📈 Statistiques</h4>
+            <ul>
+                <li>Interventions en retard: <strong style="color: red;">%d</strong></li>
+                <li>Interventions urgentes: <strong style="color: orange;">%d</strong></li>
+                <li>En cours: <strong>%d</strong></li>
+                <li>En attente: <strong>%d</strong></li>
+            </ul>
+            
+            <h4>🔴 Interventions en retard</h4>
+            %s
+            
+            <h4>🟠 Interventions urgentes</h4>
+            %s
+            """,
+            today.strftime('%d/%m/%Y'),
+            len(overdue),
+            len(urgent),
+            len(in_progress),
+            len(submitted),
+            self._format_intervention_list(overdue) if overdue else "<p><em>Aucune</em></p>",
+            self._format_intervention_list(urgent) if urgent else "<p><em>Aucune</em></p>",
+        )
+        
+        notification_count = 0
+        activity_count = 0
+        
+        # Send notifications to managers
+        for manager in maintenance_managers:
+            try:
+                self.env['mail.thread'].message_notify(
+                    partner_ids=manager.partner_id.ids,
+                    body=digest_body,
+                    subject=_("📊 Digest Maintenance - Semaine %s", today.strftime('%W/%Y')),
+                    model='fleet.maintenance.intervention',
+                    res_id=False,
+                )
+                notification_count += 1
+                
+                # Create activities for overdue interventions
+                for intervention in overdue[:5]:  # Limit to 5
+                    existing = self.env['mail.activity'].search([
+                        ('res_model', '=', 'fleet.maintenance.intervention'),
+                        ('res_id', '=', intervention.id),
+                        ('user_id', '=', manager.id),
+                        ('summary', 'ilike', 'retard'),
+                        ('date_deadline', '>=', today),
+                    ], limit=1)
+                    
+                    if not existing:
+                        intervention.activity_schedule(
+                            'mail.mail_activity_data_todo',
+                            user_id=manager.id,
+                            summary=_("🔴 Intervention en RETARD: %s", intervention.name),
+                            note=_("Cette intervention est en retard depuis %s. Action urgente requise.") % (
+                                intervention.scheduled_end.strftime('%d/%m/%Y') if intervention.scheduled_end else '-'
+                            ),
+                            date_deadline=today,
+                        )
+                        activity_count += 1
+                        
+            except Exception as e:
+                _logger.error("Error sending digest to manager %s: %s", manager.name, str(e))
+                continue
+        
+        # Send email digests per responsible
         for responsible in interventions.mapped("responsible_id"):
             responsible_interventions = interventions.filtered(lambda r: r.responsible_id == responsible)
             if template and responsible_interventions:
-                template.with_context(interventions=responsible_interventions).send_mail(responsible_interventions[0].id, force_send=False)
+                try:
+                    template.with_context(interventions=responsible_interventions).send_mail(
+                        responsible_interventions[0].id, force_send=False
+                    )
+                except Exception as e:
+                    _logger.error("Error sending digest email to %s: %s", responsible.name, str(e))
+        
+        _logger.info(
+            "Weekly maintenance digest completed: %d notifications, %d activities",
+            notification_count, activity_count
+        )
+    
+    def _format_intervention_list(self, interventions):
+        """Format a list of interventions as HTML."""
+        if not interventions:
+            return "<p><em>Aucune</em></p>"
+        
+        items = []
+        for i in interventions[:10]:  # Limit to 10
+            items.append(
+                f"<li><strong>{i.name}</strong> - {i.vehicle_id.name} "
+                f"({dict(i._fields['state'].selection).get(i.state, '')})</li>"
+            )
+        
+        return f"<ul>{''.join(items)}</ul>"
+    
+    def _get_maintenance_managers(self):
+        """Get all users with maintenance manager role."""
+        manager_group = self.env.ref(
+            'custom_fleet_maintenance.group_fleet_maintenance_manager',
+            raise_if_not_found=False
+        )
+        if not manager_group:
+            return self.env['res.users']
+        
+        return self.env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
 
     def get_vehicle_stats(self, limit=5):
         if not self:

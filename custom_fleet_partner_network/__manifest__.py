@@ -23,6 +23,7 @@ Supplier Approval.
         'fleet',
         'mail',
         'calendar',
+        'base_automation',
         'board',
         'custom_fleet_management',
         'custom_fleet_maintenance',
@@ -38,6 +39,7 @@ Supplier Approval.
         'data/fleet_partner_sequences.xml',
         'data/mail_template_partner.xml',
         'data/fleet_partner_cron.xml',
+        'data/fleet_partner_automated_actions.xml',
 
         # Vues et actions
         'views/fleet_partner_profile_views.xml',

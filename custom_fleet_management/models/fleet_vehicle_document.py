@@ -404,6 +404,13 @@ class FleetVehicleDocument(models.Model):
         """
         Cron job: Envoi alertes échéances J-30 (tous les jours à 05:00).
         Recherche les documents qui expirent dans alert_offset_days et envoie des alertes.
+        
+        Envoie:
+        - Messages dans le chatter du véhicule
+        - Notifications internes aux fleet managers
+        - Activités de suivi pour chaque document
+        - Emails via template
+        
         Idempotent: ne crée pas de doublons d'activités.
         """
         ConfigParam = self.env['ir.config_parameter'].sudo()
@@ -426,6 +433,19 @@ class FleetVehicleDocument(models.Model):
             alert_offset_days
         )
         
+        if not docs_to_alert:
+            _logger.info("No documents expiring within %d days", alert_offset_days)
+            return
+        
+        # Récupérer les fleet managers pour les notifications
+        fleet_manager_group = self.env.ref('custom_fleet_management.group_fleet_manager', raise_if_not_found=False)
+        fleet_managers = self.env['res.users']
+        if fleet_manager_group:
+            fleet_managers = self.env['res.users'].search([
+                ('group_ids', 'in', fleet_manager_group.ids),
+                ('active', '=', True),
+            ])
+        
         # Grouper par véhicule pour poster un seul message par véhicule
         vehicles_with_alerts = {}
         for doc in docs_to_alert:
@@ -435,32 +455,101 @@ class FleetVehicleDocument(models.Model):
         
         # Traiter chaque véhicule - poster un message simple dans le chatter
         alert_count = 0
+        notification_count = 0
+        activity_count = 0
+        
         for vehicle, docs in vehicles_with_alerts.items():
             # Créer activités pour chaque document
             for doc in docs:
                 doc._schedule_renewal_activity()
+                activity_count += 1
             
-            # Construire le message simple pour le chatter
-            doc_list = []
+            # Construire le message pour le chatter et notifications
+            doc_list_text = []
+            doc_list_html = []
             for doc in docs:
                 days_left = (doc.expiry_date - date.today()).days
-                doc_list.append(f"• {doc.document_type}: expire le {doc.expiry_date.strftime('%d/%m/%Y')} ({days_left} jours)")
+                urgency_emoji = "🔴" if days_left <= 7 else "🟠" if days_left <= 15 else "🟡"
+                doc_list_text.append(f"• {doc.document_type}: expire le {doc.expiry_date.strftime('%d/%m/%Y')} ({days_left} jours)")
+                doc_list_html.append(
+                    f"<li>{urgency_emoji} <strong>{doc.document_type}</strong>: "
+                    f"expire le {doc.expiry_date.strftime('%d/%m/%Y')} ({days_left} jours)</li>"
+                )
             
             message_body = _(
                 "⚠️ Alerte Échéance Administrative J-%d\n\n"
                 "Documents concernés:\n%s\n\n"
                 "Veuillez planifier le renouvellement de ces documents.",
                 alert_offset_days,
-                '\n'.join(doc_list)
+                '\n'.join(doc_list_text)
+            )
+            
+            # Message HTML pour notifications
+            notification_body = _(
+                """
+                <h4>⚠️ Alerte Échéance Administrative J-%d</h4>
+                <p><strong>Véhicule:</strong> %s</p>
+                <p><strong>Documents concernés:</strong></p>
+                <ul>%s</ul>
+                <p><em>Veuillez planifier le renouvellement de ces documents.</em></p>
+                """,
+                alert_offset_days,
+                vehicle.name,
+                ''.join(doc_list_html)
             )
             
             try:
+                # 1. Poster dans le chatter du véhicule
                 vehicle.message_post(
                     body=message_body,
                     subject=_("Échéance Administrative J-%d: %s", alert_offset_days, vehicle.name),
                     message_type='notification',
                 )
                 alert_count += 1
+                
+                # 2. Envoyer notification interne aux fleet managers
+                if fleet_managers:
+                    for manager in fleet_managers:
+                        try:
+                            self.env['mail.thread'].message_notify(
+                                partner_ids=manager.partner_id.ids,
+                                body=notification_body,
+                                subject=_("⚠️ Alerte Document: %s", vehicle.name),
+                                model='fleet.vehicle',
+                                res_id=vehicle.id,
+                            )
+                            notification_count += 1
+                        except Exception as e:
+                            _logger.warning(
+                                "Failed to notify manager %s for vehicle %s: %s",
+                                manager.name, vehicle.name, str(e)
+                            )
+                
+                # 3. Créer activité pour le fleet manager si documents critiques (< 7 jours)
+                critical_docs = [d for d in docs if (d.expiry_date - date.today()).days <= 7]
+                if critical_docs and fleet_managers:
+                    for manager in fleet_managers[:1]:  # Une activité par véhicule au premier manager
+                        # Vérifier si activité similaire existe
+                        existing = self.env['mail.activity'].search([
+                            ('res_model', '=', 'fleet.vehicle'),
+                            ('res_id', '=', vehicle.id),
+                            ('user_id', '=', manager.id),
+                            ('summary', 'ilike', 'critique'),
+                            ('date_deadline', '>=', date.today()),
+                        ], limit=1)
+                        
+                        if not existing:
+                            vehicle.activity_schedule(
+                                'mail.mail_activity_data_todo',
+                                user_id=manager.id,
+                                summary=_("🔴 Documents critiques à renouveler"),
+                                note=_("Ce véhicule a %d document(s) expirant dans moins de 7 jours:\n%s") % (
+                                    len(critical_docs),
+                                    '\n'.join([f"- {d.document_type}" for d in critical_docs])
+                                ),
+                                date_deadline=date.today() + timedelta(days=3),
+                            )
+                
                 _logger.info(
                     "Expiry alert posted for vehicle %s (%d documents)",
                     vehicle.name,
@@ -473,14 +562,31 @@ class FleetVehicleDocument(models.Model):
                     str(e)
                 )
         
-        _logger.info("Sent %d vehicle expiry alerts", alert_count)
+        # 4. Envoyer email récapitulatif si template existe
+        template = self.env.ref('custom_fleet_management.mail_template_document_deadline', raise_if_not_found=False)
+        if template and fleet_managers:
+            for manager in fleet_managers:
+                if manager.email:
+                    try:
+                        # Envoyer pour chaque document en alerte
+                        for doc in docs_to_alert[:10]:  # Limiter à 10 emails max
+                            template.send_mail(doc.id, force_send=False)
+                    except Exception as e:
+                        _logger.warning("Failed to send email to %s: %s", manager.email, str(e))
+        
+        _logger.info(
+            "Document expiry alerts completed: %d chatter posts, %d notifications, %d activities",
+            alert_count, notification_count, activity_count
+        )
         
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': _('Alertes Échéances'),
-                'message': _('%d alertes envoyées', alert_count),
+                'message': _('%d alertes envoyées, %d notifications, %d activités') % (
+                    alert_count, notification_count, activity_count
+                ),
                 'type': 'success',
                 'sticky': False,
             }

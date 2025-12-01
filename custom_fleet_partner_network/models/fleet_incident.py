@@ -9,9 +9,12 @@ This module implements TASK-009 from Phase 3 of the feature plan:
 - Estimated and actual costs
 """
 
+import logging
 from datetime import datetime, timedelta
 
 from odoo import _, api, fields, models
+
+_logger = logging.getLogger(__name__)
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -670,7 +673,12 @@ class FleetIncidentTicket(models.Model):
         This cron runs daily to alert about:
         - Open incidents not progressing
         - Towing scheduled within alert offset days
+        - Critical/urgent priority incidents
+        
+        Enhanced to send internal notifications and activities, not just emails.
         """
+        _logger.info("[Fleet Partner Network] Starting daily incident alerts cron...")
+        
         config = self.env["ir.config_parameter"].sudo()
         offset = int(config.get_param("custom_fleet_partner_network.fleet_partner_alert_offset", 30))
         
@@ -691,15 +699,73 @@ class FleetIncidentTicket(models.Model):
             ("towing_scheduled_date", "<=", limit_date),
         ])
         
+        # Critical/urgent priority incidents
+        urgent_incidents = self.search([
+            ("state", "in", ("draft", "towing", "repair")),
+            ("priority", "in", ("2", "3")),  # Urgent or Critical
+        ])
+        
+        all_incidents = draft_incidents | towing_soon | urgent_incidents
+        
         template = self.env.ref(
             "custom_fleet_partner_network.mail_template_incident_alert",
             raise_if_not_found=False,
         )
         
-        for incident in (draft_incidents | towing_soon):
+        # Get managers for escalation
+        managers = self._get_partner_network_managers()
+        
+        # Priority labels and icons for activities
+        priority_icons = {'0': '🟢', '1': '🟡', '2': '🟠', '3': '🔴'}
+        priority_labels = {'0': 'Normale', '1': 'Haute', '2': 'Urgente', '3': 'Critique'}
+        
+        processed_count = 0
+        for incident in all_incidents:
+            processed_count += 1
+            priority_icon = priority_icons.get(incident.priority, '⚪')
+            priority_label = priority_labels.get(incident.priority, '')
+            incident_type_label = dict(incident._fields['incident_type'].selection).get(incident.incident_type, '')
+            state_label = dict(incident._fields['state'].selection).get(incident.state, '')
+            
+            # Send email via template
             if template:
                 template.send_mail(incident.id, force_send=False)
-            # Create activity for responsible
+            
+            # Build notification body
+            notification_body = f"""
+            <h4>{priority_icon} Incident Nécessitant Attention</h4>
+            <p><strong>Référence:</strong> {incident.reference}</p>
+            <p><strong>Titre:</strong> {incident.name}</p>
+            <p><strong>Véhicule:</strong> {incident.vehicle_id.name} ({incident.license_plate or '-'})</p>
+            <p><strong>Type:</strong> {incident_type_label}</p>
+            <p><strong>État:</strong> {state_label}</p>
+            <p><strong>Priorité:</strong> {priority_label}</p>
+            <p><strong>Date incident:</strong> {incident.incident_date.strftime('%d/%m/%Y %H:%M') if incident.incident_date else '-'}</p>
+            """
+            
+            # Notify responsible via internal notification
+            if incident.responsible_id and incident.responsible_id.partner_id:
+                self.env['mail.thread'].message_notify(
+                    partner_ids=incident.responsible_id.partner_id.ids,
+                    body=notification_body + "<p><em>⚠️ Cet incident nécessite votre attention.</em></p>",
+                    subject=f"{priority_icon} Alerte: {incident.reference}",
+                    model='fleet.incident.ticket',
+                    res_id=incident.id,
+                )
+            
+            # For urgent/critical, also notify managers
+            if incident.priority in ('2', '3'):
+                for manager in managers:
+                    if manager != incident.responsible_id:
+                        self.env['mail.thread'].message_notify(
+                            partner_ids=manager.partner_id.ids,
+                            body=notification_body + "<p><em>🚨 Escalade: Cet incident est en priorité {}</em></p>".format(priority_label),
+                            subject=f"{priority_icon} ESCALADE: {incident.reference}",
+                            model='fleet.incident.ticket',
+                            res_id=incident.id,
+                        )
+            
+            # Create/update activity for responsible
             if incident.responsible_id:
                 existing = incident.activity_ids.filtered(
                     lambda a: a.activity_type_id == self.env.ref("mail.mail_activity_data_todo")
@@ -707,25 +773,45 @@ class FleetIncidentTicket(models.Model):
                     and a.state == "planned"
                 )
                 if not existing:
+                    # Determine deadline based on priority
+                    if incident.priority == '3':  # Critical
+                        deadline = fields.Date.today()
+                    elif incident.priority == '2':  # Urgent
+                        deadline = fields.Date.today() + timedelta(days=1)
+                    else:
+                        deadline = fields.Date.today() + timedelta(days=3)
+                    
                     incident.activity_schedule(
                         "mail.mail_activity_data_todo",
-                        summary=_("Incident en attente"),
-                        note=_("L'incident %s nécessite votre attention.") % incident.reference,
+                        summary=f"{priority_icon} Incident {priority_label}: {incident.reference}",
+                        note=_("L'incident %s nécessite votre attention.\nVéhicule: %s\nType: %s") % (
+                            incident.reference,
+                            incident.vehicle_id.name,
+                            incident_type_label,
+                        ),
                         user_id=incident.responsible_id.id,
+                        date_deadline=deadline,
                     )
+        
+        _logger.info("[Fleet Partner Network] Daily incident alerts completed. Processed %d incidents.", processed_count)
 
     @api.model
     def cron_send_incident_digest(self):
         """Send weekly digest of open incidents.
         
         Groups incidents by responsible and sends summary email.
+        Also sends manager notifications with statistics and creates activities
+        for overdue/critical incidents.
         """
+        _logger.info("[Fleet Partner Network] Starting weekly incident digest cron...")
+        
         config = self.env["ir.config_parameter"].sudo()
         digest_enabled = config.get_param(
             "custom_fleet_partner_network.fleet_partner_enable_weekly_digest", "True"
         )
         
         if str(digest_enabled).lower() in ("false", "0"):
+            _logger.info("[Fleet Partner Network] Weekly digest disabled in settings, skipping.")
             return
         
         # Get all open incidents
@@ -735,6 +821,7 @@ class FleetIncidentTicket(models.Model):
         ])
         
         if not open_incidents:
+            _logger.info("[Fleet Partner Network] No open incidents found.")
             return
         
         template = self.env.ref(
@@ -742,8 +829,23 @@ class FleetIncidentTicket(models.Model):
             raise_if_not_found=False,
         )
         
-        if not template:
-            return
+        # Compute statistics for manager notification
+        stats = {
+            'total': len(open_incidents),
+            'draft': len(open_incidents.filtered(lambda i: i.state == 'draft')),
+            'towing': len(open_incidents.filtered(lambda i: i.state == 'towing')),
+            'repair': len(open_incidents.filtered(lambda i: i.state == 'repair')),
+            'critical': len(open_incidents.filtered(lambda i: i.priority in ('2', '3'))),
+            'accidents': len(open_incidents.filtered(lambda i: i.incident_type == 'accident')),
+            'breakdowns': len(open_incidents.filtered(lambda i: i.incident_type == 'breakdown')),
+        }
+        
+        # Incidents older than 7 days in draft state (stale)
+        stale_incidents = open_incidents.filtered(
+            lambda i: i.state == 'draft' and 
+            i.create_date and 
+            (fields.Datetime.now() - i.create_date).days > 7
+        )
         
         # Group by responsible and send digest
         responsibles = open_incidents.mapped("responsible_id")
@@ -751,7 +853,112 @@ class FleetIncidentTicket(models.Model):
             responsible_incidents = open_incidents.filtered(
                 lambda r: r.responsible_id == responsible
             )
-            if responsible_incidents:
+            if responsible_incidents and template:
                 template.with_context(
                     incidents=responsible_incidents
                 ).send_mail(responsible_incidents[0].id, force_send=False)
+        
+        # Send manager notification with statistics
+        managers = self._get_partner_network_managers()
+        if managers:
+            manager_body = f"""
+            <h4>📊 Récapitulatif Hebdomadaire des Incidents</h4>
+            <h5>Statistiques Globales</h5>
+            <table style="border-collapse: collapse; margin: 10px 0;">
+                <tr><td style="padding: 5px; border: 1px solid #ddd;"><strong>Total incidents ouverts:</strong></td><td style="padding: 5px; border: 1px solid #ddd;">{stats['total']}</td></tr>
+                <tr><td style="padding: 5px; border: 1px solid #ddd;">🔵 En brouillon:</td><td style="padding: 5px; border: 1px solid #ddd;">{stats['draft']}</td></tr>
+                <tr><td style="padding: 5px; border: 1px solid #ddd;">🚛 En remorquage:</td><td style="padding: 5px; border: 1px solid #ddd;">{stats['towing']}</td></tr>
+                <tr><td style="padding: 5px; border: 1px solid #ddd;">🔧 En réparation:</td><td style="padding: 5px; border: 1px solid #ddd;">{stats['repair']}</td></tr>
+                <tr><td style="padding: 5px; border: 1px solid #ddd;">🔴 Priorité haute/critique:</td><td style="padding: 5px; border: 1px solid #ddd;">{stats['critical']}</td></tr>
+            </table>
+            <h5>Par Type</h5>
+            <ul>
+                <li>Pannes: {stats['breakdowns']}</li>
+                <li>Accidents: {stats['accidents']}</li>
+            </ul>
+            """
+            
+            # Add stale incidents warning if any
+            if stale_incidents:
+                manager_body += f"""
+                <h5>⚠️ Incidents en Attente depuis +7 jours ({len(stale_incidents)})</h5>
+                {self._format_incident_list(stale_incidents)}
+                """
+            
+            # Add critical incidents if any
+            critical_incidents = open_incidents.filtered(lambda i: i.priority in ('2', '3'))
+            if critical_incidents:
+                manager_body += f"""
+                <h5>🚨 Incidents Prioritaires ({len(critical_incidents)})</h5>
+                {self._format_incident_list(critical_incidents)}
+                """
+            
+            for manager in managers:
+                self.env['mail.thread'].message_notify(
+                    partner_ids=manager.partner_id.ids,
+                    body=manager_body,
+                    subject=f"📊 Digest Hebdo Incidents: {stats['total']} ouverts ({stats['critical']} critiques)",
+                    model='fleet.incident.ticket',
+                    res_id=open_incidents[0].id if open_incidents else False,
+                )
+                
+                # Create activities for stale incidents
+                for incident in stale_incidents:
+                    existing = incident.activity_ids.filtered(
+                        lambda a: a.activity_type_id == self.env.ref("mail.mail_activity_data_todo")
+                        and a.user_id == manager
+                        and a.state == "planned"
+                        and "retard" in (a.summary or "").lower()
+                    )
+                    if not existing:
+                        incident.activity_schedule(
+                            "mail.mail_activity_data_todo",
+                            summary=f"⚠️ Incident en retard: {incident.reference}",
+                            note=_("Cet incident est en brouillon depuis plus de 7 jours.\n"
+                                   "Véhicule: %s\nResponsable: %s") % (
+                                incident.vehicle_id.name,
+                                incident.responsible_id.name if incident.responsible_id else '-',
+                            ),
+                            user_id=manager.id,
+                            date_deadline=fields.Date.today() + timedelta(days=2),
+                        )
+        
+        _logger.info("[Fleet Partner Network] Weekly digest completed. Stats: %s", stats)
+    
+    # =========================================================================
+    # HELPER METHODS
+    # =========================================================================
+    def _get_partner_network_managers(self):
+        """Get all users in the Partner Network Manager group."""
+        manager_group = self.env.ref(
+            'custom_fleet_partner_network.group_fleet_partner_manager',
+            raise_if_not_found=False
+        )
+        if not manager_group:
+            return self.env['res.users']
+        return self.env['res.users'].search([
+            ('group_ids', 'in', manager_group.ids),
+            ('active', '=', True),
+        ])
+    
+    def _format_incident_list(self, incidents):
+        """Format a list of incidents as HTML for notifications."""
+        if not incidents:
+            return "<p><em>Aucun incident</em></p>"
+        
+        priority_icons = {'0': '🟢', '1': '🟡', '2': '🟠', '3': '🔴'}
+        
+        html = '<ul style="margin: 5px 0; padding-left: 20px;">'
+        for incident in incidents[:10]:  # Limit to 10 for readability
+            icon = priority_icons.get(incident.priority, '⚪')
+            incident_type = dict(incident._fields['incident_type'].selection).get(incident.incident_type, '')
+            html += f"""
+            <li>{icon} <strong>{incident.reference}</strong> - {incident.name}
+                <br/><small>Véhicule: {incident.vehicle_id.name} | Type: {incident_type} | 
+                Responsable: {incident.responsible_id.name if incident.responsible_id else '-'}</small>
+            </li>
+            """
+        if len(incidents) > 10:
+            html += f"<li><em>... et {len(incidents) - 10} autres</em></li>"
+        html += '</ul>'
+        return html
