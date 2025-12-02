@@ -384,7 +384,7 @@ class FleetIncidentTicket(models.Model):
         for record in records:
             record.message_post(
                 body=_("Ticket d'incident créé: %s") % record.name,
-                message_type="notification",
+                message_type="comment",
             )
             # Notify responsible
             if record.responsible_id:
@@ -411,7 +411,7 @@ class FleetIncidentTicket(models.Model):
                             state_labels.get(old_state, old_state),
                             state_labels.get(vals["state"], vals["state"]),
                         ),
-                        message_type="notification",
+                        message_type="comment",
                     )
             # Synchronize state to linked intervention (avoid infinite loop)
             if not self.env.context.get("_sync_from_intervention"):
@@ -535,7 +535,7 @@ class FleetIncidentTicket(models.Model):
                         record.total_actual_cost,
                         record.currency_id.symbol or "",
                     ),
-                    message_type="notification",
+                    message_type="comment",
                 )
 
     def action_cancel(self):
@@ -595,7 +595,7 @@ class FleetIncidentTicket(models.Model):
         
         self.message_post(
             body=_("Intervention de maintenance %s créée") % intervention.name,
-            message_type="notification",
+            message_type="comment",
         )
         
         # Return action to view the intervention
@@ -652,7 +652,7 @@ class FleetIncidentTicket(models.Model):
         
         self.message_post(
             body=_("Remorquage planifié le %s") % self.towing_scheduled_date,
-            message_type="notification",
+            message_type="comment",
         )
         
         return {

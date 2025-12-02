@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!--
+        Fleet Fuel Management Configuration Settings View
+        Per REQ-006/GUD-001 of feature-fuel-management-1.md.
+
+        Extends the Fleet app settings with fuel management options.
+        Uses Odoo 19 <app>/<block>/<setting> structure via xpath.
+        -->
+
+        <!-- Inherit Fleet app settings and add fuel management block -->
+        <record id="res_config_settings_view_form_fleet_fuel" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.fleet.fuel</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="95"/>
+            <field name="inherit_id" ref="fleet.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <!-- Add Fuel Management block inside Fleet app -->
+                <xpath expr="//app[@id='fleet']" position="inside">
+
+                    <!-- Budget & Alert Configuration Block -->
+                    <block title="Configuration Carburant" id="fleet_fuel_config_block">
+
+                        <!-- Variance Threshold Setting -->
+                        <setting id="fleet_fuel_variance_threshold_setting"
+                                 string="Seuil de variance budgétaire"
+                                 help="Définit le seuil de déclenchement des alertes de dépassement budgétaire">
+                            <div class="row mt16">
+                                <label for="fleet_fuel_variance_threshold_pct" class="col-lg-4 o_light_label"/>
+                                <field name="fleet_fuel_variance_threshold_pct"
+                                       class="col-lg-2 text-center"
+                                       style="width: 80px;"/>
+                                <span class="col-lg-4 text-muted">%</span>
+                            </div>
+                            <div class="text-muted mt8">
+                                <ul class="mb-0">
+                                    <li><strong>OK</strong>: écart ≤ seuil</li>
+                                    <li><strong>Attention</strong>: seuil &lt; écart ≤ 2x seuil</li>
+                                    <li><strong>Critique</strong>: écart &gt; 2x seuil</li>
+                                </ul>
+                            </div>
+                        </setting>
+
+                        <!-- Alert Offset Days Setting -->
+                        <setting id="fleet_fuel_alert_offset_setting"
+                                 string="Délai d'alerte expiration carte"
+                                 help="Nombre de jours avant l'expiration pour déclencher une alerte">
+                            <div class="row mt16">
+                                <label for="fleet_fuel_alert_offset_days" class="col-lg-4 o_light_label"/>
+                                <field name="fleet_fuel_alert_offset_days"
+                                       class="col-lg-2 text-center"
+                                       style="width: 80px;"/>
+                                <span class="col-lg-4 text-muted">jours</span>
+                            </div>
+                        </setting>
+
+                        <!-- Budget Journal Setting -->
+                        <setting id="fleet_fuel_budget_journal_setting"
+                                 string="Journal budget carburant"
+                                 help="Journal comptable par défaut pour les écritures de budget">
+                            <div class="row mt16">
+                                <label for="fleet_fuel_budget_journal_id" class="col-lg-4 o_light_label"/>
+                                <field name="fleet_fuel_budget_journal_id"
+                                       class="col-lg-8"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                            </div>
+                        </setting>
+
+                        <!-- Alert Managers Setting -->
+                        <setting id="fleet_fuel_alert_managers_setting"
+                                 string="Responsables des alertes"
+                                 help="Utilisateurs qui recevront les notifications d'alerte carburant">
+                            <div class="row mt16">
+                                <label for="fleet_fuel_alert_manager_ids" class="col-lg-4 o_light_label"/>
+                                <field name="fleet_fuel_alert_manager_ids"
+                                       class="col-lg-8"
+                                       widget="many2many_tags"
+                                       options="{'no_create': True}"/>
+                            </div>
+                        </setting>
+
+                    </block>
+
+                    <!-- Automation Block -->
+                    <block title="Automatisation Carburant" id="fleet_fuel_automation_block">
+
+                        <!-- Auto Generate Summary Setting -->
+                        <setting id="fleet_fuel_auto_summary_setting"
+                                 string="Génération automatique des synthèses mensuelles"
+                                 help="Active la génération automatique des synthèses via tâche planifiée">
+                            <field name="fleet_fuel_auto_generate_summary"/>
+                            <div class="row mt16" invisible="not fleet_fuel_auto_generate_summary">
+                                <label for="fleet_fuel_summary_day_of_month" class="col-lg-4 o_light_label"/>
+                                <field name="fleet_fuel_summary_day_of_month"
+                                       class="col-lg-2 text-center"
+                                       style="width: 80px;"/>
+                                <span class="col-lg-4 text-muted">du mois (1-28)</span>
+                            </div>
+                        </setting>
+
+                        <!-- Require Receipt Setting -->
+                        <setting id="fleet_fuel_require_receipt_setting"
+                                 string="Justificatif obligatoire"
+                                 help="Rend le téléchargement d'un justificatif obligatoire pour valider les dépenses">
+                            <field name="fleet_fuel_require_receipt"/>
+                        </setting>
+
+                        <!-- Track Odometer Setting -->
+                        <setting id="fleet_fuel_track_odometer_setting"
+                                 string="Suivi de l'odomètre"
+                                 help="Active le suivi de l'odomètre sur les dépenses carburant pour calculer la consommation L/100km">
+                            <field name="fleet_fuel_track_odometer"/>
+                        </setting>
+
+                    </block>
+
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

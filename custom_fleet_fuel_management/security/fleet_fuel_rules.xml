@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="0">
+    <record id="fleet_fuel_rule_card_company" model="ir.rule">
+        <field name="name">Cartes carburant multi-sociétés</field>
+        <field name="model_id" ref="model_fleet_fuel_card"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_recharge_company" model="ir.rule">
+        <field name="name">Recharges carburant multi-sociétés</field>
+        <field name="model_id" ref="model_fleet_fuel_recharge"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_expense_company" model="ir.rule">
+        <field name="name">Dépenses carburant multi-sociétés</field>
+        <field name="model_id" ref="model_fleet_fuel_expense"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_summary_company" model="ir.rule">
+        <field name="name">Synthèses carburant multi-sociétés</field>
+        <field name="model_id" ref="model_fleet_fuel_monthly_summary"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_card_driver" model="ir.rule">
+        <field name="name">Carte carburant - conducteur</field>
+        <field name="model_id" ref="model_fleet_fuel_card"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_user'))]"/>
+        <field name="domain_force">['|', ('driver_id.user_id', '=', user.id), ('driver_id', '=', False)]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_expense_driver" model="ir.rule">
+        <field name="name">Dépenses carburant - conducteur</field>
+        <field name="model_id" ref="model_fleet_fuel_expense"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_user'))]"/>
+        <field name="domain_force">['|', ('driver_id.user_id', '=', user.id), ('driver_id', '=', False)]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_batch_creator" model="ir.rule">
+        <field name="name">Lots d'import par créateur</field>
+        <field name="model_id" ref="model_fleet_fuel_expense_batch"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_user'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <!-- Manager-level rules: full access for Gestionnaire and above -->
+    <record id="fleet_fuel_rule_card_manager" model="ir.rule">
+        <field name="name">Cartes carburant - gestionnaire</field>
+        <field name="model_id" ref="model_fleet_fuel_card"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_expense_manager" model="ir.rule">
+        <field name="name">Dépenses carburant - gestionnaire</field>
+        <field name="model_id" ref="model_fleet_fuel_expense"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_batch_manager" model="ir.rule">
+        <field name="name">Lots d'import - gestionnaire</field>
+        <field name="model_id" ref="model_fleet_fuel_expense_batch"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_recharge_manager" model="ir.rule">
+        <field name="name">Recharges carburant - gestionnaire</field>
+        <field name="model_id" ref="model_fleet_fuel_recharge"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="fleet_fuel_rule_summary_manager" model="ir.rule">
+        <field name="name">Synthèses carburant - gestionnaire</field>
+        <field name="model_id" ref="model_fleet_fuel_monthly_summary"/>
+        <field name="groups" eval="[(4, ref('custom_fleet_fuel_management.group_fleet_fuel_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</data>
+</odoo>

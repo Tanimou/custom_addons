@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="fleet_fuel_card_view_tree" model="ir.ui.view">
+            <field name="name">fleet.fuel.card.tree</field>
+            <field name="model">fleet.fuel.card</field>
+            <field name="arch" type="xml">
+                <list string="Cartes carburant" decoration-warning="alert_state == 'warning'" decoration-danger="alert_state == 'critical'">
+                    <field name="name"/>
+                    <field name="card_uid"/>
+                    <field name="vehicle_id"/>
+                    <field name="driver_id"/>
+                    <field name="fuel_type"/>
+                    <field name="available_amount"/>
+                    <field name="pending_amount"/>
+                    <field name="state" widget="badge"/>
+                    <field name="alert_state" widget="badge"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="fleet_fuel_card_view_form" model="ir.ui.view">
+            <field name="name">fleet.fuel.card.form</field>
+            <field name="model">fleet.fuel.card</field>
+            <field name="arch" type="xml">
+                <form string="Carte carburant">
+                    <header>
+                        <button name="action_activate" type="object" string="Activer" class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_suspend" type="object" string="Suspendre" invisible="state != 'active'" class="btn-secondary"/>
+                        <button name="action_mark_expired" type="object" string="Marquer expirée" invisible="state not in ('active', 'suspended')" class="btn-outline-primary"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,active,suspended,expired"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_recharges" type="object" class="oe_stat_button" icon="fa-bolt">
+                                <field name="recharge_ids" string="Recharges" widget="statinfo"/>
+                            </button>
+                            <button name="action_view_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
+                                <field name="expense_ids" string="Dépenses" widget="statinfo"/>
+                            </button>
+                            <button name="action_open_attachments" type="object" class="oe_stat_button" icon="fa-paperclip">
+                                <field name="attachment_count" widget="statinfo" string="Pièces jointes"/>
+                            </button>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="card_uid"/>
+                                <field name="vehicle_id" options="{'no_open': True}"/>
+                                <field name="driver_id" options="{'no_open': True}"/>
+                                <field name="fuel_type"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="currency_id" groups="base.group_multi_currency"/>
+                            </group>
+                            <group>
+                                <field name="activation_date"/>
+                                <field name="expiration_date"/>
+                                <field name="max_daily_amount" widget="monetary"/>
+                                <field name="max_month_amount" widget="monetary"/>
+                                <field name="balance_amount" widget="monetary" readonly="1"/>
+                                <field name="pending_amount" widget="monetary" readonly="1"/>
+                                <field name="available_amount" widget="monetary" readonly="1"/>
+                                <field name="alert_state" widget="badge"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Recharges">
+                                <field name="recharge_ids" context="{'default_card_id': id}" readonly="1">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="amount"/>
+                                        <field name="state"/>
+                                        <field name="requested_by_id"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Dépenses">
+                                <field name="expense_ids" context="{'default_card_id': id}" readonly="1">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="vehicle_id"/>
+                                        <field name="amount"/>
+                                        <field name="state"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="fleet_fuel_card_view_search" model="ir.ui.view">
+            <field name="name">fleet.fuel.card.search</field>
+            <field name="model">fleet.fuel.card</field>
+            <field name="arch" type="xml">
+                <search string="Cartes carburant">
+                    <field name="name"/>
+                    <field name="card_uid"/>
+                    <field name="vehicle_id"/>
+                    <field name="driver_id"/>
+                    <field name="state"/>
+                    <filter string="Actives" name="state_active" domain="[('state', '=', 'active')]"/>
+                    <filter string="Suspendues" name="state_suspended" domain="[('state', '=', 'suspended')]"/>
+                    <filter string="Solde critique" name="balance_low" domain="[('alert_state', '=', 'critical')]"/>
+                    <filter string="Par société" name="group_company" context="{'group_by': 'company_id'}"/>
+                    <filter string="Par type carburant" name="group_fuel" context="{'group_by': 'fuel_type'}"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="fleet_fuel_card_view_kanban" model="ir.ui.view">
+            <field name="name">fleet.fuel.card.kanban</field>
+            <field name="model">fleet.fuel.card</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_small_column" create="true">
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="o_kanban_record">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong><field name="name"/></strong>
+                                    <span class="badge"><field name="state" widget="badge"/></span>
+                                </div>
+                                <div class="text-muted small">
+                                    <span><field name="vehicle_id"/></span>
+                                    <span t-if="record.driver_id.value"> · <field name="driver_id"/></span>
+                                </div>
+                                <div class="fw-semibold mt-2" t-attf-class="text-{{ record.alert_state.raw_value }}">
+                                    <field name="available_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                </div>
+                                <div class="small mt-1">
+                                    <span>Plafond mensuel:</span>
+                                    <field name="max_month_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+    </data>
+</odoo>

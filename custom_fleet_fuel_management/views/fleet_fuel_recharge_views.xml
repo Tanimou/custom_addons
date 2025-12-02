@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="fleet_fuel_recharge_view_tree" model="ir.ui.view">
+            <field name="name">fleet.fuel.recharge.tree</field>
+            <field name="model">fleet.fuel.recharge</field>
+            <field name="arch" type="xml">
+                <list string="Recharges carburant" decoration-warning="state == 'submitted'" decoration-success="state == 'posted'">
+                    <field name="name"/>
+                    <field name="card_id"/>
+                    <field name="recharge_date"/>
+                    <field name="amount"/>
+                    <field name="state" widget="badge"/>
+                    <field name="requested_by_id"/>
+                    <field name="approval_date" optional="hide"/>
+                    <field name="posting_date" optional="hide"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="fleet_fuel_recharge_view_form" model="ir.ui.view">
+            <field name="name">fleet.fuel.recharge.form</field>
+            <field name="model">fleet.fuel.recharge</field>
+            <field name="arch" type="xml">
+                <form string="Recharge carburant">
+                    <header>
+                        <button name="action_submit" type="object" string="Soumettre" class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_approve" type="object" string="Approuver" class="btn-secondary" invisible="state not in ('draft', 'submitted')"/>
+                        <button name="action_post" type="object" string="Comptabiliser" class="btn-success" invisible="state != 'approved'"/>
+                        <button name="action_cancel" type="object" string="Annuler" class="btn-danger" invisible="state not in ('draft', 'submitted', 'approved')"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,posted,cancelled"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="card_id" domain="[('state', '=', 'active')]"/>
+                                <field name="recharge_date"/>
+                                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="description"/>
+                            </group>
+                            <group>
+                                <field name="requested_by_id" readonly="1"/>
+                                <field name="approved_by_id" readonly="1"/>
+                                <field name="posted_by_id" readonly="1"/>
+                                <field name="approval_date" readonly="1"/>
+                                <field name="posting_date" readonly="1"/>
+                                <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="fleet_fuel_recharge_view_search" model="ir.ui.view">
+            <field name="name">fleet.fuel.recharge.search</field>
+            <field name="model">fleet.fuel.recharge</field>
+            <field name="arch" type="xml">
+                <search string="Recharges carburant">
+                    <field name="name"/>
+                    <field name="card_id"/>
+                    <field name="requested_by_id"/>
+                    <field name="state"/>
+                    <filter string="Soumises" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
+                    <filter string="À approuver" name="filter_approve" domain="[('state', 'in', ('draft', 'submitted'))]"/>
+                    <filter string="Comptabilisées" name="filter_posted" domain="[('state', '=', 'posted')]"/>
+                    <filter string="Par carte" name="group_card" context="{'group_by': 'card_id'}"/>
+                    <filter string="Par validateur" name="group_approver" context="{'group_by': 'approved_by_id'}"/>
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <!-- Template: Recharge Validation Notification -->
+    <record id="mail_template_fleet_fuel_recharge_validated" model="mail.template">
+        <field name="name">Validation recharge carburant</field>
+        <field name="model_id" ref="model_fleet_fuel_recharge"/>
+        <field name="subject">Recharge validée - {{ object.name }}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) if user else '' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 20px; background-color: #875A7B; color: white;">
+                <h2 style="margin: 0;">Recharge Carburant Validée</h2>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px; background-color: #f9f9f9;">
+                <p>Bonjour,</p>
+                <p>La recharge <strong t-out="object.name or ''">REF-001</strong> a été validée avec succès.</p>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Carte:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" t-out="object.card_id.name or '-'">CARTE-001</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Montant:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><t t-out="'%.2f' % object.amount">0.00</t> <t t-out="object.currency_id.symbol or 'EUR'">EUR</t></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Date:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" t-out="object.recharge_date">2024-01-01</td>
+                    </tr>
+                </table>
+                <p style="color: #666; font-size: 12px;">
+                    Ce message a été généré automatiquement par le système de gestion de flotte.
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+        </field>
+    </record>
+
+    <!-- Template: Fuel Card Low Balance Alert -->
+    <record id="mail_template_fleet_fuel_alert" model="mail.template">
+        <field name="name">Alerte solde carte carburant</field>
+        <field name="model_id" ref="model_fleet_fuel_card"/>
+        <field name="subject">⚠️ Alerte - Carte {{ object.name }} : solde faible</field>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) if user else '' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 20px; background-color: #E74C3C; color: white;">
+                <h2 style="margin: 0;">⚠️ Alerte Carte Carburant</h2>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px; background-color: #f9f9f9;">
+                <p>Bonjour,</p>
+                <p>La carte carburant <strong t-out="object.name or ''">CARTE-001</strong> nécessite votre attention.</p>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Carte:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" t-out="object.name or ''">CARTE-001</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Numéro:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" t-out="object.card_uid or '-'">XXX-001</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Solde actuel:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; color: #E74C3C; font-weight: bold;">
+                            <t t-out="'%.2f' % object.balance_amount">0.00</t> <t t-out="object.currency_id.symbol or 'EUR'">EUR</t>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Solde disponible:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><t t-out="'%.2f' % object.available_amount">0.00</t> <t t-out="object.currency_id.symbol or 'EUR'">EUR</t></td>
+                    </tr>
+                </table>
+                <p><strong>Action recommandée:</strong> Veuillez recharger cette carte dès que possible.</p>
+                <p style="color: #666; font-size: 12px;">
+                    Ce message a été généré automatiquement par le système de gestion de flotte.
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+        </field>
+    </record>
+
+    <!-- Template: Monthly Summary KPI Alert -->
+    <record id="mail_template_fleet_fuel_summary_alert" model="mail.template">
+        <field name="name">Alerte KPI consommation carburant</field>
+        <field name="model_id" ref="model_fleet_fuel_monthly_summary"/>
+        <field name="subject">{{ '🔴' if object.alert_level == 'critical' else '🟡' }} Alerte carburant - {{ object.vehicle_id.name or object.card_id.name }}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) if user else '' }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-family: Arial, sans-serif;">
+    <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
+        <tr>
+            <td t-attf-style="padding: 20px; color: white; background-color: {{ '#C0392B' if object.alert_level == 'critical' else '#F39C12' }};">
+                <h2 style="margin: 0;">
+                    <t t-if="object.alert_level == 'critical'">🔴 Alerte Critique</t>
+                    <t t-else="">🟡 Alerte Avertissement</t>
+                    - Consommation Carburant
+                </h2>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px; background-color: #f9f9f9;">
+                <p>Bonjour,</p>
+                <p>Un résumé mensuel de consommation carburant nécessite votre attention.</p>
+
+                <h3 style="color: #333; border-bottom: 2px solid #875A7B; padding-bottom: 5px;">Informations générales</h3>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;"><strong>Période:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                            <t t-out="object.period_start.strftime('%d/%m/%Y') if object.period_start else ''">01/01/2024</t> - 
+                            <t t-out="object.period_end.strftime('%d/%m/%Y') if object.period_end else ''">31/01/2024</t>
+                        </td>
+                    </tr>
+                    <t t-if="object.vehicle_id">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Véhicule:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" t-out="object.vehicle_id.name">VEH-001</td>
+                    </tr>
+                    </t>
+                    <t t-if="object.card_id">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Carte:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" t-out="object.card_id.name">CARTE-001</td>
+                    </tr>
+                    </t>
+                    <t t-if="object.driver_id">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Conducteur:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" t-out="object.driver_id.name">Driver</td>
+                    </tr>
+                    </t>
+                </table>
+
+                <h3 style="color: #333; border-bottom: 2px solid #875A7B; padding-bottom: 5px;">Indicateurs clés</h3>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Consommation totale:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><t t-out="'%.2f' % object.total_liter">0.00</t> L</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Coût total:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><t t-out="'%.2f' % object.total_amount">0.00</t> <t t-out="object.currency_id.symbol or 'EUR'">EUR</t></td>
+                    </tr>
+                    <t t-if="object.distance_traveled and object.distance_traveled > 0">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Distance parcourue:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><t t-out="'%.0f' % object.distance_traveled">0</t> km</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Consommation (L/100km):</strong></td>
+                        <td t-attf-style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold; color: {{ '#C0392B' if object.alert_level == 'critical' else '#F39C12' }};">
+                            <t t-out="'%.2f' % object.avg_consumption_per_100km">0.00</t> L/100km
+                        </td>
+                    </tr>
+                    </t>
+                    <t t-if="object.budget_amount and object.budget_amount > 0">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Budget alloué:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><t t-out="'%.2f' % object.budget_amount">0.00</t> <t t-out="object.currency_id.symbol or 'EUR'">EUR</t></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Écart budgétaire:</strong></td>
+                        <td t-attf-style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold; color: {{ '#C0392B' if object.budget_variance > 0 else '#27AE60' }};">
+                            <t t-out="'%.2f' % object.budget_variance">0.00</t> <t t-out="object.currency_id.symbol or 'EUR'">EUR</t>
+                            (<t t-out="'%.1f' % object.variance_pct">0.0</t>%)
+                        </td>
+                    </tr>
+                    </t>
+                </table>
+
+                <div t-attf-style="padding: 15px; margin: 15px 0; border-left: 4px solid {{ '#C0392B' if object.alert_level == 'critical' else '#F39C12' }}; background-color: {{ '#FADBD8' if object.alert_level == 'critical' else '#FCF3CF' }};">
+                    <strong>Niveau d'alerte:</strong> 
+                    <t t-if="object.alert_level == 'critical'">CRITIQUE</t>
+                    <t t-else="">AVERTISSEMENT</t>
+                    <br/>
+                    <t t-if="object.notes">
+                    <strong>Notes:</strong> <t t-out="object.notes">-</t>
+                    </t>
+                </div>
+
+                <p><strong>Action recommandée:</strong> Veuillez examiner ce résumé et prendre les mesures nécessaires.</p>
+
+                <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                    Ce message a été généré automatiquement par le système de gestion de flotte carburant.<br/>
+                    Pour plus de détails, consultez le module Flotte &gt; Carburant &gt; Résumés mensuels.
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+        </field>
+    </record>
+</data>
+</odoo>

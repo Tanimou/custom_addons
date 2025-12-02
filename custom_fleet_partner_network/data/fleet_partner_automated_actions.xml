@@ -168,7 +168,7 @@ for incident in records:
                 <li>Garage: {incident.garage_partner_id.name if incident.garage_partner_id else '-'}</li>
             </ul>
             """,
-            message_type='notification',
+            message_type='comment',
             subtype_xmlid='mail.mt_note',
         )
 ]]></field>
@@ -264,7 +264,7 @@ for incident in records:
                 <li>Coût total: {total_cost:.2f} {currency}</li>
             </ul>
             """,
-            message_type='notification',
+            message_type='comment',
             subtype_xmlid='mail.mt_note',
         )
 ]]></field>

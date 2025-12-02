@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="action_fleet_fuel_card" model="ir.actions.act_window">
+            <field name="name">Cartes carburant</field>
+            <field name="res_model">fleet.fuel.card</field>
+            <field name="view_mode">list,form,kanban</field>
+            <field name="search_view_id" ref="custom_fleet_fuel_management.fleet_fuel_card_view_search"/>
+            <field name="context">{"search_default_group_company": 1}</field>
+        </record>
+
+        <record id="action_fleet_fuel_recharge" model="ir.actions.act_window">
+            <field name="name">Recharges cartes</field>
+            <field name="res_model">fleet.fuel.recharge</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="custom_fleet_fuel_management.fleet_fuel_recharge_view_search"/>
+            <field name="context">{"default_requested_by_id": uid}</field>
+        </record>
+
+        <menuitem id="menu_fleet_fuel_root" name="Carburant" parent="fleet.menu_root" sequence="35" groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+        <menuitem id="menu_fleet_fuel_cards" name="Cartes carburant" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_card" sequence="10"/>
+        <menuitem id="menu_fleet_fuel_expenses" name="Dépenses" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_expense" sequence="15" groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+        <menuitem id="menu_fleet_fuel_recharges" name="Recharges" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_recharge" sequence="20" groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
+        <menuitem id="menu_fleet_fuel_batches" name="Lots d'import" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_expense_batch" sequence="22" groups="custom_fleet_fuel_management.group_fleet_fuel_manager,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
+        <menuitem id="menu_fleet_fuel_expense_import" name="Importer des dépenses" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_expense_import" sequence="23" groups="custom_fleet_fuel_management.group_fleet_fuel_manager,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
+        <menuitem id="menu_fleet_fuel_summaries" name="Synthèses mensuelles" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_summary" sequence="25" groups="custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+    </data>
+</odoo>

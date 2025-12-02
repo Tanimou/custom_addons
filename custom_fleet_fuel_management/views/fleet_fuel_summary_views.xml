@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Tree View -->
+        <record id="fleet_fuel_summary_view_tree" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.tree</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="arch" type="xml">
+                <list string="Synthèses carburant" decoration-warning="alert_level == 'warning'" decoration-danger="alert_level == 'critical'">
+                    <field name="name"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <field name="vehicle_id" optional="show"/>
+                    <field name="card_id" optional="show"/>
+                    <field name="driver_id" optional="hide"/>
+                    <field name="total_amount" sum="Total"/>
+                    <field name="total_liter" sum="Total L"/>
+                    <field name="avg_consumption_per_100km" optional="show"/>
+                    <field name="budget_amount" optional="hide"/>
+                    <field name="budget_variance" optional="show"/>
+                    <field name="variance_pct" optional="show"/>
+                    <field name="alert_level" widget="badge"/>
+                    <field name="state" widget="badge"/>
+                    <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="fleet_fuel_summary_view_form" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.form</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="arch" type="xml">
+                <form string="Synthèse mensuelle carburant">
+                    <header>
+                        <button name="action_recalculate" type="object" string="Recalculer" class="btn-secondary" icon="fa-refresh"/>
+                        <button name="action_auto_fill_odometer" type="object" string="Auto-remplir odomètres" class="btn-secondary" icon="fa-tachometer"/>
+                        <button name="action_confirm" type="object" string="Confirmer" class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_close" type="object" string="Clôturer" class="btn-secondary" invisible="state != 'confirmed'"/>
+                        <button name="action_reset_to_draft" type="object" string="Remettre brouillon" class="btn-outline-secondary" invisible="state != 'confirmed'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,closed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" placeholder="Référence"/></h1>
+                        </div>
+                        <group>
+                            <group string="Période &amp; Entités">
+                                <label for="period_start" string="Période"/>
+                                <div class="o_row">
+                                    <field name="period_start" nolabel="1"/>
+                                    <span class="mx-2">→</span>
+                                    <field name="period_end" nolabel="1"/>
+                                </div>
+                                <field name="vehicle_id" options="{'no_open': True}"/>
+                                <field name="card_id" options="{'no_open': True}"/>
+                                <field name="driver_id" options="{'no_open': True}"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="currency_id" groups="base.group_multi_currency" invisible="1"/>
+                            </group>
+                            <group string="Consommation">
+                                <field name="expense_count"/>
+                                <field name="total_amount" widget="monetary"/>
+                                <field name="total_liter"/>
+                                <field name="avg_price_per_liter" widget="monetary"/>
+                                <field name="recharge_count"/>
+                                <field name="total_recharge_amount" widget="monetary"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Odomètre &amp; Distance">
+                                <field name="odometer_start"/>
+                                <field name="odometer_end"/>
+                                <field name="distance_traveled" readonly="1"/>
+                                <field name="avg_consumption_per_100km" readonly="1"/>
+                            </group>
+                            <group string="Budget &amp; Alertes">
+                                <field name="budget_amount" widget="monetary"/>
+                                <field name="budget_variance" widget="monetary" readonly="1"/>
+                                <field name="variance_pct" readonly="1" widget="percentage"/>
+                                <field name="alert_level" widget="badge" readonly="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Notes">
+                                <field name="notes" widget="html" placeholder="Notes et observations..."/>
+                            </page>
+                            <page string="Dépenses liées">
+                                <field name="expense_ids" readonly="1">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="expense_date"/>
+                                        <field name="vehicle_id"/>
+                                        <field name="liter_qty"/>
+                                        <field name="amount"/>
+                                        <field name="state" widget="badge"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Recharges liées">
+                                <field name="recharge_ids" readonly="1">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="recharge_date"/>
+                                        <field name="amount"/>
+                                        <field name="state" widget="badge"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <!-- <record id="fleet_fuel_summary_view_search" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.search</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="arch" type="xml">
+                <search string="Synthèses carburant">
+                    <field name="name"/>
+                    <field name="vehicle_id"/>
+                    <field name="card_id"/>
+                    <field name="driver_id"/>
+                    <field name="state"/>
+                    <field name="alert_level"/>
+                    <separator/>
+                    <filter string="Brouillon" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Confirmées" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>
+                    <filter string="Clôturées" name="filter_closed" domain="[('state', '=', 'closed')]"/>
+                    <separator/>
+                    <filter string="Alerte Attention" name="filter_warning" domain="[('alert_level', '=', 'warning')]"/>
+                    <filter string="Alerte Critique" name="filter_critical" domain="[('alert_level', '=', 'critical')]"/>
+                    <separator/>
+                    <filter string="Ce mois" name="filter_this_month" domain="[('period_start', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%%Y-%%m-%%d')), ('period_end', '&lt;=', context_today().strftime('%%Y-%%m-%%d'))]"/>
+                    <filter string="Mois précédent" name="filter_last_month" domain="[('period_start', '&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%%Y-%%m-%%d')), ('period_end', '&lt;=', (context_today() - relativedelta(months=1)).strftime('%%Y-%%m-%%d'))]"/>
+                    <separator/>
+                    <group expand="0" string="Grouper par">
+                        <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Carte" name="group_card" context="{'group_by': 'card_id'}"/>
+                        <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                        <filter string="Statut" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Niveau d'alerte" name="group_alert" context="{'group_by': 'alert_level'}"/>
+                        <filter string="Société" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                    </group>
+                </search>
+            </field>
+        </record> -->
+
+        <!-- Pivot View -->
+        <record id="fleet_fuel_summary_view_pivot" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.pivot</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="arch" type="xml">
+                <pivot string="Analyse des synthèses carburant">
+                    <field name="total_amount" type="measure"/>
+                    <field name="total_liter" type="measure"/>
+                    <field name="distance_traveled" type="measure"/>
+                    <field name="avg_consumption_per_100km" type="measure"/>
+                    <field name="budget_variance" type="measure"/>
+                    <field name="vehicle_id" type="row"/>
+                    <field name="period_start" interval="month" type="col"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Graph View -->
+        <record id="fleet_fuel_summary_view_graph" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.graph</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="arch" type="xml">
+                <graph string="Évolution consommation carburant" type="line">
+                    <field name="period_start" interval="month"/>
+                    <field name="total_amount" type="measure"/>
+                    <field name="avg_consumption_per_100km" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_fleet_fuel_summary" model="ir.actions.act_window">
+            <field name="name">Synthèses mensuelles</field>
+            <field name="res_model">fleet.fuel.monthly.summary</field>
+            <field name="view_mode">list,form,pivot,graph</field>
+            <!-- <field name="search_view_id" ref="fleet_fuel_summary_view_search"/> -->
+            <field name="context">{"search_default_filter_draft": 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune synthèse mensuelle de carburant
+                </p>
+                <p>
+                    Les synthèses sont générées automatiquement chaque mois ou peuvent être créées manuellement.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

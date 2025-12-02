@@ -11,13 +11,13 @@
                 <!-- Add Partner Network blocks after Fleet Management block -->
                 <xpath expr="//block[@id='end_contract_setting']" position="after">
                     
-                    <!-- Block 1: Weekly Digest Notifications -->
-                    <block title="Partner Network - Notifications" id="fleet_partner_alerts">
-                        <setting string="Weekly Digest">
+                    <!-- Block 1: Notifications Digest Hebdomadaire -->
+                    <block title="Réseau Partenaires - Notifications" id="fleet_partner_alerts">
+                        <setting string="Digest Hebdomadaire">
                             <field name="fleet_partner_enable_weekly_digest" class="oe_inline"/>
                             <div class="content-group mt16" invisible="not fleet_partner_enable_weekly_digest">
                                 <div class="row">
-                                    <label string="Digest Day" for="fleet_partner_digest_day" class="col-lg-3 o_light_label"/>
+                                    <label string="Jour du Digest" for="fleet_partner_digest_day" class="col-lg-3 o_light_label"/>
                                     <field name="fleet_partner_digest_day" class="oe_inline"/>
                                 </div>
                             </div>
@@ -25,23 +25,23 @@
                     </block>
                     
                     <!-- Block 2: Partenaires par Défaut -->
-                    <block title="Partner Network - Default Partners" id="fleet_partner_defaults">
-                        <setting string="Default Insurance Partner">
+                    <block title="Réseau Partenaires - Partenaires par Défaut" id="fleet_partner_defaults">
+                        <setting string="Assureur par Défaut">
                             <div class="content-group">
                                 <div class="row mt16">
-                                    <label string="Insurer" for="fleet_partner_default_insurer_id" class="col-lg-3 o_light_label"/>
+                                    <label string="Assureur" for="fleet_partner_default_insurer_id" class="col-lg-3 o_light_label"/>
                                     <field name="fleet_partner_default_insurer_id" 
                                            domain="[('partner_type', '=', 'assureur'), ('company_id', 'in', [company_id, False])]"
                                            context="{'default_partner_type': 'assureur'}"
                                            class="oe_inline"/>
                                 </div>
                                 <div class="text-muted mt8">
-                                    Default insurance partner for new vehicles
+                                    Assureur par défaut pour les nouveaux véhicules
                                 </div>
                             </div>
                         </setting>
                         
-                        <setting string="Default Garages">
+                        <setting string="Garages par Défaut">
                             <div class="content-group">
                                 <div class="row mt16">
                                     <label string="Garages" for="fleet_partner_default_garage_ids" class="col-lg-3 o_light_label"/>
@@ -52,22 +52,22 @@
                                            class="oe_inline"/>
                                 </div>
                                 <div class="text-muted mt8">
-                                    Default authorized garages for new vehicles
+                                    Garages agréés par défaut pour les nouveaux véhicules
                                 </div>
                             </div>
                         </setting>
                         
-                        <setting string="Default Tow Partner">
+                        <setting string="Remorqueur par Défaut">
                             <div class="content-group">
                                 <div class="row mt16">
-                                    <label string="Tow Partner" for="fleet_partner_default_tow_id" class="col-lg-3 o_light_label"/>
+                                    <label string="Remorqueur" for="fleet_partner_default_tow_id" class="col-lg-3 o_light_label"/>
                                     <field name="fleet_partner_default_tow_id" 
                                            domain="[('partner_type', '=', 'remorqueur'), ('company_id', 'in', [company_id, False])]"
                                            context="{'default_partner_type': 'remorqueur'}"
                                            class="oe_inline"/>
                                 </div>
                                 <div class="text-muted mt8">
-                                    Default tow partner for new vehicles
+                                    Remorqueur par défaut pour les nouveaux véhicules
                                 </div>
                             </div>
                         </setting>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="0">
+    <!-- Privilege (category) for fuel management - appears as separate section in user settings -->
+    <record model="res.groups.privilege" id="res_groups_privilege_fleet_fuel">
+        <field name="name">Gestion Carburant</field>
+        <field name="sequence">18</field>
+        <field name="category_id" ref="base.module_category_human_resources"/>
+    </record>
+
+    <record id="group_fleet_fuel_user" model="res.groups">
+        <field name="name">Utilisateur</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_fleet_fuel"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('fleet.fleet_group_user'))]"/>
+    </record>
+
+    <record id="group_fleet_fuel_manager" model="res.groups">
+        <field name="name">Gestionnaire</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_fleet_fuel"/>
+        <field name="implied_ids" eval="[(4, ref('group_fleet_fuel_user'))]"/>
+    </record>
+
+    <record id="group_fleet_fuel_accountant" model="res.groups">
+        <field name="name">Comptable</field>
+        <field name="sequence">30</field>
+        <field name="privilege_id" ref="res_groups_privilege_fleet_fuel"/>
+        <field name="implied_ids" eval="[(4, ref('group_fleet_fuel_manager'))]"/>
+    </record>
+
+    <record id="group_fleet_fuel_admin" model="res.groups">
+        <field name="name">Administrateur</field>
+        <field name="sequence">40</field>
+        <field name="privilege_id" ref="res_groups_privilege_fleet_fuel"/>
+        <field name="implied_ids" eval="[(4, ref('group_fleet_fuel_accountant'))]"/>
+    </record>
+</data>
+</odoo>
