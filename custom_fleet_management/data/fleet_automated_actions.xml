@@ -285,11 +285,11 @@ for vehicle in records:
     if vehicle.administrative_state == 'critical':
         # Poster dans le chatter
         vehicle.message_post(
-            body=f"🔴 <strong>ALERTE CRITIQUE</strong><br/>"
-                 f"Ce véhicule a des documents administratifs expirés ou manquants.<br/>"
-                 f"<strong>Action requise immédiatement!</strong>",
+            body=f"<p>🔴 <strong>ALERTE CRITIQUE</strong></p>"
+                 f"<p>Ce véhicule a des documents administratifs expirés ou manquants.</p>"
+                 f"<p><strong>Action requise immédiatement!</strong></p>",
             subject=f"🔴 Véhicule en état critique: {vehicle.name}",
-            message_type='notification',
+            message_type='comment',
         )
         
         # Notifier les fleet managers
@@ -303,11 +303,11 @@ for vehicle in records:
             for manager in managers:
                 env['mail.thread'].message_notify(
                     partner_ids=manager.partner_id.ids,
-                    body=f"🔴 <strong>VÉHICULE EN ÉTAT CRITIQUE</strong><br/><br/>"
-                         f"<strong>Véhicule:</strong> {vehicle.name}<br/>"
-                         f"<strong>Immatriculation:</strong> {vehicle.license_plate}<br/><br/>"
-                         f"Ce véhicule a des documents administratifs expirés.<br/>"
-                         f"<strong>Action immédiate requise!</strong>",
+                    body=f"<p>🔴 <strong>VÉHICULE EN ÉTAT CRITIQUE</strong></p>"
+                         f"<p><strong>Véhicule:</strong> {vehicle.name}<br/>"
+                         f"<strong>Immatriculation:</strong> {vehicle.license_plate}</p>"
+                         f"<p>Ce véhicule a des documents administratifs expirés.</p>"
+                         f"<p><strong>Action immédiate requise!</strong></p>",
                     subject=f"🔴 URGENT: Véhicule critique - {vehicle.name}",
                     model='fleet.vehicle',
                     res_id=vehicle.id,
@@ -347,11 +347,11 @@ for vehicle in records:
     if vehicle.administrative_state == 'warning':
         # Poster dans le chatter
         vehicle.message_post(
-            body=f"🟠 <strong>ATTENTION</strong><br/>"
-                 f"Ce véhicule a des documents administratifs qui expirent bientôt.<br/>"
-                 f"Veuillez planifier leur renouvellement.",
+            body=f"<p>🟠 <strong>ATTENTION</strong></p>"
+                 f"<p>Ce véhicule a des documents administratifs qui expirent bientôt.</p>"
+                 f"<p>Veuillez planifier leur renouvellement.</p>",
             subject=f"🟠 Documents à renouveler: {vehicle.name}",
-            message_type='notification',
+            message_type='comment',
         )
 ]]></field>
         </record>

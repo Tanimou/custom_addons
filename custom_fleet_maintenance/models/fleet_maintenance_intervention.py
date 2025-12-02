@@ -197,7 +197,7 @@ class FleetMaintenanceIntervention(models.Model):
             record.other_amount = other_amount
             record.purchase_amount = purchase_amount
             record.total_amount = part_amount + labor_amount + subcontract_amount + other_amount
-            record.actual_total_amount = record.total_amount + purchase_amount
+            record.actual_total_amount = purchase_amount if purchase_amount else record.total_amount
 
     @api.depends("purchase_order_ids")
     def _compute_purchase_order_count(self):
@@ -246,7 +246,7 @@ class FleetMaintenanceIntervention(models.Model):
                     record.actual_total_amount,
                     record.currency_id.symbol or '',
                 )
-                record.vehicle_id.message_post(body=msg, message_type='notification')
+                record.vehicle_id.message_post(body=msg, message_type='comment')
             # Check if vehicle can be set available after maintenance completion
             if record.vehicle_id:
                 # Only check for in_progress interventions - submitted doesn't block vehicle

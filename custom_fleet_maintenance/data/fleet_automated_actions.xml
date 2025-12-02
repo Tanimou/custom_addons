@@ -122,7 +122,7 @@ for intervention in records:
                 <li>Technicien: {intervention.responsible_id.name if intervention.responsible_id else '-'}</li>
             </ul>
             """,
-            message_type='notification',
+            message_type='comment',
             subtype_xmlid='mail.mt_note',
         )
 ]]></field>
@@ -218,7 +218,7 @@ for intervention in records:
                 <li>Coût: {total_cost:.2f} €</li>
             </ul>
             """,
-            message_type='notification',
+            message_type='comment',
             subtype_xmlid='mail.mt_note',
         )
     

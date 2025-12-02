@@ -69,10 +69,10 @@
         <field name="context">{'search_default_this_year': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a supplier evaluation
+                Créer une évaluation fournisseur
             </p>
             <p>
-                Rate your suppliers on quality, delivery, reactivity, compliance, and commercial terms.
+                Notifiez les performances de vos fournisseurs en fonction de la qualité, de la ponctualité, de la réactivité, de la conformité et des relations commerciales.
             </p>
         </field>
     </record>

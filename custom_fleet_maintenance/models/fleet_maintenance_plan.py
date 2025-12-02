@@ -374,7 +374,7 @@ class FleetMaintenancePlanLine(models.Model):
                         intervention.name,
                         trigger_reason,
                     ),
-                    message_type='notification',
+                    message_type='comment',
                     subtype_xmlid='mail.mt_note',
                 )
             except Exception as e:
