@@ -83,9 +83,9 @@
     </record>
     
     <!-- Add menu item under Evaluations -->
-    <menuitem id="menu_supplier_evaluation_wizard"
+    <!-- <menuitem id="menu_supplier_evaluation_wizard"
               name="Create Evaluation (Guided)"
               parent="menu_supplier_approval_root"
               action="action_supplier_evaluation_wizard"
-              sequence="25"/>
+              sequence="25"/> -->
 </odoo>
