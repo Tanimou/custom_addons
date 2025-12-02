@@ -48,14 +48,14 @@
                     </button>
                     
                     <!-- Smart Button: Alertes -->
-                    <button name="action_view_alerts" 
+                    <!-- <button name="action_view_alerts" 
                             type="object" 
                             class="oe_stat_button" 
                             icon="fa-exclamation-triangle"
                             groups="custom_fleet_management.group_fleet_user"
                             invisible="alert_count == 0">
                         <field name="alert_count" widget="statinfo" string="Alertes"/>
-                    </button>
+                    </button> -->
                     
                 </xpath>
                 
