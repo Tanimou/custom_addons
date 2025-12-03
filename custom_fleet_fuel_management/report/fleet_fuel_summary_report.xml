@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== REPORT ACTION: MONTHLY FUEL SUMMARY ========== -->
+        
+        <record id="action_report_fuel_monthly_summary" model="ir.actions.report">
+            <field name="name">Synthèse Mensuelle Carburant</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_fleet_fuel_management.report_fuel_monthly_summary</field>
+            <field name="report_file">custom_fleet_fuel_management.report_fuel_monthly_summary</field>
+            <field name="binding_model_id" ref="model_fleet_fuel_monthly_summary"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="base.paperformat_euro"/>
+        </record>
+        
+        <!-- ========== QWEB TEMPLATE: MONTHLY FUEL SUMMARY ========== -->
+        
+        <template id="report_fuel_monthly_summary">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="summary">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            
+                            <!-- ==================== HEADER ==================== -->
+                            <div class="row mt-4 mb-4">
+                                <div class="col-8">
+                                    <h2 style="border-bottom: 3px solid #007bff; padding-bottom: 10px;">
+                                        <strong>SYNTHÈSE MENSUELLE CARBURANT</strong>
+                                    </h2>
+                                    <h3 class="text-muted">
+                                        <t t-esc="summary.name"/>
+                                    </h3>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <!-- Alert Level Indicator -->
+                                    <t t-set="alert_colors" t-value="{'ok': '#28a745', 'warning': '#ffc107', 'critical': '#dc3545'}"/>
+                                    <t t-set="alert_icons" t-value="{'ok': '✓', 'warning': '⚠', 'critical': '✗'}"/>
+                                    <t t-set="alert_labels" t-value="{'ok': 'OK', 'warning': 'Attention', 'critical': 'Critique'}"/>
+                                    <div t-attf-style="background-color: #{alert_colors.get(summary.alert_level, '#6c757d')}; color: white; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin-left: auto; font-size: 24px;">
+                                        <span><t t-esc="alert_icons.get(summary.alert_level, '?')"/></span>
+                                    </div>
+                                    <p class="mt-2 mb-0" t-attf-style="color: #{alert_colors.get(summary.alert_level, '#6c757d')};">
+                                        <strong><t t-esc="alert_labels.get(summary.alert_level, 'Inconnu')"/></strong>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== PERIOD INFORMATION ==================== -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div style="background-color: #e7f3ff; border-radius: 8px; padding: 15px;">
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <strong>Période:</strong><br/>
+                                                <t t-esc="summary.period_start.strftime('%d/%m/%Y')"/> - <t t-esc="summary.period_end.strftime('%d/%m/%Y')"/>
+                                            </div>
+                                            <div class="col-4">
+                                                <strong>Statut:</strong><br/>
+                                                <t t-set="state_labels" t-value="{'draft': 'Brouillon', 'confirmed': 'Confirmée', 'closed': 'Clôturée'}"/>
+                                                <span class="badge" style="background-color: #007bff; color: white; padding: 5px 10px;">
+                                                    <t t-esc="state_labels.get(summary.state, summary.state)"/>
+                                                </span>
+                                            </div>
+                                            <div class="col-4 text-end">
+                                                <strong>Société:</strong><br/>
+                                                <t t-esc="summary.company_id.name"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== VEHICLE / CARD / DRIVER INFO ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #007bff;">
+                                <i class="fa fa-info-circle"/> Informations
+                            </h4>
+                            <div class="row mb-4">
+                                <div class="col-4">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <th style="width: 40%;">Véhicule:</th>
+                                            <td><strong><t t-esc="summary.vehicle_id.name or 'Tous'"/></strong></td>
+                                        </tr>
+                                        <tr t-if="summary.vehicle_id">
+                                            <th>Immatriculation:</th>
+                                            <td><t t-esc="summary.vehicle_id.license_plate or 'N/A'"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-4">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <th style="width: 40%;">Carte:</th>
+                                            <td><strong><t t-esc="summary.card_id.card_uid or 'Toutes'"/></strong></td>
+                                        </tr>
+                                        <tr t-if="summary.card_id">
+                                            <th>Référence:</th>
+                                            <td><t t-esc="summary.card_id.name or 'N/A'"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-4">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <th style="width: 40%;">Conducteur:</th>
+                                            <td><strong><t t-esc="summary.driver_id.name or 'Tous'"/></strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== KPI CARDS ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #007bff;">
+                                <i class="fa fa-tachometer"/> Indicateurs Clés (KPI)
+                            </h4>
+                            
+                            <div class="row mb-4">
+                                <!-- Total Amount -->
+                                <div class="col-3">
+                                    <div style="background-color: #fff3cd; border-radius: 8px; padding: 15px; text-align: center; height: 100%;">
+                                        <h6 class="text-warning mb-1">Montant Total</h6>
+                                        <h3 class="mb-0"><strong><t t-esc="'%.2f' % summary.total_amount"/></strong></h3>
+                                        <small><t t-esc="summary.currency_id.symbol"/></small>
+                                    </div>
+                                </div>
+                                <!-- Total Liters -->
+                                <div class="col-3">
+                                    <div style="background-color: #cce5ff; border-radius: 8px; padding: 15px; text-align: center; height: 100%;">
+                                        <h6 class="text-primary mb-1">Litres Total</h6>
+                                        <h3 class="mb-0"><strong><t t-esc="'%.1f' % summary.total_liter"/></strong></h3>
+                                        <small>L</small>
+                                    </div>
+                                </div>
+                                <!-- Consumption L/100km -->
+                                <div class="col-3">
+                                    <div style="background-color: #d4edda; border-radius: 8px; padding: 15px; text-align: center; height: 100%;">
+                                        <h6 class="text-success mb-1">Consommation</h6>
+                                        <h3 class="mb-0"><strong><t t-esc="'%.2f' % summary.avg_consumption_per_100km"/></strong></h3>
+                                        <small>L/100km</small>
+                                    </div>
+                                </div>
+                                <!-- Avg Price per Liter -->
+                                <div class="col-3">
+                                    <div style="background-color: #e2e3e5; border-radius: 8px; padding: 15px; text-align: center; height: 100%;">
+                                        <h6 class="text-secondary mb-1">Prix Moyen/L</h6>
+                                        <h3 class="mb-0"><strong><t t-esc="'%.3f' % summary.avg_price_per_liter"/></strong></h3>
+                                        <small><t t-esc="summary.currency_id.symbol"/>/L</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== BUDGET ANALYSIS ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #17a2b8;">
+                                <i class="fa fa-bar-chart"/> Analyse Budgétaire
+                            </h4>
+                            
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <table class="table table-sm table-bordered">
+                                        <tr>
+                                            <th style="width: 50%; background-color: #e9ecef;">Budget Prévu:</th>
+                                            <td class="text-end"><t t-esc="'%.2f' % summary.budget_amount"/> <t t-esc="summary.currency_id.symbol"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Montant Réel:</th>
+                                            <td class="text-end"><t t-esc="'%.2f' % summary.total_amount"/> <t t-esc="summary.currency_id.symbol"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Écart:</th>
+                                            <td class="text-end" t-attf-style="color: #{summary.budget_variance > 0 and '#dc3545' or '#28a745'};">
+                                                <strong>
+                                                    <t t-if="summary.budget_variance > 0">+</t>
+                                                    <t t-esc="'%.2f' % summary.budget_variance"/> <t t-esc="summary.currency_id.symbol"/>
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Écart (%):</th>
+                                            <td class="text-end" t-attf-style="color: #{summary.variance_pct > 0 and '#dc3545' or '#28a745'};">
+                                                <strong>
+                                                    <t t-if="summary.variance_pct > 0">+</t>
+                                                    <t t-esc="'%.1f' % summary.variance_pct"/>%
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-6">
+                                    <!-- Visual Budget Bar -->
+                                    <div style="padding: 10px;">
+                                        <p class="mb-2"><strong>Utilisation du budget:</strong></p>
+                                        <t t-if="summary.budget_amount > 0">
+                                            <t t-set="usage_pct" t-value="min((summary.total_amount / summary.budget_amount) * 100, 150)"/>
+                                            <t t-set="bar_color" t-value="usage_pct > 100 and '#dc3545' or (usage_pct > 80 and '#ffc107' or '#28a745')"/>
+                                            <div style="background-color: #e9ecef; border-radius: 10px; height: 30px; position: relative; overflow: hidden;">
+                                                <div t-attf-style="background-color: #{bar_color}; width: #{min(usage_pct, 100)}%; height: 100%; border-radius: 10px; transition: width 0.3s;"/>
+                                                <t t-if="usage_pct > 100">
+                                                    <div style="position: absolute; left: 0; top: 0; background-color: rgba(220,53,69,0.3); width: 100%; height: 100%; border-radius: 10px;"/>
+                                                </t>
+                                            </div>
+                                            <p class="text-center mt-1">
+                                                <strong><t t-esc="'%.1f' % ((summary.total_amount / summary.budget_amount) * 100)"/>%</strong> utilisé
+                                            </p>
+                                        </t>
+                                        <t t-else="1">
+                                            <p class="text-muted">Aucun budget défini</p>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== DISTANCE & ODOMETER ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #6f42c1;">
+                                <i class="fa fa-road"/> Distance &amp; Odomètre
+                            </h4>
+                            
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <table class="table table-sm table-bordered">
+                                        <tr>
+                                            <th style="width: 25%; background-color: #e9ecef;">Odomètre Début:</th>
+                                            <td class="text-end"><t t-esc="'%.0f' % summary.odometer_start"/> km</td>
+                                            <th style="width: 25%; background-color: #e9ecef;">Odomètre Fin:</th>
+                                            <td class="text-end"><t t-esc="'%.0f' % summary.odometer_end"/> km</td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #d4edda;" colspan="2"><strong>Distance Parcourue:</strong></th>
+                                            <td class="text-end" colspan="2" style="background-color: #d4edda;">
+                                                <strong><t t-esc="'%.0f' % summary.distance_traveled"/> km</strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== TRANSACTION COUNTS ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #fd7e14;">
+                                <i class="fa fa-list-ol"/> Statistiques des Transactions
+                            </h4>
+                            
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <div style="background-color: #f8d7da; border-radius: 8px; padding: 15px;">
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <h5 class="text-danger mb-0">Dépenses</h5>
+                                            </div>
+                                            <div class="col-4 text-end">
+                                                <h3 class="mb-0"><strong><t t-esc="summary.expense_count"/></strong></h3>
+                                            </div>
+                                        </div>
+                                        <hr class="my-2"/>
+                                        <p class="mb-0">
+                                            Total: <strong><t t-esc="'%.2f' % summary.total_amount"/> <t t-esc="summary.currency_id.symbol"/></strong>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div style="background-color: #d4edda; border-radius: 8px; padding: 15px;">
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <h5 class="text-success mb-0">Recharges</h5>
+                                            </div>
+                                            <div class="col-4 text-end">
+                                                <h3 class="mb-0"><strong><t t-esc="summary.recharge_count"/></strong></h3>
+                                            </div>
+                                        </div>
+                                        <hr class="my-2"/>
+                                        <p class="mb-0">
+                                            Total: <strong><t t-esc="'%.2f' % summary.total_recharge_amount"/> <t t-esc="summary.currency_id.symbol"/></strong>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== EXPENSE BREAKDOWN TABLE ==================== -->
+                            <t t-set="expenses" t-value="summary.expense_ids"/>
+                            <t t-if="expenses">
+                                <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #dc3545;">
+                                    <i class="fa fa-table"/> Détail des Dépenses
+                                </h4>
+                                
+                                <table class="table table-sm table-bordered">
+                                    <thead style="background-color: #e9ecef;">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Référence</th>
+                                            <th>Station</th>
+                                            <th class="text-end">Litres</th>
+                                            <th class="text-end">Prix/L</th>
+                                            <th class="text-end">Montant</th>
+                                            <th class="text-end">Odomètre</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="expenses.sorted(key=lambda e: e.expense_date)" t-as="expense">
+                                            <tr>
+                                                <td><t t-esc="expense.expense_date.strftime('%d/%m/%Y')"/></td>
+                                                <td><t t-esc="expense.name"/></td>
+                                                <td><t t-esc="expense.station_partner_id.name or '-'"/></td>
+                                                <td class="text-end"><t t-esc="'%.2f' % expense.liter_qty"/> L</td>
+                                                <td class="text-end"><t t-esc="'%.3f' % expense.price_per_liter"/> <t t-esc="summary.currency_id.symbol"/></td>
+                                                <td class="text-end"><t t-esc="'%.2f' % expense.amount"/> <t t-esc="summary.currency_id.symbol"/></td>
+                                                <td class="text-end"><t t-if="expense.odometer"><t t-esc="'%.0f' % expense.odometer"/> km</t><t t-else="1">-</t></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot style="background-color: #f8d7da;">
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>TOTAUX:</strong></td>
+                                            <td class="text-end"><strong><t t-esc="'%.2f' % summary.total_liter"/> L</strong></td>
+                                            <td class="text-end"><strong><t t-esc="'%.3f' % summary.avg_price_per_liter"/> <t t-esc="summary.currency_id.symbol"/></strong></td>
+                                            <td class="text-end"><strong><t t-esc="'%.2f' % summary.total_amount"/> <t t-esc="summary.currency_id.symbol"/></strong></td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </t>
+                            
+                            <!-- ==================== NOTES ==================== -->
+                            <t t-if="summary.notes">
+                                <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #6c757d;">
+                                    <i class="fa fa-sticky-note"/> Notes
+                                </h4>
+                                <div style="border: 1px solid #dee2e6; padding: 15px; background-color: #fafafa; border-radius: 5px;">
+                                    <t t-raw="summary.notes"/>
+                                </div>
+                            </t>
+                            
+                            <!-- ==================== FOOTER ==================== -->
+                            <div class="row mt-5" style="border-top: 2px solid #dee2e6; padding-top: 15px;">
+                                <div class="col-12 text-center text-muted small">
+                                    <p>
+                                        Ce rapport est généré automatiquement par le système de gestion du parc automobile.<br/>
+                                        <t t-esc="summary.company_id.name"/> - Imprimé le <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+        
+    </data>
+</odoo>

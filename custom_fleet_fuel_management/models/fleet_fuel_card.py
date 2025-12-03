@@ -58,7 +58,8 @@ class FleetFuelCard(models.Model):
     balance_amount = fields.Monetary(string="Solde disponible", tracking=True)
     pending_amount = fields.Monetary(string="Montant en attente", tracking=True)
     available_amount = fields.Monetary(
-        string="Disponible", compute="_compute_available_amount", store=True, currency_field="currency_id"
+        string="Solde utilisable", compute="_compute_available_amount", store=True, currency_field="currency_id",
+        help="Montant réellement disponible pour les dépenses = Solde disponible - Montant en attente"
     )
     max_daily_amount = fields.Monetary(string="Plafond quotidien", currency_field="currency_id")
     max_month_amount = fields.Monetary(string="Plafond mensuel", currency_field="currency_id")

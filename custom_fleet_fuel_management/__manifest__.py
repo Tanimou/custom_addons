@@ -32,9 +32,12 @@
         "views/fleet_fuel_expense_batch_views.xml",
         "views/fleet_fuel_summary_views.xml",
         "views/res_config_settings_views.xml",
+        "views/fleet_fuel_analytics_views.xml",
         "views/fleet_fuel_dashboard.xml",
         "views/fleet_menu.xml",
         "report/fleet_fuel_reports.xml",
+        "report/fleet_fuel_statement.xml",
+        "report/fleet_fuel_summary_report.xml",
     ],
     "demo": [
         "tests/demo_fleet_fuel.xml",

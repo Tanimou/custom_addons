@@ -1,6 +1,192 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-        <!-- Dashboard layout will be delivered in later phase -->
+        <!-- ============================================================= -->
+        <!-- FLEET FUEL DASHBOARD - Kanban KPI Cards View                  -->
+        <!-- ============================================================= -->
+
+        <!-- Dashboard Kanban View for Monthly Summaries (KPI cards) -->
+        <record id="fleet_fuel_dashboard_kanban" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.dashboard.kanban</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_dashboard" create="false" sample="1">
+                    <field name="name"/>
+                    <field name="vehicle_id"/>
+                    <field name="card_id"/>
+                    <field name="driver_id"/>
+                    <field name="total_amount"/>
+                    <field name="total_liter"/>
+                    <field name="avg_consumption_per_100km"/>
+                    <field name="budget_amount"/>
+                    <field name="budget_variance"/>
+                    <field name="variance_pct"/>
+                    <field name="alert_level"/>
+                    <field name="state"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <field name="currency_id"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="o_kanban_card o_kanban_dashboard_card">
+                                <div class="o_kanban_card_header">
+                                    <div class="o_kanban_card_header_title">
+                                        <span class="o_primary">
+                                            <t t-if="record.vehicle_id.value">
+                                                <field name="vehicle_id"/>
+                                            </t>
+                                            <t t-elif="record.card_id.value">
+                                                <field name="card_id"/>
+                                            </t>
+                                            <t t-else="1">
+                                                <field name="name"/>
+                                            </t>
+                                        </span>
+                                    </div>
+                                    <div class="o_kanban_manage_button_section">
+                                        <field name="alert_level" widget="badge" 
+                                               decoration-success="alert_level == 'ok'"
+                                               decoration-warning="alert_level == 'warning'"
+                                               decoration-danger="alert_level == 'critical'"/>
+                                    </div>
+                                </div>
+                                <div class="container o_kanban_card_content">
+                                    <div class="row">
+                                        <div class="col-6 o_kanban_primary_left">
+                                            <div class="mb-2">
+                                                <span class="text-muted small">Période:</span>
+                                                <div class="small">
+                                                    <field name="period_start"/> - <field name="period_end"/>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="text-muted small">Conducteur:</span>
+                                                <div><field name="driver_id"/></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 o_kanban_primary_right">
+                                            <div class="mb-2">
+                                                <span class="text-muted small">Montant total:</span>
+                                                <div class="fw-bold text-primary">
+                                                    <field name="total_amount" widget="monetary"/>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="text-muted small">Litres:</span>
+                                                <div><field name="total_liter"/> L</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2 pt-2 border-top">
+                                        <div class="col-6">
+                                            <div class="text-center">
+                                                <span class="text-muted small d-block">L/100km</span>
+                                                <span class="fs-5 fw-bold">
+                                                    <field name="avg_consumption_per_100km" digits="[6,1]"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-center">
+                                                <span class="text-muted small d-block">Écart budget</span>
+                                                <span t-attf-class="fs-5 fw-bold #{record.budget_variance.raw_value > 0 ? 'text-danger' : 'text-success'}">
+                                                    <field name="variance_pct" widget="float" digits="[6,1]"/>%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <footer class="pt-2">
+                                    <field name="state" widget="badge"/>
+                                </footer>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- ============================================================= -->
+        <!-- DASHBOARD ACTIONS                                             -->
+        <!-- ============================================================= -->
+
+        <!-- Main Dashboard Action - Opens analysis views -->
+        <record id="action_fleet_fuel_dashboard" model="ir.actions.act_window">
+            <field name="name">Tableau de bord carburant</field>
+            <field name="res_model">fleet.fuel.expense</field>
+            <field name="view_mode">graph,pivot,list</field>
+            <field name="view_id" ref="custom_fleet_fuel_management.fleet_fuel_expense_view_graph_monthly"/>
+            <field name="search_view_id" ref="custom_fleet_fuel_management.fleet_fuel_expense_view_search_analytics"/>
+            <field name="context">{
+                'search_default_filter_validated': 1,
+                'search_default_filter_this_year': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Bienvenue sur le tableau de bord carburant
+                </p>
+                <p>
+                    Visualisez et analysez les dépenses carburant de votre flotte.
+                    Utilisez les filtres pour affiner votre analyse par période, véhicule, conducteur ou station.
+                </p>
+            </field>
+        </record>
+
+        <!-- Dashboard KPI Cards Action -->
+        <record id="action_fleet_fuel_dashboard_kpi" model="ir.actions.act_window">
+            <field name="name">KPI Synthèses mensuelles</field>
+            <field name="res_model">fleet.fuel.monthly.summary</field>
+            <field name="view_mode">kanban,list,graph,pivot,form</field>
+            <field name="view_id" ref="fleet_fuel_dashboard_kanban"/>
+            <field name="search_view_id" ref="custom_fleet_fuel_management.fleet_fuel_summary_view_search_analytics"/>
+            <field name="context">{
+                'search_default_filter_draft': 0,
+                'search_default_filter_confirmed': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune synthèse mensuelle
+                </p>
+                <p>
+                    Les synthèses KPI de consommation carburant sont générées automatiquement chaque mois
+                    ou peuvent être créées manuellement.
+                </p>
+            </field>
+        </record>
+
+        <!-- Critical Alerts Dashboard -->
+        <record id="action_fleet_fuel_dashboard_alerts" model="ir.actions.act_window">
+            <field name="name">Alertes critiques</field>
+            <field name="res_model">fleet.fuel.monthly.summary</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="domain">[('alert_level', 'in', ['warning', 'critical']), ('state', '!=', 'closed')]</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune alerte en cours
+                </p>
+                <p>
+                    Toutes les synthèses sont dans les limites budgétaires.
+                </p>
+            </field>
+        </record>
+
+        <!-- Card Balance Dashboard (low balance cards) -->
+        <record id="action_fleet_fuel_dashboard_cards" model="ir.actions.act_window">
+            <field name="name">Cartes à recharger</field>
+            <field name="res_model">fleet.fuel.card</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="domain">[('state', '=', 'active'), ('alert_state', 'in', ['warning', 'critical'])]</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Toutes les cartes ont un solde suffisant
+                </p>
+                <p>
+                    Les cartes avec un solde faible ou critique apparaîtront ici.
+                </p>
+            </field>
+        </record>
     </data>
 </odoo>

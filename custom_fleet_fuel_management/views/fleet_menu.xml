@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
+        <!-- ============================================================= -->
+        <!-- ACTIONS (must be defined BEFORE menus in Odoo 19)             -->
+        <!-- ============================================================= -->
+
         <record id="action_fleet_fuel_card" model="ir.actions.act_window">
             <field name="name">Cartes carburant</field>
             <field name="res_model">fleet.fuel.card</field>
@@ -17,12 +21,130 @@
             <field name="context">{"default_requested_by_id": uid}</field>
         </record>
 
-        <menuitem id="menu_fleet_fuel_root" name="Carburant" parent="fleet.menu_root" sequence="35" groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_manager"/>
-        <menuitem id="menu_fleet_fuel_cards" name="Cartes carburant" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_card" sequence="10"/>
-        <menuitem id="menu_fleet_fuel_expenses" name="Dépenses" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_expense" sequence="15" groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_manager"/>
-        <menuitem id="menu_fleet_fuel_recharges" name="Recharges" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_recharge" sequence="20" groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
-        <menuitem id="menu_fleet_fuel_batches" name="Lots d'import" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_expense_batch" sequence="22" groups="custom_fleet_fuel_management.group_fleet_fuel_manager,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
-        <menuitem id="menu_fleet_fuel_expense_import" name="Importer des dépenses" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_expense_import" sequence="23" groups="custom_fleet_fuel_management.group_fleet_fuel_manager,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
-        <menuitem id="menu_fleet_fuel_summaries" name="Synthèses mensuelles" parent="custom_fleet_fuel_management.menu_fleet_fuel_root" action="custom_fleet_fuel_management.action_fleet_fuel_summary" sequence="25" groups="custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+        <!-- ============================================================= -->
+        <!-- ROOT MENU                                                     -->
+        <!-- ============================================================= -->
+
+        <menuitem id="menu_fleet_fuel_root" 
+                  name="Carburant" 
+                  parent="fleet.menu_root" 
+                  sequence="35" 
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+
+        <!-- ============================================================= -->
+        <!-- DASHBOARD MENU (first in order)                               -->
+        <!-- ============================================================= -->
+
+        <!-- <menuitem id="menu_fleet_fuel_dashboard" 
+                  name="Tableau de bord" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_dashboard" 
+                  sequence="1"
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_manager"/> -->
+
+        <!-- <menuitem id="menu_fleet_fuel_dashboard_kpi" 
+                  name="KPI &amp; Synthèses" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_dashboard_kpi" 
+                  sequence="2"
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_manager"/> -->
+
+        <!-- <menuitem id="menu_fleet_fuel_alerts" 
+                  name="Alertes" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_dashboard_alerts" 
+                  sequence="3"
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+ -->
+        <!-- ============================================================= -->
+        <!-- DATA MANAGEMENT MENUS                                         -->
+        <!-- ============================================================= -->
+
+        <menuitem id="menu_fleet_fuel_cards" 
+                  name="Cartes carburant" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_card" 
+                  sequence="10"/>
+
+        <menuitem id="menu_fleet_fuel_expenses" 
+                  name="Dépenses" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_expense" 
+                  sequence="15" 
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+
+        <menuitem id="menu_fleet_fuel_recharges" 
+                  name="Recharges" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_recharge" 
+                  sequence="20" 
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
+
+        <menuitem id="menu_fleet_fuel_batches" 
+                  name="Lots d'import" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_expense_batch" 
+                  sequence="22" 
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_manager,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
+
+        <menuitem id="menu_fleet_fuel_expense_import" 
+                  name="Importer des dépenses" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_expense_import" 
+                  sequence="23" 
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_manager,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
+
+        <menuitem id="menu_fleet_fuel_summaries" 
+                  name="Synthèses mensuelles" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_summary" 
+                  sequence="25" 
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+
+        <!-- ============================================================= -->
+        <!-- ANALYTICS SUB-MENU                                            -->
+        <!-- ============================================================= -->
+
+        <!-- <menuitem id="menu_fleet_fuel_analytics_root" 
+                  name="Analyses" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
+                  sequence="30"
+                  groups="custom_fleet_fuel_management.group_fleet_fuel_manager"/>
+
+        <menuitem id="menu_fleet_fuel_analytics_vehicle" 
+                  name="Par véhicule" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_analytics_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_expense_analytics_vehicle" 
+                  sequence="1"/>
+
+        <menuitem id="menu_fleet_fuel_analytics_driver" 
+                  name="Par conducteur" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_analytics_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_expense_analytics_driver" 
+                  sequence="2"/>
+
+        <menuitem id="menu_fleet_fuel_analytics_station" 
+                  name="Par station" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_analytics_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_expense_analytics_station" 
+                  sequence="3"/>
+
+        <menuitem id="menu_fleet_fuel_analytics_monthly" 
+                  name="Évolution mensuelle" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_analytics_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_expense_analytics_monthly" 
+                  sequence="4"/>
+
+        <menuitem id="menu_fleet_fuel_analytics_consumption" 
+                  name="Consommation L/100km" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_analytics_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_summary_consumption" 
+                  sequence="5"/>
+
+        <menuitem id="menu_fleet_fuel_analytics_alerts" 
+                  name="Alertes budgétaires" 
+                  parent="custom_fleet_fuel_management.menu_fleet_fuel_analytics_root" 
+                  action="custom_fleet_fuel_management.action_fleet_fuel_summary_alerts" 
+                  sequence="6"/> -->
     </data>
 </odoo>

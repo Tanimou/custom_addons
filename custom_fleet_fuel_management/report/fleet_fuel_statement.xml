@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== REPORT ACTION: FUEL CARD STATEMENT ========== -->
+        
+        <record id="action_report_fuel_card_statement" model="ir.actions.report">
+            <field name="name">Relevé Carte Carburant</field>
+            <field name="model">fleet.fuel.card</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_fleet_fuel_management.report_fuel_card_statement</field>
+            <field name="report_file">custom_fleet_fuel_management.report_fuel_card_statement</field>
+            <field name="binding_model_id" ref="model_fleet_fuel_card"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="base.paperformat_euro"/>
+        </record>
+        
+        <!-- ========== QWEB TEMPLATE: FUEL CARD STATEMENT ========== -->
+        
+        <template id="report_fuel_card_statement">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <t t-foreach="docs" t-as="card">
+                        <div class="page">
+                            
+                            <!-- ==================== HEADER ==================== -->
+                            <div class="row mt-4 mb-4">
+                                <div class="col-8">
+                                    <h2 style="border-bottom: 3px solid #28a745; padding-bottom: 10px;">
+                                        <strong>RELEVÉ CARTE CARBURANT</strong>
+                                    </h2>
+                                    <h3 class="text-muted">
+                                        Carte N° <t t-esc="card.card_uid"/>
+                                    </h3>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <!-- QR Code linking to card record -->
+                                    <t t-set="qr_code_url" t-value="'/report/barcode/?type=QR&amp;value=%s/web#id=%s&amp;model=fleet.fuel.card&amp;view_type=form&amp;width=120&amp;height=120' % (card.get_base_url(), card.id)"/>
+                                    <img t-att-src="qr_code_url" alt="QR Code Carte" style="max-width: 120px;"/>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== STATUS BADGE ==================== -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <t t-set="state_colors" t-value="{'draft': '#6c757d', 'active': '#28a745', 'suspended': '#ffc107', 'expired': '#dc3545'}"/>
+                                    <t t-set="state_labels" t-value="{'draft': 'Brouillon', 'active': 'Active', 'suspended': 'Suspendue', 'expired': 'Expirée'}"/>
+                                    <span class="badge" t-attf-style="background-color: #{state_colors.get(card.state, '#6c757d')}; font-size: 14px; padding: 8px 15px; color: #fff;">
+                                        <t t-esc="state_labels.get(card.state, card.state)"/>
+                                    </span>
+                                    <span class="ms-3 text-muted">
+                                        Référence: <strong><t t-esc="card.name"/></strong>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== CARD INFORMATION ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #28a745;">
+                                <i class="fa fa-credit-card"/> Informations Carte
+                            </h4>
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <th style="width: 40%;">Véhicule:</th>
+                                            <td><strong><t t-esc="card.vehicle_id.name or 'N/A'"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Immatriculation:</th>
+                                            <td><t t-esc="card.vehicle_id.license_plate or 'N/A'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Conducteur:</th>
+                                            <td><t t-esc="card.driver_id.name or 'N/A'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Type carburant:</th>
+                                            <td>
+                                                <t t-set="fuel_types" t-value="{'petrol': 'Essence', 'diesel': 'Diesel', 'electric': 'Électrique', 'hybrid': 'Hybride', 'other': 'Autre'}"/>
+                                                <t t-esc="fuel_types.get(card.fuel_type, card.fuel_type)"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-6">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <th style="width: 40%;">Activation:</th>
+                                            <td><t t-if="card.activation_date" t-esc="card.activation_date.strftime('%d/%m/%Y')"/><t t-else="1">N/A</t></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Expiration:</th>
+                                            <td><t t-if="card.expiration_date" t-esc="card.expiration_date.strftime('%d/%m/%Y')"/><t t-else="1">N/A</t></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Plafond jour:</th>
+                                            <td><t t-esc="'%.2f' % card.max_daily_amount"/> <t t-esc="card.currency_id.symbol"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Plafond mois:</th>
+                                            <td><t t-esc="'%.2f' % card.max_month_amount"/> <t t-esc="card.currency_id.symbol"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== BALANCE SUMMARY ==================== -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <div style="background-color: #d4edda; border-radius: 8px; padding: 15px; text-align: center;">
+                                                <h5 class="text-success mb-1">Solde Disponible</h5>
+                                                <h3 class="mb-0"><strong><t t-esc="'%.2f' % card.balance_amount"/> <t t-esc="card.currency_id.symbol"/></strong></h3>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div style="background-color: #fff3cd; border-radius: 8px; padding: 15px; text-align: center;">
+                                                <h5 class="text-warning mb-1">En Attente</h5>
+                                                <h3 class="mb-0"><strong><t t-esc="'%.2f' % card.pending_amount"/> <t t-esc="card.currency_id.symbol"/></strong></h3>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div style="background-color: #cce5ff; border-radius: 8px; padding: 15px; text-align: center;">
+                                                <h5 class="text-primary mb-1">Solde utilisable</h5>
+                                                <h3 class="mb-0"><strong><t t-esc="'%.2f' % card.available_amount"/> <t t-esc="card.currency_id.symbol"/></strong></h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr style="border-top: 2px solid #dee2e6; margin: 20px 0;"/>
+                            
+                            <!-- ==================== RECHARGES TABLE ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #28a745;">
+                                <i class="fa fa-plus-circle"/> Historique des Recharges
+                            </h4>
+                            
+                            <t t-set="recharges" t-value="card.recharge_ids.sorted(key=lambda r: r.recharge_date, reverse=True)"/>
+                            <t t-if="recharges">
+                                <table class="table table-sm table-bordered">
+                                    <thead style="background-color: #e9ecef;">
+                                        <tr>
+                                            <th>Référence</th>
+                                            <th>Date</th>
+                                            <th class="text-end">Montant</th>
+                                            <th>Statut</th>
+                                            <th>Validé par</th>
+                                            <th>Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="recharges" t-as="recharge">
+                                            <tr>
+                                                <td><t t-esc="recharge.name"/></td>
+                                                <td><t t-esc="recharge.recharge_date.strftime('%d/%m/%Y')"/></td>
+                                                <td class="text-end text-success">
+                                                    <strong>+ <t t-esc="'%.2f' % recharge.amount"/> <t t-esc="card.currency_id.symbol"/></strong>
+                                                </td>
+                                                <td>
+                                                    <t t-set="recharge_states" t-value="{'draft': 'Brouillon', 'submitted': 'Soumise', 'approved': 'Approuvée', 'posted': 'Comptabilisée', 'cancelled': 'Annulée'}"/>
+                                                    <t t-esc="recharge_states.get(recharge.state, recharge.state)"/>
+                                                </td>
+                                                <td><t t-esc="recharge.approved_by_id.name or '-'"/></td>
+                                                <td><t t-esc="recharge.description or '-'"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot style="background-color: #d4edda;">
+                                        <tr>
+                                            <td colspan="2" class="text-end"><strong>Total Recharges:</strong></td>
+                                            <td class="text-end text-success">
+                                                <strong>+ <t t-esc="'%.2f' % sum(recharges.filtered(lambda r: r.state == 'posted').mapped('amount'))"/> <t t-esc="card.currency_id.symbol"/></strong>
+                                            </td>
+                                            <td colspan="3"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </t>
+                            <t t-else="1">
+                                <p class="text-muted text-center" style="padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+                                    Aucune recharge enregistrée pour cette carte.
+                                </p>
+                            </t>
+                            
+                            <div style="margin-top: 30px;"/>
+                            
+                            <!-- ==================== EXPENSES TABLE ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #dc3545;">
+                                <i class="fa fa-minus-circle"/> Historique des Dépenses
+                            </h4>
+                            
+                            <t t-set="expenses" t-value="card.expense_ids.sorted(key=lambda e: e.expense_date, reverse=True)"/>
+                            <t t-if="expenses">
+                                <table class="table table-sm table-bordered">
+                                    <thead style="background-color: #e9ecef;">
+                                        <tr>
+                                            <th>Référence</th>
+                                            <th>Date</th>
+                                            <th>Station</th>
+                                            <th class="text-end">Litres</th>
+                                            <th class="text-end">Prix/L</th>
+                                            <th class="text-end">Montant</th>
+                                            <th class="text-end">Odomètre</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="expenses" t-as="expense">
+                                            <tr>
+                                                <td><t t-esc="expense.name"/></td>
+                                                <td><t t-esc="expense.expense_date.strftime('%d/%m/%Y')"/></td>
+                                                <td><t t-esc="expense.station_partner_id.name or '-'"/></td>
+                                                <td class="text-end"><t t-esc="'%.2f' % expense.liter_qty"/> L</td>
+                                                <td class="text-end"><t t-esc="'%.3f' % expense.price_per_liter"/> <t t-esc="card.currency_id.symbol"/></td>
+                                                <td class="text-end text-danger">
+                                                    <strong>- <t t-esc="'%.2f' % expense.amount"/> <t t-esc="card.currency_id.symbol"/></strong>
+                                                </td>
+                                                <td class="text-end"><t t-if="expense.odometer"><t t-esc="'%.0f' % expense.odometer"/> km</t><t t-else="1">-</t></td>
+                                                <td>
+                                                    <t t-set="expense_states" t-value="{'draft': 'Brouillon', 'submitted': 'Soumise', 'validated': 'Validée', 'rejected': 'Rejetée'}"/>
+                                                    <t t-esc="expense_states.get(expense.state, expense.state)"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot style="background-color: #f8d7da;">
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>Totaux:</strong></td>
+                                            <td class="text-end"><strong><t t-esc="'%.2f' % sum(expenses.filtered(lambda e: e.state == 'validated').mapped('liter_qty'))"/> L</strong></td>
+                                            <td></td>
+                                            <td class="text-end text-danger">
+                                                <strong>- <t t-esc="'%.2f' % sum(expenses.filtered(lambda e: e.state == 'validated').mapped('amount'))"/> <t t-esc="card.currency_id.symbol"/></strong>
+                                            </td>
+                                            <td colspan="2"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </t>
+                            <t t-else="1">
+                                <p class="text-muted text-center" style="padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+                                    Aucune dépense enregistrée pour cette carte.
+                                </p>
+                            </t>
+                            
+                            <hr style="border-top: 2px solid #dee2e6; margin: 30px 0;"/>
+                            
+                            <!-- ==================== SUMMARY TOTALS ==================== -->
+                            <h4 style="background-color: #f8f9fa; padding: 10px; border-left: 4px solid #007bff;">
+                                <i class="fa fa-calculator"/> Récapitulatif
+                            </h4>
+                            
+                            <t t-set="total_recharges" t-value="sum(card.recharge_ids.filtered(lambda r: r.state == 'posted').mapped('amount'))"/>
+                            <t t-set="total_expenses" t-value="sum(card.expense_ids.filtered(lambda e: e.state == 'validated').mapped('amount'))"/>
+                            <t t-set="total_liters" t-value="sum(card.expense_ids.filtered(lambda e: e.state == 'validated').mapped('liter_qty'))"/>
+                            
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <table class="table table-sm table-bordered">
+                                        <tr>
+                                            <th style="width: 60%; background-color: #e9ecef;">Total Recharges (comptabilisées):</th>
+                                            <td class="text-end text-success"><strong>+ <t t-esc="'%.2f' % total_recharges"/> <t t-esc="card.currency_id.symbol"/></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Total Dépenses (validées):</th>
+                                            <td class="text-end text-danger"><strong>- <t t-esc="'%.2f' % total_expenses"/> <t t-esc="card.currency_id.symbol"/></strong></td>
+                                        </tr>
+                                        <tr style="background-color: #cce5ff;">
+                                            <th><strong>Solde Actuel:</strong></th>
+                                            <td class="text-end"><strong><t t-esc="'%.2f' % card.balance_amount"/> <t t-esc="card.currency_id.symbol"/></strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-6">
+                                    <table class="table table-sm table-bordered">
+                                        <tr>
+                                            <th style="width: 60%; background-color: #e9ecef;">Nombre de recharges:</th>
+                                            <td class="text-end"><t t-esc="len(card.recharge_ids.filtered(lambda r: r.state == 'posted'))"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Nombre de dépenses:</th>
+                                            <td class="text-end"><t t-esc="len(card.expense_ids.filtered(lambda e: e.state == 'validated'))"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color: #e9ecef;">Total litres consommés:</th>
+                                            <td class="text-end"><strong><t t-esc="'%.2f' % total_liters"/> L</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- ==================== FOOTER ==================== -->
+                            <div class="row mt-5" style="border-top: 2px solid #dee2e6; padding-top: 15px;">
+                                <div class="col-12 text-center text-muted small">
+                                    <p>
+                                        Ce relevé est généré automatiquement par le système de gestion du parc automobile.<br/>
+                                        <t t-esc="card.company_id.name"/> - Imprimé le <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <!-- Page break between cards, except for the last one -->
+                        <div t-if="not card_last" style="page-break-after: always;"/>
+                    </t>
+                </t>
+            </t>
+        </template>
+        
+    </data>
+</odoo>

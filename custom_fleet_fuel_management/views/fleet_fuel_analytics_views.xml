@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- ============================================================= -->
+        <!-- GRAPH VIEWS FOR fleet.fuel.expense                            -->
+        <!-- ============================================================= -->
+
+        <!-- Graph View: Expenses by Vehicle (Bar) -->
+        <record id="fleet_fuel_expense_view_graph_vehicle" model="ir.ui.view">
+            <field name="name">fleet.fuel.expense.graph.vehicle</field>
+            <field name="model">fleet.fuel.expense</field>
+            <field name="arch" type="xml">
+                <graph string="Dépenses par véhicule" type="bar" sample="1">
+                    <field name="vehicle_id" type="row"/>
+                    <field name="amount" type="measure"/>
+                    <field name="liter_qty" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Graph View: Expenses by Station (Pie) -->
+        <record id="fleet_fuel_expense_view_graph_station" model="ir.ui.view">
+            <field name="name">fleet.fuel.expense.graph.station</field>
+            <field name="model">fleet.fuel.expense</field>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <graph string="Dépenses par station" type="pie" sample="1">
+                    <field name="station_partner_id" type="row"/>
+                    <field name="amount" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Graph View: Expenses by Driver (Bar) -->
+        <record id="fleet_fuel_expense_view_graph_driver" model="ir.ui.view">
+            <field name="name">fleet.fuel.expense.graph.driver</field>
+            <field name="model">fleet.fuel.expense</field>
+            <field name="priority">30</field>
+            <field name="arch" type="xml">
+                <graph string="Dépenses par conducteur" type="bar" sample="1">
+                    <field name="driver_id" type="row"/>
+                    <field name="amount" type="measure"/>
+                    <field name="liter_qty" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Graph View: Monthly Trend (Line) -->
+        <record id="fleet_fuel_expense_view_graph_monthly" model="ir.ui.view">
+            <field name="name">fleet.fuel.expense.graph.monthly</field>
+            <field name="model">fleet.fuel.expense</field>
+            <field name="priority">40</field>
+            <field name="arch" type="xml">
+                <graph string="Évolution mensuelle des dépenses" type="line" sample="1">
+                    <field name="expense_date" interval="month" type="row"/>
+                    <field name="amount" type="measure"/>
+                    <field name="liter_qty" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Enhanced Pivot View for Analytics -->
+        <record id="fleet_fuel_expense_view_pivot_analytics" model="ir.ui.view">
+            <field name="name">fleet.fuel.expense.pivot.analytics</field>
+            <field name="model">fleet.fuel.expense</field>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <pivot string="Analyse multi-dimensionnelle des dépenses" sample="1">
+                    <field name="expense_date" interval="month" type="col"/>
+                    <field name="vehicle_id" type="row"/>
+                    <field name="driver_id" type="row"/>
+                    <field name="station_partner_id" type="row"/>
+                    <field name="amount" type="measure"/>
+                    <field name="liter_qty" type="measure"/>
+                    <field name="price_per_liter" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Enhanced Search View for Analytics -->
+        <record id="fleet_fuel_expense_view_search_analytics" model="ir.ui.view">
+            <field name="name">fleet.fuel.expense.search.analytics</field>
+            <field name="model">fleet.fuel.expense</field>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <search string="Analyse des dépenses carburant">
+                    <field name="name"/>
+                    <field name="card_id"/>
+                    <field name="vehicle_id"/>
+                    <field name="driver_id"/>
+                    <field name="station_partner_id"/>
+                    <field name="state"/>
+                    <separator/>
+                    <filter string="Validées" name="filter_validated" domain="[('state', '=', 'validated')]"/>
+                    <filter string="Soumises" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
+                    <filter string="Brouillon" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Rejetées" name="filter_rejected" domain="[('state', '=', 'rejected')]"/>
+                    <separator/>
+                    <filter string="Ce mois" name="filter_this_month" 
+                            domain="[('expense_date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                     ('expense_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                    <filter string="Mois dernier" name="filter_last_month" 
+                            domain="[('expense_date', '&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
+                                     ('expense_date', '&lt;=', (context_today() - relativedelta(months=1, day=31)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="Cette année" name="filter_this_year" 
+                            domain="[('expense_date', '&gt;=', context_today().strftime('%Y-01-01')),
+                                     ('expense_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                    <filter string="Date" name="filter_date" date="expense_date"/>
+                    <!-- <separator/>
+                    <group expand="1" string="Grouper par">
+                        <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                        <filter string="Station" name="group_station" context="{'group_by': 'station_partner_id'}"/>
+                        <filter string="Carte" name="group_card" context="{'group_by': 'card_id'}"/>
+                        <filter string="Mois" name="group_month" context="{'group_by': 'expense_date:month'}"/>
+                        <filter string="Trimestre" name="group_quarter" context="{'group_by': 'expense_date:quarter'}"/>
+                        <filter string="Année" name="group_year" context="{'group_by': 'expense_date:year'}"/>
+                        <filter string="Statut" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Société" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                    </group> -->
+                </search>
+            </field>
+        </record>
+
+        <!-- ============================================================= -->
+        <!-- GRAPH VIEWS FOR fleet.fuel.monthly.summary                    -->
+        <!-- ============================================================= -->
+
+        <!-- Graph View: Summary by Alert Level -->
+        <record id="fleet_fuel_summary_view_graph_alerts" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.graph.alerts</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <graph string="Synthèses par niveau d'alerte" type="pie" sample="1">
+                    <field name="alert_level" type="row"/>
+                    <field name="total_amount" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Graph View: Budget Variance by Vehicle -->
+        <record id="fleet_fuel_summary_view_graph_variance" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.graph.variance</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="priority">30</field>
+            <field name="arch" type="xml">
+                <graph string="Écart budgétaire par véhicule" type="bar" sample="1">
+                    <field name="vehicle_id" type="row"/>
+                    <field name="budget_variance" type="measure"/>
+                    <field name="variance_pct" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Graph View: Consumption L/100km by Vehicle -->
+        <record id="fleet_fuel_summary_view_graph_consumption" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.graph.consumption</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="priority">40</field>
+            <field name="arch" type="xml">
+                <graph string="Consommation L/100km par véhicule" type="bar" sample="1">
+                    <field name="vehicle_id" type="row"/>
+                    <field name="avg_consumption_per_100km" type="measure"/>
+                    <field name="total_liter" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Enhanced Search View for Summary Analytics -->
+        <record id="fleet_fuel_summary_view_search_analytics" model="ir.ui.view">
+            <field name="name">fleet.fuel.monthly.summary.search.analytics</field>
+            <field name="model">fleet.fuel.monthly.summary</field>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <search string="Analyse des synthèses carburant">
+                    <field name="name"/>
+                    <field name="vehicle_id"/>
+                    <field name="card_id"/>
+                    <field name="driver_id"/>
+                    <field name="alert_level"/>
+                    <field name="state"/>
+                    <separator/>
+                    <!-- State filters -->
+                    <filter string="Brouillon" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Confirmées" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>
+                    <filter string="Clôturées" name="filter_closed" domain="[('state', '=', 'closed')]"/>
+                    <separator/>
+                    <!-- Alert filters -->
+                    <filter string="OK" name="filter_alert_ok" domain="[('alert_level', '=', 'ok')]"/>
+                    <filter string="Attention" name="filter_alert_warning" domain="[('alert_level', '=', 'warning')]"/>
+                    <filter string="Critique" name="filter_alert_critical" domain="[('alert_level', '=', 'critical')]"/>
+                    <filter string="Avec alertes" name="filter_with_alerts" domain="[('alert_level', 'in', ['warning', 'critical'])]"/>
+                    <!-- <separator/>
+                    <group expand="1" string="Grouper par">
+                        <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                        <filter string="Carte" name="group_card" context="{'group_by': 'card_id'}"/>
+                        <filter string="Niveau d'alerte" name="group_alert" context="{'group_by': 'alert_level'}"/>
+                        <filter string="Statut" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Période" name="group_period" context="{'group_by': 'period_start:month'}"/>
+                        <filter string="Société" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                    </group> -->
+                </search>
+            </field>
+        </record>
+
+        <!-- ============================================================= -->
+        <!-- ANALYTICS ACTIONS                                             -->
+        <!-- ============================================================= -->
+
+        <!-- Action: Expense Analysis by Vehicle -->
+        <record id="action_fleet_fuel_expense_analytics_vehicle" model="ir.actions.act_window">
+            <field name="name">Analyse par véhicule</field>
+            <field name="res_model">fleet.fuel.expense</field>
+            <field name="view_mode">graph,pivot,list</field>
+            <field name="view_id" ref="fleet_fuel_expense_view_graph_vehicle"/>
+            <field name="search_view_id" ref="fleet_fuel_expense_view_search_analytics"/>
+            <field name="context">{
+                'search_default_filter_validated': 1,
+                'search_default_group_vehicle': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune dépense carburant validée
+                </p>
+                <p>
+                    Cette vue analyse les dépenses carburant par véhicule.
+                </p>
+            </field>
+        </record>
+
+        <!-- Action: Expense Analysis by Station -->
+        <record id="action_fleet_fuel_expense_analytics_station" model="ir.actions.act_window">
+            <field name="name">Analyse par station</field>
+            <field name="res_model">fleet.fuel.expense</field>
+            <field name="view_mode">graph,pivot,list</field>
+            <field name="view_id" ref="fleet_fuel_expense_view_graph_station"/>
+            <field name="search_view_id" ref="fleet_fuel_expense_view_search_analytics"/>
+            <field name="context">{
+                'search_default_filter_validated': 1,
+                'search_default_group_station': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune dépense carburant validée
+                </p>
+                <p>
+                    Cette vue analyse les dépenses carburant par station service.
+                </p>
+            </field>
+        </record>
+
+        <!-- Action: Expense Analysis by Driver -->
+        <record id="action_fleet_fuel_expense_analytics_driver" model="ir.actions.act_window">
+            <field name="name">Analyse par conducteur</field>
+            <field name="res_model">fleet.fuel.expense</field>
+            <field name="view_mode">graph,pivot,list</field>
+            <field name="view_id" ref="fleet_fuel_expense_view_graph_driver"/>
+            <field name="search_view_id" ref="fleet_fuel_expense_view_search_analytics"/>
+            <field name="context">{
+                'search_default_filter_validated': 1,
+                'search_default_group_driver': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune dépense carburant validée
+                </p>
+                <p>
+                    Cette vue analyse les dépenses carburant par conducteur.
+                </p>
+            </field>
+        </record>
+
+        <!-- Action: Monthly Trend Analysis -->
+        <record id="action_fleet_fuel_expense_analytics_monthly" model="ir.actions.act_window">
+            <field name="name">Évolution mensuelle</field>
+            <field name="res_model">fleet.fuel.expense</field>
+            <field name="view_mode">graph,pivot,list</field>
+            <field name="view_id" ref="fleet_fuel_expense_view_graph_monthly"/>
+            <field name="search_view_id" ref="fleet_fuel_expense_view_search_analytics"/>
+            <field name="context">{
+                'search_default_filter_validated': 1,
+                'search_default_filter_this_year': 1,
+                'search_default_group_month': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune dépense carburant validée
+                </p>
+                <p>
+                    Cette vue montre l'évolution mensuelle des dépenses carburant.
+                </p>
+            </field>
+        </record>
+
+        <!-- Action: Summary Alerts -->
+        <record id="action_fleet_fuel_summary_alerts" model="ir.actions.act_window">
+            <field name="name">Alertes budgétaires</field>
+            <field name="res_model">fleet.fuel.monthly.summary</field>
+            <field name="view_mode">list,graph,pivot,form</field>
+            <field name="search_view_id" ref="fleet_fuel_summary_view_search_analytics"/>
+            <field name="domain">[('alert_level', 'in', ['warning', 'critical'])]</field>
+            <field name="context">{
+                'search_default_filter_with_alerts': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune alerte budgétaire
+                </p>
+                <p>
+                    Les synthèses avec dépassement de budget apparaîtront ici.
+                </p>
+            </field>
+        </record>
+
+        <!-- Action: Consumption Analysis -->
+        <record id="action_fleet_fuel_summary_consumption" model="ir.actions.act_window">
+            <field name="name">Analyse consommation L/100km</field>
+            <field name="res_model">fleet.fuel.monthly.summary</field>
+            <field name="view_mode">graph,pivot,list,form</field>
+            <field name="view_id" ref="fleet_fuel_summary_view_graph_consumption"/>
+            <!-- <field name="search_view_id" ref="fleet_fuel_summary_view_search_analytics"/> -->
+            <field name="context">{
+                'search_default_group_vehicle': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Aucune synthèse mensuelle
+                </p>
+                <p>
+                    Cette vue analyse la consommation L/100km par véhicule.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-        <!-- Reports will be defined in a later phase -->
+        <!-- 
+            Fleet Fuel Management Reports Registry
+            =======================================
+            This file serves as a registry for all QWeb PDF reports.
+            Individual report templates are defined in separate files for maintainability.
+            
+            Available Reports:
+            - fleet_fuel_statement.xml: Card statement with recharges/expenses history
+            - fleet_fuel_summary_report.xml: Monthly summary PDF with KPIs
+        -->
+        
+        <!-- Note: Report files are loaded separately via __manifest__.py -->
+        
     </data>
 </odoo>
