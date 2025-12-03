@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <template id="report_maintenance_intervention">
-        <t t-call="web.external_layout">
+        <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <div class="page">
-                    <h2>Intervention de maintenance - <t t-esc="doc.name"/></h2>
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Intervention de maintenance - <t t-esc="doc.name"/></h2>
                     <p>
                         <strong>Véhicule :</strong> <t t-esc="doc.vehicle_id.display_name"/>
                         &#160;|&#160;
@@ -21,9 +22,9 @@
                     </p>
                     <p>
                         <strong>Dates :</strong>
-                        Demande <t t-esc="format_datetime(doc.request_date)"/> —
-                        Début prévu <t t-esc="format_datetime(doc.scheduled_start)"/> —
-                        Fin prévue <t t-esc="format_datetime(doc.scheduled_end)"/>
+                        Demande <span t-field="doc.request_date" t-options="{'widget': 'datetime'}"/> —
+                        Début prévu <span t-field="doc.scheduled_start" t-options="{'widget': 'datetime'}"/> —
+                        Fin prévue <span t-field="doc.scheduled_end" t-options="{'widget': 'datetime'}"/>
                     </p>
                     <h3>Description</h3>
                     <div t-if="doc.description" t-raw="doc.description"/>
@@ -44,14 +45,14 @@
                                 <td><t t-esc="dict(line._fields['cost_type'].selection).get(line.cost_type)"/></td>
                                 <td><t t-esc="line.description or line.product_id.display_name"/></td>
                                 <td class="text-end"><t t-esc="line.quantity"/></td>
-                                <td class="text-end"><t t-esc="format_amount(line.unit_price, doc.company_id.currency_id)"/></td>
-                                <td class="text-end"><t t-esc="format_amount(line.subtotal, doc.company_id.currency_id)"/></td>
+                                <td class="text-end"><span t-field="line.unit_price" t-options="{'widget': 'monetary', 'display_currency': doc.company_id.currency_id}"/></td>
+                                <td class="text-end"><span t-field="line.subtotal" t-options="{'widget': 'monetary', 'display_currency': doc.company_id.currency_id}"/></td>
                             </tr>
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="4" class="text-end"><strong>Total</strong></td>
-                                <td class="text-end"><strong><t t-esc="format_amount(doc.actual_total_amount, doc.company_id.currency_id)"/></strong></td>
+                                <td class="text-end"><strong><span t-field="doc.actual_total_amount" t-options="{'widget': 'monetary', 'display_currency': doc.company_id.currency_id}"/></strong></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -66,16 +67,18 @@
                         </div>
                     </div>
                 </div>
+                </t>
             </t>
         </t>
     </template>
 
-    <report
-        id="maintenance_intervention_report_action"
-        model="fleet.maintenance.intervention"
-        string="Ordre d'intervention"
-        report_type="qweb-pdf"
-        name="custom_fleet_maintenance.report_maintenance_intervention"
-        file="custom_fleet_maintenance.report_maintenance_intervention"
-    />
+    <record id="maintenance_intervention_report_action" model="ir.actions.report">
+        <field name="name">Ordre d'intervention</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_fleet_maintenance.report_maintenance_intervention</field>
+        <field name="report_file">custom_fleet_maintenance.report_maintenance_intervention</field>
+        <field name="binding_model_id" ref="model_fleet_maintenance_intervention"/>
+        <field name="binding_type">report</field>
+    </record>
 </odoo>

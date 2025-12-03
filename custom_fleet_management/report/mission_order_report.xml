@@ -77,9 +77,9 @@
                                             <th>Approuvé par:</th>
                                             <td><t t-esc="o.approved_by.name"/></td>
                                         </tr>
-                                        <tr t-if="o.approved_date">
+                                        <tr t-if="o.approval_date">
                                             <th>Date d'approbation:</th>
-                                            <td><t t-esc="o.approved_date.strftime('%d/%m/%Y %H:%M')"/></td>
+                                            <td><t t-esc="o.approval_date.strftime('%d/%m/%Y %H:%M')"/></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -99,9 +99,9 @@
                                             <td><t t-esc="o.requester_id.name"/></td>
                                         </tr>
 
-                                        <tr t-if="o.requester_id.work_phone">
+                                        <tr t-if="o.requester_id.partner_id.phone">
                                             <th style="background-color: #e9ecef;">Téléphone:</th>
-                                            <td><t t-esc="o.requester_id.work_phone"/></td>
+                                            <td><t t-esc="o.requester_id.partner_id.phone"/></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -111,13 +111,13 @@
                                             <th style="width: 40%; background-color: #e9ecef;">Conducteur:</th>
                                             <td><strong><t t-esc="o.driver_id.name"/></strong></td>
                                         </tr>
-                                        <tr t-if="o.driver_id.work_phone">
+                                        <tr t-if="o.driver_id.phone or o.driver_id.mobile">
                                             <th style="background-color: #e9ecef;">Téléphone:</th>
-                                            <td><t t-esc="o.driver_id.work_phone"/></td>
+                                            <td><t t-esc="o.driver_id.phone or o.driver_id.mobile"/></td>
                                         </tr>
-                                        <tr t-if="o.driver_id.work_email">
+                                        <tr t-if="o.driver_id.email">
                                             <th style="background-color: #e9ecef;">Email:</th>
-                                            <td><t t-esc="o.driver_id.work_email"/></td>
+                                            <td><t t-esc="o.driver_id.email"/></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -178,8 +178,8 @@
                                             <td><t t-esc="'%.1f' % o.duration_days"/> jours</td>
                                         </tr>
                                         <tr>
-                                            <th style="background-color: #e9ecef;">Itinéraire:</th>
-                                            <td><t t-esc="o.route or 'Non spécifié'"/></td>
+                                            <th style="background-color: #e9ecef;">Destination:</th>
+                                            <td><t t-esc="o.destination or 'Non spécifiée'"/></td>
                                         </tr>
                                         <tr t-if="o.objective">
                                             <th style="background-color: #e9ecef;">Objet:</th>

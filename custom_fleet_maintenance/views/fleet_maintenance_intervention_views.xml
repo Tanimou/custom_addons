@@ -24,13 +24,14 @@
             <kanban default_group_by="intervention_type" class="o_kanban_small_column">
                 <field name="name"/>
                 <field name="vehicle_id"/>
+                <field name="intervention_type"/>
                 <field name="state"/>
                 <field name="scheduled_start"/>
                 <field name="is_overdue"/>
                 <field name="actual_total_amount"/>
                 <templates>
-                    <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_global_click o_kanban_record #{'bg-warning-200' if record.is_overdue.raw_value else ''}">
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click o_kanban_record {{record.is_overdue.raw_value ? 'bg-warning-200' : ''}}">
                             <div class="o_kanban_primary_left">
                                 <strong t-esc="record.name.value"/>
                                 <span class="badge bg-secondary ms-2" t-esc="record.intervention_type.value"/>
