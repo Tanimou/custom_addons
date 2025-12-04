@@ -99,7 +99,7 @@
                             <field name="filename" invisible="1"/>
                             <field name="company_id"/>
                             <field name="auto_validate"/>
-                            <field name="batch_id" domain="[('company_id', '=', company_id)]"/>
+                            <!-- batch_id masqué - gestion interne -->
                             <field name="note" widget="text" placeholder="Commentaires"/>
                         </group>
                     </sheet>

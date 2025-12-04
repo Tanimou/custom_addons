@@ -81,12 +81,39 @@ class FleetFuelExpenseImportWizard(models.TransientModel):
                 )
         batch.set_finished(has_error=errors)
         _logger.info("Import finished: %d created, %d skipped, errors=%s", created_count, skipped_count, errors)
+        
+        # Build notification message in French
+        error_count = len(lines) - created_count - skipped_count
+        if errors:
+            message = _("Import terminé avec erreurs : %(created)d créée(s), %(skipped)d ignorée(s), %(errors)d erreur(s)") % {
+                "created": created_count,
+                "skipped": skipped_count,
+                "errors": error_count,
+            }
+            fade_out = "slow"
+        else:
+            if skipped_count:
+                message = _("Import réussi : %(created)d dépense(s) créée(s), %(skipped)d ignorée(s) (doublons)") % {
+                    "created": created_count,
+                    "skipped": skipped_count,
+                }
+            else:
+                message = _("Import réussi : %d dépense(s) créée(s)") % created_count
+            fade_out = "medium"
+        
+        # Return redirect to expense list with notification effect
         return {
             "type": "ir.actions.act_window",
-            "res_model": "fleet.fuel.expense.batch",
-            "res_id": batch.id,
-            "view_mode": "form",
+            "res_model": "fleet.fuel.expense",
+            "views": [[False, "list"], [False, "form"]],
             "target": "current",
+            "domain": [("batch_id", "=", batch.id)] if created_count else [],
+            "name": _("Dépenses importées"),
+            "effect": {
+                "fadeout": fade_out,
+                "message": message,
+                "type": "rainbow_man",
+            },
         }
 
     def _create_batch(self):
@@ -193,16 +220,15 @@ class FleetFuelExpenseImportWizard(models.TransientModel):
         return float(normalized)
 
     def _extract_receipt_payload(self, row, line_number, card_uid, expense_date):
+        """Extract receipt attachment from row data. Returns empty dict if no receipt provided."""
         attachment_b64 = row.get("receipt_b64") or row.get("receipt_data")
-        if attachment_b64 and attachment_b64.startswith("data:"):
+        if not attachment_b64:
+            # Receipt is optional - return empty dict, user can add later
+            return {}
+        if attachment_b64.startswith("data:"):
             attachment_b64 = attachment_b64.split(",", 1)[-1]
         filename = row.get("receipt_filename")
-        if attachment_b64:
-            return {
-                "receipt_attachment": attachment_b64,
-                "receipt_filename": filename or f"justificatif_{card_uid}_{expense_date}.bin",
-            }
-        placeholder = f"Ligne import {line_number} - Carte {card_uid} - {expense_date}".encode()
-        encoded = base64.b64encode(placeholder).decode()
-        default_name = filename or f"import_{card_uid}_{expense_date}.txt"
-        return {"receipt_attachment": encoded, "receipt_filename": default_name}
+        return {
+            "receipt_attachment": attachment_b64,
+            "receipt_filename": filename or f"justificatif_{card_uid}_{expense_date}.bin",
+        }

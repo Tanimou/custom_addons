@@ -80,12 +80,14 @@
                   sequence="20" 
                   groups="custom_fleet_fuel_management.group_fleet_fuel_user,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
 
+        <!-- Menu masqué - les lots d'import sont gérés en interne
         <menuitem id="menu_fleet_fuel_batches" 
                   name="Lots d'import" 
                   parent="custom_fleet_fuel_management.menu_fleet_fuel_root" 
                   action="custom_fleet_fuel_management.action_fleet_fuel_expense_batch" 
                   sequence="22" 
                   groups="custom_fleet_fuel_management.group_fleet_fuel_manager,custom_fleet_fuel_management.group_fleet_fuel_accountant"/>
+        -->
 
         <menuitem id="menu_fleet_fuel_expense_import" 
                   name="Importer des dépenses" 

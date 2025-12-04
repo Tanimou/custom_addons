@@ -225,11 +225,11 @@ class FleetFuelExpense(models.Model):
             if expense.card_id and expense.company_id and expense.card_id.company_id != expense.company_id:
                 raise ValidationError(_("La société de la dépense doit correspondre à celle de la carte."))
 
-    @api.constrains("receipt_attachment")
-    def _check_receipt_attachment(self):
-        for expense in self:
-            if not expense.receipt_attachment:
-                raise ValidationError(_("Un justificatif est obligatoire pour enregistrer la dépense."))
+    # @api.constrains("receipt_attachment")
+    # def _check_receipt_attachment(self):
+    #     for expense in self:
+    #         if not expense.receipt_attachment:
+    #             raise ValidationError(_("Un justificatif est obligatoire pour enregistrer la dépense."))
 
     @api.constrains("odometer")
     def _check_odometer_positive(self):
