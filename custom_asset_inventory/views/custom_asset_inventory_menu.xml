@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================== -->
+    <!-- Module: Inventaire des Immobilisations                             -->
+    <!-- Menu Configuration                                                  -->
+    <!-- ================================================================== -->
+    <!-- 
+        IMPORTANT Odoo 19: All actions referenced by menus MUST be defined
+        in files loaded BEFORE this menu file. This is why views file 
+        (containing actions) is listed before this file in __manifest__.py
+    -->
+
+    <!-- Root Menu: Under Stock/Inventory app -->
+    <menuitem id="menu_asset_inventory_root"
+              name="Inventaire Immobilisations"
+              parent="stock.menu_stock_root"
+              sequence="100"
+              groups="group_asset_inventory_user"/>
+
+    <!-- ================================================================== -->
+    <!-- DASHBOARD MENUS                                                     -->
+    <!-- ================================================================== -->
+
+    <!-- Submenu: Dashboard (Overview) -->
+    <menuitem id="menu_asset_inventory_dashboard"
+              name="Tableau de bord"
+              parent="menu_asset_inventory_root"
+              action="action_asset_inventory_dashboard_kanban"
+              sequence="5"/>
+
+    <!-- ================================================================== -->
+    <!-- MAIN MENUS                                                          -->
+    <!-- ================================================================== -->
+
+    <!-- Submenu: Campaigns -->
+    <menuitem id="menu_asset_inventory_campaign"
+              name="Campagnes"
+              parent="menu_asset_inventory_root"
+              action="action_asset_inventory_campaign"
+              sequence="10"/>
+
+    <!-- Submenu: Lines -->
+    <!-- <menuitem id="menu_asset_inventory_line"
+              name="Lignes d'inventaire"
+              parent="menu_asset_inventory_root"
+              action="action_asset_inventory_line"
+              sequence="20"/> -->
+
+    <!-- ================================================================== -->
+    <!-- REPORTING MENUS                                                     -->
+    <!-- ================================================================== -->
+
+    <!-- Reporting Parent Menu -->
+    <menuitem id="menu_asset_inventory_reporting"
+              name="Analyse"
+              parent="menu_asset_inventory_root"
+              sequence="50"
+              groups="group_asset_inventory_user"/>
+
+    <!-- Submenu: Campaign Analysis -->
+    <menuitem id="menu_asset_inventory_campaign_analysis"
+              name="Analyse des campagnes"
+              parent="menu_asset_inventory_reporting"
+              action="action_asset_inventory_campaign_analysis"
+              sequence="10"/>
+
+    <!-- Submenu: Financial Analysis -->
+    <menuitem id="menu_asset_inventory_financial_analysis"
+              name="Analyse financière"
+              parent="menu_asset_inventory_reporting"
+              action="action_asset_inventory_financial_analysis"
+              sequence="20"/>
+
+    <!-- Submenu: Physical Status Report -->
+    <menuitem id="menu_asset_inventory_status_report"
+              name="État physique"
+              parent="menu_asset_inventory_reporting"
+              action="action_asset_inventory_status_report"
+              sequence="30"/>
+
+    <!-- ================================================================== -->
+    <!-- QUICK ACCESS MENUS                                                  -->
+    <!-- ================================================================== -->
+
+    <!-- Quick Access Parent Menu -->
+    <menuitem id="menu_asset_inventory_quick_access"
+              name="Accès rapide"
+              parent="menu_asset_inventory_root"
+              sequence="60"
+              groups="group_asset_inventory_user"/>
+
+    <!-- Submenu: In Progress Campaigns -->
+    <menuitem id="menu_asset_inventory_campaign_in_progress"
+              name="Campagnes en cours"
+              parent="menu_asset_inventory_quick_access"
+              action="action_asset_inventory_campaign_in_progress"
+              sequence="10"/>
+
+    <!-- Submenu: Missing Assets -->
+    <menuitem id="menu_asset_inventory_line_missing"
+              name="Immobilisations manquantes"
+              parent="menu_asset_inventory_quick_access"
+              action="action_asset_inventory_line_missing"
+              sequence="20"/>
+
+    <!-- Submenu: Degraded Assets -->
+    <menuitem id="menu_asset_inventory_line_degraded"
+              name="Immobilisations dégradées"
+              parent="menu_asset_inventory_quick_access"
+              action="action_asset_inventory_line_degraded"
+              sequence="30"/>
+
+    <!-- ================================================================== -->
+    <!-- CONFIGURATION MENU                                                  -->
+    <!-- ================================================================== -->
+
+    <!-- Configuration Submenu -->
+    <menuitem id="menu_asset_inventory_config"
+              name="Configuration"
+              parent="menu_asset_inventory_root"
+              sequence="90"
+              groups="group_asset_inventory_manager"/>
+
+</odoo>

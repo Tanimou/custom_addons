@@ -1,0 +1,942 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+        ###########################################################################
+        RAPPORT DE CAMPAGNE D'INVENTAIRE (TASK-009)
+        ###########################################################################
+        Template principal: report_asset_inventory_campaign
+        
+        Contenu:
+        - En-tête: Nom, code, dates, état, entrepôt, équipe
+        - Résumé statistique: total lignes, présents, manquants, progression
+        - Tableau des lignes: immobilisation, statut, emplacement, responsable, VNC
+        - Pied de page avec totaux
+        -->
+
+        <!-- Template d'entrée pour la boucle sur les documents -->
+        <template id="report_asset_inventory_campaign">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-call="custom_asset_inventory.report_asset_inventory_campaign_document"/>
+                </t>
+            </t>
+        </template>
+
+        <!-- Template principal du document campagne -->
+        <template id="report_asset_inventory_campaign_document">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <!-- ============ EN-TÊTE DU RAPPORT ============ -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="text-primary">
+                                <i class="fa fa-clipboard-check me-2"/>
+                                Rapport de Campagne d'Inventaire
+                            </h2>
+                        </div>
+                    </div>
+
+                    <!-- Informations de la campagne -->
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Nom de la campagne :</td>
+                                        <td><span t-field="doc.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Code :</td>
+                                        <td><span t-field="doc.code"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Date de début :</td>
+                                        <td><span t-field="doc.date_start" t-options='{"widget": "date"}'/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Date de fin :</td>
+                                        <td><span t-field="doc.date_end" t-options='{"widget": "date"}'/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">État :</td>
+                                        <td>
+                                            <t t-if="doc.state == 'draft'">
+                                                <span class="badge bg-secondary">Brouillon</span>
+                                            </t>
+                                            <t t-elif="doc.state == 'in_progress'">
+                                                <span class="badge bg-primary">En cours</span>
+                                            </t>
+                                            <t t-elif="doc.state == 'done'">
+                                                <span class="badge bg-success">Terminé</span>
+                                            </t>
+                                            <t t-else="1">
+                                                <span class="badge bg-danger">Annulé</span>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Périodicité :</td>
+                                        <td>
+                                            <t t-if="doc.periodicity == 'monthly'">Mensuelle</t>
+                                            <t t-elif="doc.periodicity == 'quarterly'">Trimestrielle</t>
+                                            <t t-elif="doc.periodicity == 'yearly'">Annuelle</t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Entrepôt :</td>
+                                        <td><span t-field="doc.warehouse_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Équipe :</td>
+                                        <td><span t-field="doc.team_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Société :</td>
+                                        <td><span t-field="doc.company_id.name"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ============ RÉSUMÉ STATISTIQUE ============ -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">Résumé Statistique</h5>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-3 text-center">
+                            <div class="border rounded p-3 bg-light">
+                                <h3 class="text-primary mb-0"><t t-out="doc.line_count"/></h3>
+                                <small class="text-muted">Total lignes</small>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div class="border rounded p-3 bg-light">
+                                <h3 class="text-success mb-0"><t t-out="doc.line_present_count"/></h3>
+                                <small class="text-muted">Présentes</small>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div class="border rounded p-3 bg-light">
+                                <h3 class="text-danger mb-0"><t t-out="doc.line_missing_count"/></h3>
+                                <small class="text-muted">Manquantes</small>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div class="border rounded p-3 bg-light">
+                                <h3 class="text-info mb-0"><t t-out="'%.1f' % doc.progress_percent"/>%</h3>
+                                <small class="text-muted">Progression</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============ TABLEAU DES LIGNES ============ -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2">Détail des Immobilisations</h5>
+                        </div>
+                    </div>
+
+                    <t t-if="doc.line_ids">
+                        <table class="table table-sm table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Immobilisation</th>
+                                    <th>État physique</th>
+                                    <th>Emplacement</th>
+                                    <th>Responsable</th>
+                                    <th class="text-end">Valeur nette comptable</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.line_ids" t-as="line">
+                                    <tr>
+                                        <td>
+                                            <span t-field="line.asset_id.name"/>
+                                        </td>
+                                        <td>
+                                            <t t-if="line.physical_status == 'present'">
+                                                <span class="badge bg-success">Présent</span>
+                                            </t>
+                                            <t t-elif="line.physical_status == 'missing'">
+                                                <span class="badge bg-danger">Manquant</span>
+                                            </t>
+                                            <t t-elif="line.physical_status == 'degraded'">
+                                                <span class="badge bg-warning text-dark">Dégradé</span>
+                                            </t>
+                                            <t t-elif="line.physical_status == 'to_repair'">
+                                                <span class="badge bg-info">À réparer</span>
+                                            </t>
+                                            <t t-else="1">
+                                                <span class="badge bg-secondary">Non défini</span>
+                                            </t>
+                                        </td>
+                                        <td><span t-field="line.location_id.display_name"/></td>
+                                        <td><span t-field="line.responsible_id.name"/></td>
+                                        <td class="text-end">
+                                            <span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <!-- Pied de tableau avec totaux -->
+                            <tfoot class="table-secondary fw-bold">
+                                <tr>
+                                    <td colspan="4" class="text-end">Total Valeur Nette Comptable :</td>
+                                    <td class="text-end">
+                                        <t t-set="total_nbv" t-value="sum(doc.line_ids.mapped('net_book_value'))"/>
+                                        <span t-out="total_nbv" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </t>
+                    <t t-else="1">
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle me-2"/>
+                            Aucune ligne d'inventaire dans cette campagne.
+                        </div>
+                    </t>
+
+                    <!-- ============ PIED DE PAGE ============ -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                Rapport généré le <t t-out="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+
+        <!--
+        ###########################################################################
+        RAPPORT DES ÉCARTS D'INVENTAIRE (TASK-010)
+        ###########################################################################
+        Template principal: report_asset_inventory_variance
+        
+        Contenu:
+        - En-tête: informations de la campagne
+        - Uniquement les lignes avec écarts (missing, degraded, to_repair)
+        - Groupement par statut physique
+        - Impact financier (valeur des immobilisations concernées)
+        - Totaux récapitulatifs
+        -->
+
+        <!-- Template d'entrée pour le rapport des écarts -->
+        <template id="report_asset_inventory_variance">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-call="custom_asset_inventory.report_asset_inventory_variance_document"/>
+                </t>
+            </t>
+        </template>
+
+        <!-- Template principal du document écarts -->
+        <template id="report_asset_inventory_variance_document">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <!-- ============ EN-TÊTE DU RAPPORT ============ -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="text-danger">
+                                <i class="fa fa-exclamation-triangle me-2"/>
+                                Rapport des Écarts d'Inventaire
+                            </h2>
+                        </div>
+                    </div>
+
+                    <!-- Informations de la campagne (résumé) -->
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Campagne :</td>
+                                        <td><span t-field="doc.name"/> (<span t-field="doc.code"/>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Période :</td>
+                                        <td>
+                                            Du <span t-field="doc.date_start" t-options='{"widget": "date"}'/>
+                                            au <span t-field="doc.date_end" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Entrepôt :</td>
+                                        <td><span t-field="doc.warehouse_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Société :</td>
+                                        <td><span t-field="doc.company_id.name"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Calcul des lignes avec écarts -->
+                    <t t-set="missing_lines" t-value="doc.line_ids.filtered(lambda l: l.physical_status == 'missing')"/>
+                    <t t-set="degraded_lines" t-value="doc.line_ids.filtered(lambda l: l.physical_status == 'degraded')"/>
+                    <t t-set="to_repair_lines" t-value="doc.line_ids.filtered(lambda l: l.physical_status == 'to_repair')"/>
+                    <t t-set="variance_lines" t-value="missing_lines + degraded_lines + to_repair_lines"/>
+
+                    <!-- ============ RÉSUMÉ DES ÉCARTS ============ -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">Résumé des Écarts</h5>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-4 text-center">
+                            <div class="border rounded p-3 bg-danger bg-opacity-10">
+                                <h3 class="text-danger mb-0"><t t-out="len(missing_lines)"/></h3>
+                                <small class="text-muted">Immobilisations Manquantes</small>
+                                <div class="mt-2">
+                                    <strong>
+                                        <t t-set="missing_value" t-value="sum(missing_lines.mapped('net_book_value'))"/>
+                                        <span t-out="missing_value" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="border rounded p-3 bg-warning bg-opacity-10">
+                                <h3 class="text-warning mb-0"><t t-out="len(degraded_lines)"/></h3>
+                                <small class="text-muted">Immobilisations Dégradées</small>
+                                <div class="mt-2">
+                                    <strong>
+                                        <t t-set="degraded_value" t-value="sum(degraded_lines.mapped('net_book_value'))"/>
+                                        <span t-out="degraded_value" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="border rounded p-3 bg-info bg-opacity-10">
+                                <h3 class="text-info mb-0"><t t-out="len(to_repair_lines)"/></h3>
+                                <small class="text-muted">Immobilisations À Réparer</small>
+                                <div class="mt-2">
+                                    <strong>
+                                        <t t-set="to_repair_value" t-value="sum(to_repair_lines.mapped('net_book_value'))"/>
+                                        <span t-out="to_repair_value" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <t t-if="variance_lines">
+                        <!-- ============ SECTION MANQUANTES ============ -->
+                        <t t-if="missing_lines">
+                            <div class="row mb-2 mt-4">
+                                <div class="col-12">
+                                    <h5 class="text-danger">
+                                        <i class="fa fa-times-circle me-2"/>
+                                        Immobilisations Manquantes (<t t-out="len(missing_lines)"/>)
+                                    </h5>
+                                </div>
+                            </div>
+                            <table class="table table-sm table-striped">
+                                <thead class="table-danger">
+                                    <tr>
+                                        <th>Immobilisation</th>
+                                        <th>Date d'acquisition</th>
+                                        <th>Emplacement prévu</th>
+                                        <th>Responsable</th>
+                                        <th class="text-end">Valeur d'origine</th>
+                                        <th class="text-end">Valeur nette comptable</th>
+                                        <th>Commentaire</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="missing_lines" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span t-field="line.asset_id.name"/>
+                                            </td>
+                                            <td><span t-field="line.asset_acquisition_date" t-options='{"widget": "date"}'/></td>
+                                            <td><span t-field="line.location_id.display_name"/></td>
+                                            <td><span t-field="line.responsible_id.name"/></td>
+                                            <td class="text-end">
+                                                <span t-field="line.original_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end text-danger fw-bold">
+                                                <span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td><span t-field="line.comment"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot class="table-danger fw-bold">
+                                    <tr>
+                                        <td colspan="5" class="text-end">Sous-total Manquantes :</td>
+                                        <td class="text-end">
+                                            <span t-out="missing_value" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+
+                        <!-- ============ SECTION DÉGRADÉES ============ -->
+                        <t t-if="degraded_lines">
+                            <div class="row mb-2 mt-4">
+                                <div class="col-12">
+                                    <h5 class="text-warning">
+                                        <i class="fa fa-exclamation-circle me-2"/>
+                                        Immobilisations Dégradées (<t t-out="len(degraded_lines)"/>)
+                                    </h5>
+                                </div>
+                            </div>
+                            <table class="table table-sm table-striped">
+                                <thead class="table-warning">
+                                    <tr>
+                                        <th>Immobilisation</th>
+                                        <th>Date d'acquisition</th>
+                                        <th>Emplacement</th>
+                                        <th>Responsable</th>
+                                        <th class="text-end">Valeur d'origine</th>
+                                        <th class="text-end">Valeur nette comptable</th>
+                                        <th>Commentaire</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="degraded_lines" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span t-field="line.asset_id.name"/>
+                                            </td>
+                                            <td><span t-field="line.asset_acquisition_date" t-options='{"widget": "date"}'/></td>
+                                            <td><span t-field="line.location_id.display_name"/></td>
+                                            <td><span t-field="line.responsible_id.name"/></td>
+                                            <td class="text-end">
+                                                <span t-field="line.original_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end text-warning fw-bold">
+                                                <span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td><span t-field="line.comment"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot class="table-warning fw-bold">
+                                    <tr>
+                                        <td colspan="5" class="text-end">Sous-total Dégradées :</td>
+                                        <td class="text-end">
+                                            <span t-out="degraded_value" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+
+                        <!-- ============ SECTION À RÉPARER ============ -->
+                        <t t-if="to_repair_lines">
+                            <div class="row mb-2 mt-4">
+                                <div class="col-12">
+                                    <h5 class="text-info">
+                                        <i class="fa fa-wrench me-2"/>
+                                        Immobilisations À Réparer (<t t-out="len(to_repair_lines)"/>)
+                                    </h5>
+                                </div>
+                            </div>
+                            <table class="table table-sm table-striped">
+                                <thead class="table-info">
+                                    <tr>
+                                        <th>Immobilisation</th>
+                                        <th>Date d'acquisition</th>
+                                        <th>Emplacement</th>
+                                        <th>Responsable</th>
+                                        <th class="text-end">Valeur d'origine</th>
+                                        <th class="text-end">Valeur nette comptable</th>
+                                        <th>Commentaire</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="to_repair_lines" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span t-field="line.asset_id.name"/>
+                                            </td>
+                                            <td><span t-field="line.asset_acquisition_date" t-options='{"widget": "date"}'/></td>
+                                            <td><span t-field="line.location_id.display_name"/></td>
+                                            <td><span t-field="line.responsible_id.name"/></td>
+                                            <td class="text-end">
+                                                <span t-field="line.original_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end text-info fw-bold">
+                                                <span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td><span t-field="line.comment"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot class="table-info fw-bold">
+                                    <tr>
+                                        <td colspan="5" class="text-end">Sous-total À Réparer :</td>
+                                        <td class="text-end">
+                                            <span t-out="to_repair_value" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+
+                        <!-- ============ TOTAL GÉNÉRAL ============ -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th colspan="2" class="text-center">IMPACT FINANCIER TOTAL DES ÉCARTS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-bold">Nombre total d'écarts :</td>
+                                            <td class="text-end"><t t-out="len(variance_lines)"/> immobilisation(s)</td>
+                                        </tr>
+                                        <tr class="table-secondary">
+                                            <td class="fw-bold">Valeur nette comptable totale des écarts :</td>
+                                            <td class="text-end fw-bold text-danger">
+                                                <t t-set="total_variance_value" t-value="sum(variance_lines.mapped('net_book_value'))"/>
+                                                <span t-out="total_variance_value" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="1">
+                        <div class="alert alert-success mt-4">
+                            <i class="fa fa-check-circle me-2"/>
+                            <strong>Aucun écart détecté !</strong><br/>
+                            Toutes les immobilisations sont présentes et en bon état.
+                        </div>
+                    </t>
+
+                    <!-- ============ PIED DE PAGE ============ -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                Rapport généré le <t t-out="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+
+        <!--
+        ###########################################################################
+        RAPPORT DE VALORISATION (TASK-011)
+        ###########################################################################
+        Template principal: report_asset_inventory_valuation
+        
+        Contenu:
+        - En-tête: informations campagne, date du rapport
+        - Toutes les lignes groupées par emplacement
+        - Pour chaque immobilisation: valeur origine, amortissements, VNC, valeur résiduelle
+        - Sous-totaux par emplacement
+        - Totaux généraux en pied de rapport
+        -->
+
+        <!-- Template d'entrée pour le rapport de valorisation -->
+        <template id="report_asset_inventory_valuation">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-call="custom_asset_inventory.report_asset_inventory_valuation_document"/>
+                </t>
+            </t>
+        </template>
+
+        <!-- Template principal du document valorisation -->
+        <template id="report_asset_inventory_valuation_document">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <!-- ============ EN-TÊTE DU RAPPORT ============ -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="text-success">
+                                <i class="fa fa-chart-bar me-2"/>
+                                Rapport de Valorisation des Immobilisations
+                            </h2>
+                        </div>
+                    </div>
+
+                    <!-- Informations de la campagne -->
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Campagne :</td>
+                                        <td><span t-field="doc.name"/> (<span t-field="doc.code"/>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Période :</td>
+                                        <td>
+                                            Du <span t-field="doc.date_start" t-options='{"widget": "date"}'/>
+                                            au <span t-field="doc.date_end" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">État :</td>
+                                        <td>
+                                            <t t-if="doc.state == 'draft'">Brouillon</t>
+                                            <t t-elif="doc.state == 'in_progress'">En cours</t>
+                                            <t t-elif="doc.state == 'done'">Terminé</t>
+                                            <t t-else="1">Annulé</t>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-6">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Entrepôt :</td>
+                                        <td><span t-field="doc.warehouse_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Société :</td>
+                                        <td><span t-field="doc.company_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Devise :</td>
+                                        <td><span t-field="doc.company_id.currency_id.name"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Calcul des groupes par emplacement -->
+                    <t t-set="locations" t-value="doc.line_ids.mapped('location_id')"/>
+                    <t t-set="lines_no_location" t-value="doc.line_ids.filtered(lambda l: not l.location_id)"/>
+                    
+                    <!-- Variables pour les totaux généraux -->
+                    <t t-set="grand_total_original" t-value="0"/>
+                    <t t-set="grand_total_depreciation" t-value="0"/>
+                    <t t-set="grand_total_nbv" t-value="0"/>
+                    <t t-set="grand_total_residual" t-value="0"/>
+
+                    <t t-if="doc.line_ids">
+                        <!-- ============ LIGNES PAR EMPLACEMENT ============ -->
+                        <t t-foreach="locations" t-as="location">
+                            <t t-set="location_lines" t-value="doc.line_ids.filtered(lambda l: l.location_id.id == location.id)"/>
+                            
+                            <!-- Calcul des sous-totaux pour cet emplacement -->
+                            <t t-set="loc_total_original" t-value="sum(location_lines.mapped('original_value'))"/>
+                            <t t-set="loc_total_depreciation" t-value="sum(location_lines.mapped('accumulated_depreciation'))"/>
+                            <t t-set="loc_total_nbv" t-value="sum(location_lines.mapped('net_book_value'))"/>
+                            <t t-set="loc_total_residual" t-value="sum(location_lines.mapped('residual_value'))"/>
+                            
+                            <!-- Accumulation des totaux généraux -->
+                            <t t-set="grand_total_original" t-value="grand_total_original + loc_total_original"/>
+                            <t t-set="grand_total_depreciation" t-value="grand_total_depreciation + loc_total_depreciation"/>
+                            <t t-set="grand_total_nbv" t-value="grand_total_nbv + loc_total_nbv"/>
+                            <t t-set="grand_total_residual" t-value="grand_total_residual + loc_total_residual"/>
+
+                            <!-- En-tête de section emplacement -->
+                            <div class="row mb-2 mt-4">
+                                <div class="col-12">
+                                    <h5 class="bg-secondary text-white p-2 rounded">
+                                        <i class="fa fa-map-marker-alt me-2"/>
+                                        <span t-out="location.display_name"/>
+                                        <small class="float-end">(<t t-out="len(location_lines)"/> immobilisation(s))</small>
+                                    </h5>
+                                </div>
+                            </div>
+
+                            <table class="table table-sm table-striped table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 25%;">Immobilisation</th>
+                                        <th>État physique</th>
+                                        <th>Date acquisition</th>
+                                        <th class="text-end">Valeur d'origine</th>
+                                        <th class="text-end">Amort. cumulés</th>
+                                        <th class="text-end">Valeur nette comptable</th>
+                                        <th class="text-end">Valeur résiduelle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="location_lines" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span t-field="line.asset_id.name"/>
+                                            </td>
+                                            <td>
+                                                <t t-if="line.physical_status == 'present'">
+                                                    <span class="badge bg-success">Présent</span>
+                                                </t>
+                                                <t t-elif="line.physical_status == 'missing'">
+                                                    <span class="badge bg-danger">Manquant</span>
+                                                </t>
+                                                <t t-elif="line.physical_status == 'degraded'">
+                                                    <span class="badge bg-warning text-dark">Dégradé</span>
+                                                </t>
+                                                <t t-elif="line.physical_status == 'to_repair'">
+                                                    <span class="badge bg-info">À réparer</span>
+                                                </t>
+                                                <t t-else="1">
+                                                    <span class="badge bg-secondary">-</span>
+                                                </t>
+                                            </td>
+                                            <td><span t-field="line.asset_acquisition_date" t-options='{"widget": "date"}'/></td>
+                                            <td class="text-end">
+                                                <span t-field="line.original_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end text-danger">
+                                                <span t-field="line.accumulated_depreciation" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end fw-bold">
+                                                <span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-field="line.residual_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot class="table-secondary fw-bold">
+                                    <tr>
+                                        <td colspan="3" class="text-end">Sous-total <t t-out="location.name"/> :</td>
+                                        <td class="text-end">
+                                            <span t-out="loc_total_original" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td class="text-end text-danger">
+                                            <span t-out="loc_total_depreciation" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-out="loc_total_nbv" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-out="loc_total_residual" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+
+                        <!-- ============ LIGNES SANS EMPLACEMENT ============ -->
+                        <t t-if="lines_no_location">
+                            <!-- Calcul des sous-totaux -->
+                            <t t-set="noloc_total_original" t-value="sum(lines_no_location.mapped('original_value'))"/>
+                            <t t-set="noloc_total_depreciation" t-value="sum(lines_no_location.mapped('accumulated_depreciation'))"/>
+                            <t t-set="noloc_total_nbv" t-value="sum(lines_no_location.mapped('net_book_value'))"/>
+                            <t t-set="noloc_total_residual" t-value="sum(lines_no_location.mapped('residual_value'))"/>
+                            
+                            <!-- Accumulation des totaux généraux -->
+                            <t t-set="grand_total_original" t-value="grand_total_original + noloc_total_original"/>
+                            <t t-set="grand_total_depreciation" t-value="grand_total_depreciation + noloc_total_depreciation"/>
+                            <t t-set="grand_total_nbv" t-value="grand_total_nbv + noloc_total_nbv"/>
+                            <t t-set="grand_total_residual" t-value="grand_total_residual + noloc_total_residual"/>
+
+                            <div class="row mb-2 mt-4">
+                                <div class="col-12">
+                                    <h5 class="bg-light text-muted p-2 rounded border">
+                                        <i class="fa fa-question-circle me-2"/>
+                                        Sans emplacement défini
+                                        <small class="float-end">(<t t-out="len(lines_no_location)"/> immobilisation(s))</small>
+                                    </h5>
+                                </div>
+                            </div>
+
+                            <table class="table table-sm table-striped table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 25%;">Immobilisation</th>
+                                        <th>État physique</th>
+                                        <th>Date acquisition</th>
+                                        <th class="text-end">Valeur d'origine</th>
+                                        <th class="text-end">Amort. cumulés</th>
+                                        <th class="text-end">Valeur nette comptable</th>
+                                        <th class="text-end">Valeur résiduelle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="lines_no_location" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span t-field="line.asset_id.name"/>
+                                            </td>
+                                            <td>
+                                                <t t-if="line.physical_status == 'present'">
+                                                    <span class="badge bg-success">Présent</span>
+                                                </t>
+                                                <t t-elif="line.physical_status == 'missing'">
+                                                    <span class="badge bg-danger">Manquant</span>
+                                                </t>
+                                                <t t-elif="line.physical_status == 'degraded'">
+                                                    <span class="badge bg-warning text-dark">Dégradé</span>
+                                                </t>
+                                                <t t-elif="line.physical_status == 'to_repair'">
+                                                    <span class="badge bg-info">À réparer</span>
+                                                </t>
+                                                <t t-else="1">
+                                                    <span class="badge bg-secondary">-</span>
+                                                </t>
+                                            </td>
+                                            <td><span t-field="line.asset_acquisition_date" t-options='{"widget": "date"}'/></td>
+                                            <td class="text-end">
+                                                <span t-field="line.original_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end text-danger">
+                                                <span t-field="line.accumulated_depreciation" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end fw-bold">
+                                                <span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-field="line.residual_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot class="table-secondary fw-bold">
+                                    <tr>
+                                        <td colspan="3" class="text-end">Sous-total sans emplacement :</td>
+                                        <td class="text-end">
+                                            <span t-out="noloc_total_original" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td class="text-end text-danger">
+                                            <span t-out="noloc_total_depreciation" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-out="noloc_total_nbv" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-out="noloc_total_residual" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+
+                        <!-- ============ TOTAUX GÉNÉRAUX ============ -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <table class="table table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th colspan="5" class="text-center">RÉCAPITULATIF GÉNÉRAL DE VALORISATION</th>
+                                        </tr>
+                                        <tr>
+                                            <th>Indicateur</th>
+                                            <th class="text-end">Valeur d'origine</th>
+                                            <th class="text-end">Amortissements cumulés</th>
+                                            <th class="text-end">Valeur nette comptable</th>
+                                            <th class="text-end">Valeur résiduelle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-bold">Nombre d'immobilisations</td>
+                                            <td colspan="4" class="text-center"><t t-out="doc.line_count"/> immobilisation(s)</td>
+                                        </tr>
+                                        <tr class="table-success fw-bold">
+                                            <td>TOTAL GÉNÉRAL</td>
+                                            <td class="text-end">
+                                                <span t-out="grand_total_original" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                            </td>
+                                            <td class="text-end text-danger">
+                                                <span t-out="grand_total_depreciation" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-out="grand_total_nbv" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-out="grand_total_residual" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Indicateurs de synthèse -->
+                        <div class="row mt-4">
+                            <div class="col-4 text-center">
+                                <div class="border rounded p-3 bg-light">
+                                    <h4 class="text-primary mb-0">
+                                        <t t-if="grand_total_original">
+                                            <t t-out="'%.1f' % ((grand_total_depreciation / grand_total_original) * 100)"/>%
+                                        </t>
+                                        <t t-else="1">0%</t>
+                                    </h4>
+                                    <small class="text-muted">Taux d'amortissement global</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="border rounded p-3 bg-light">
+                                    <h4 class="text-success mb-0">
+                                        <span t-out="grand_total_nbv" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                    </h4>
+                                    <small class="text-muted">Valeur nette totale</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="border rounded p-3 bg-light">
+                                    <h4 class="text-info mb-0">
+                                        <t t-if="doc.line_count">
+                                            <t t-set="avg_nbv" t-value="grand_total_nbv / doc.line_count"/>
+                                            <span t-out="avg_nbv" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </t>
+                                        <t t-else="1">
+                                            <span t-out="0" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </t>
+                                    </h4>
+                                    <small class="text-muted">VNC moyenne par immobilisation</small>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="1">
+                        <div class="alert alert-info mt-4">
+                            <i class="fa fa-info-circle me-2"/>
+                            Aucune ligne d'inventaire dans cette campagne.
+                        </div>
+                    </t>
+
+                    <!-- ============ PIED DE PAGE ============ -->
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                Rapport de valorisation généré le <t t-out="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
+                                <br/>
+                                Les valeurs sont exprimées en <span t-field="doc.company_id.currency_id.name"/>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+    </data>
+</odoo>

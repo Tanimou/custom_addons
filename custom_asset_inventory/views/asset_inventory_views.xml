@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================== -->
+    <!-- Module: Inventaire des Immobilisations                             -->
+    <!-- Views for asset.inventory.campaign and asset.inventory.line        -->
+    <!-- ================================================================== -->
+
+    <!-- ================================================================== -->
+    <!-- CAMPAIGN VIEWS                                                     -->
+    <!-- ================================================================== -->
+
+    <!-- Campaign: Tree View -->
+    <record id="asset_inventory_campaign_view_tree" model="ir.ui.view">
+        <field name="name">asset.inventory.campaign.tree</field>
+        <field name="model">asset.inventory.campaign</field>
+        <field name="arch" type="xml">
+            <list string="Campagnes d'inventaire"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'in_progress'"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancel'">
+                <field name="code" optional="show"/>
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="periodicity" optional="show"/>
+                <field name="warehouse_id" optional="show"/>
+                <field name="team_id" optional="hide"/>
+                <field name="line_count" string="Lignes"/>
+                <field name="progress_percent" widget="progressbar" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-muted="state == 'cancel'"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Campaign: Form View -->
+    <record id="asset_inventory_campaign_view_form" model="ir.ui.view">
+        <field name="name">asset.inventory.campaign.form</field>
+        <field name="model">asset.inventory.campaign</field>
+        <field name="arch" type="xml">
+            <form string="Campagne d'inventaire">
+                <header>
+                    <button name="action_start"
+                            string="Démarrer"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="Êtes-vous sûr de vouloir démarrer cette campagne ?"/>
+                    <button name="action_done"
+                            string="Terminer"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'in_progress'"
+                            confirm="Êtes-vous sûr de vouloir clôturer cette campagne ?"/>
+                    <button name="action_cancel"
+                            string="Annuler"
+                            type="object"
+                            invisible="state in ('done', 'cancel')"/>
+                    <button name="action_draft"
+                            string="Remettre en brouillon"
+                            type="object"
+                            invisible="state not in ('cancel', 'in_progress')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lines"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tree">
+                            <field name="line_count" widget="statinfo" string="Lignes"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Nom de la campagne"/>
+                        </h1>
+                        <field name="code" readonly="1" class="oe_inline"/>
+                    </div>
+                    <group>
+                        <group name="dates" string="Période">
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="periodicity"/>
+                        </group>
+                        <group name="organization" string="Organisation">
+                            <field name="company_id" 
+                                   groups="base.group_multi_company"
+                                   options="{'no_create': True}"/>
+                            <field name="team_id" 
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group name="location" string="Périmètre">
+                            <field name="warehouse_id"
+                                   options="{'no_create': True}"/>
+                            <field name="location_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group name="stats" string="Statistiques">
+                            <field name="line_present_count" readonly="1"/>
+                            <field name="line_missing_count" readonly="1"/>
+                            <field name="progress_percent" widget="progressbar"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Bouton génération visible seulement en draft/in_progress -->
+                    <div class="alert alert-info" role="alert"
+                         invisible="state not in ('draft', 'in_progress') or line_count > 0">
+                        <p>
+                            <i class="fa fa-info-circle"/> 
+                            Cette campagne n'a pas encore de lignes d'inventaire.
+                            Cliquez sur le bouton ci-dessous pour générer les lignes
+                            à partir des immobilisations existantes.
+                        </p>
+                        <button name="action_generate_lines"
+                                string="Générer les lignes d'inventaire"
+                                type="object"
+                                class="btn-primary"/>
+                    </div>
+                    
+                    <notebook>
+                        <page string="Lignes d'inventaire" name="lines">
+                            <field name="line_ids" nolabel="1"
+                                   context="{'tree_view_ref': 'custom_asset_inventory.asset_inventory_line_view_tree_embedded'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!-- Odoo 19: Utiliser la syntaxe simplifiée <chatter/> -->
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Campaign: Search View -->
+    <record id="asset_inventory_campaign_view_search" model="ir.ui.view">
+        <field name="name">asset.inventory.campaign.search</field>
+        <field name="model">asset.inventory.campaign</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher une campagne">
+                <field name="name" string="Nom / Code"
+                       filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="warehouse_id"/>
+                <field name="team_id"/>
+                <separator/>
+                <filter name="filter_draft" string="Brouillon"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_in_progress" string="En cours"
+                        domain="[('state', '=', 'in_progress')]"/>
+                <filter name="filter_done" string="Terminé"
+                        domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="filter_my_team" string="Mon équipe"
+                        domain="[('team_id.member_ids', 'in', uid)]"/>
+                <separator/>
+                <filter name="filter_this_year" string="Cette année"
+                        domain="[('date_start', '>=', context_today().strftime('%Y-01-01'))]"/>
+                <!-- <group expand="0" string="Grouper par">
+                    <filter name="groupby_state" string="État"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="groupby_periodicity" string="Périodicité"
+                            context="{'group_by': 'periodicity'}"/>
+                    <filter name="groupby_warehouse" string="Entrepôt"
+                            context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="groupby_team" string="Équipe"
+                            context="{'group_by': 'team_id'}"/>
+                    <filter name="groupby_month" string="Mois de début"
+                            context="{'group_by': 'date_start:month'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- Campaign: Graph View - Bar chart by state -->
+    <record id="asset_inventory_campaign_view_graph" model="ir.ui.view">
+        <field name="name">asset.inventory.campaign.graph</field>
+        <field name="model">asset.inventory.campaign</field>
+        <field name="arch" type="xml">
+            <graph string="Analyse des campagnes" type="bar" sample="1">
+                <field name="state"/>
+                <field name="line_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Campaign: Graph View - Line chart over time -->
+    <record id="asset_inventory_campaign_view_graph_line" model="ir.ui.view">
+        <field name="name">asset.inventory.campaign.graph.line</field>
+        <field name="model">asset.inventory.campaign</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <graph string="Évolution des campagnes" type="line" sample="1">
+                <field name="date_start" interval="month"/>
+                <field name="line_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Campaign: Pivot View -->
+    <record id="asset_inventory_campaign_view_pivot" model="ir.ui.view">
+        <field name="name">asset.inventory.campaign.pivot</field>
+        <field name="model">asset.inventory.campaign</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse des campagnes" sample="1">
+                <field name="state" type="row"/>
+                <field name="periodicity" type="col"/>
+                <field name="line_count" type="measure"/>
+                <field name="line_present_count" type="measure"/>
+                <field name="line_missing_count" type="measure"/>
+                <field name="progress_percent" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- LINE VIEWS                                                         -->
+    <!-- ================================================================== -->
+
+    <!-- Line: Embedded Tree View (for use inside campaign form) -->
+    <record id="asset_inventory_line_view_tree_embedded" model="ir.ui.view">
+        <field name="name">asset.inventory.line.tree.embedded</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list string="Lignes d'inventaire"
+                  editable="bottom"
+                  decoration-danger="physical_status == 'missing'"
+                  decoration-warning="physical_status in ('degraded', 'to_repair')"
+                  decoration-success="physical_status == 'present'">
+                <field name="product_id" options="{'no_create': True}"/>
+                <field name="product_code" readonly="1" optional="show"/>
+                <field name="asset_id" optional="show" readonly="1"/>
+                <field name="physical_status"/>
+                <field name="location_id" optional="show"/>
+                <field name="responsible_id"/>
+                <field name="net_book_value" optional="show"/>
+                <field name="accumulated_depreciation" optional="hide"/>
+                <field name="comment" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Line: Tree View -->
+    <record id="asset_inventory_line_view_tree" model="ir.ui.view">
+        <field name="name">asset.inventory.line.tree</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="arch" type="xml">
+            <list string="Lignes d'inventaire"
+                  decoration-danger="physical_status == 'missing'"
+                  decoration-warning="physical_status in ('degraded', 'to_repair')"
+                  decoration-success="physical_status == 'present'">
+                <field name="campaign_id"/>
+                <field name="product_id"/>
+                <field name="product_code" optional="show"/>
+                <field name="product_categ_id" optional="hide"/>
+                <field name="asset_id" optional="show"/>
+                <field name="asset_state" optional="hide"/>
+                <field name="physical_status" widget="badge"
+                       decoration-success="physical_status == 'present'"
+                       decoration-danger="physical_status == 'missing'"
+                       decoration-warning="physical_status in ('degraded', 'to_repair')"/>
+                <field name="location_id" optional="show"/>
+                <field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="original_value" optional="hide"/>
+                <field name="net_book_value"/>
+                <field name="accumulated_depreciation" optional="hide"/>
+                <field name="residual_value" optional="hide"/>
+                <field name="inventory_valuation" optional="show"/>
+                <field name="comment" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" optional="show" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Line: Form View -->
+    <record id="asset_inventory_line_view_form" model="ir.ui.view">
+        <field name="name">asset.inventory.line.form</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="arch" type="xml">
+            <form string="Ligne d'inventaire">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_product"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-cube"
+                                invisible="not product_id">
+                            <span>Voir le produit</span>
+                        </button>
+                        <button name="action_view_asset"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-building"
+                                invisible="not asset_id">
+                            <span>Voir l'immobilisation</span>
+                        </button>
+                        <button name="action_print_control_sheet"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-print">
+                            <span>Fiche de contrôle</span>
+                        </button>
+                    </div>
+                    <group>
+                        <group name="product" string="Produit inventorié">
+                            <field name="campaign_id" 
+                                   options="{'no_create': True}"/>
+                            <field name="campaign_state" invisible="1"/>
+                            <field name="product_id"
+                                   options="{'no_create': True}"
+                                   readonly="campaign_state not in ('draft', 'in_progress')"/>
+                            <field name="product_code" readonly="1"/>
+                            <field name="product_categ_id" readonly="1"/>
+                        </group>
+                        <group name="asset" string="Immobilisation liée">
+                            <field name="asset_id"
+                                   options="{'no_create': True}"
+                                   readonly="1"/>
+                            <field name="asset_group_id" readonly="1"/>
+                            <field name="asset_state" readonly="1"/>
+                            <field name="asset_acquisition_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group name="status" string="État physique">
+                            <field name="physical_status" widget="radio"
+                                   options="{'horizontal': True}"/>
+                            <field name="location_id"
+                                   options="{'no_create': True}"/>
+                            <field name="responsible_id"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group name="location_info" string="Localisation">
+                            <field name="company_id" readonly="1"/>
+                            <field name="warehouse_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group name="values" string="Valeurs comptables">
+                            <field name="original_value"/>
+                            <field name="net_book_value"/>
+                            <field name="accumulated_depreciation"/>
+                            <field name="residual_value"/>
+                            <field name="salvage_value"/>
+                            <field name="inventory_valuation"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Commentaires et photos" name="comments">
+                            <group>
+                                <field name="comment" 
+                                       placeholder="Observations sur l'état du produit/immobilisation..."/>
+                            </group>
+                            <group>
+                                <field name="image" widget="image" 
+                                       class="oe_avatar"
+                                       options="{'size': [300, 300]}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Line: Search View -->
+    <record id="asset_inventory_line_view_search" model="ir.ui.view">
+        <field name="name">asset.inventory.line.search</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher une ligne">
+                <field name="product_id"/>
+                <field name="asset_id"/>
+                <field name="campaign_id"/>
+                <field name="location_id"/>
+                <field name="responsible_id"/>
+                <separator/>
+                <filter name="filter_present" string="Présent"
+                        domain="[('physical_status', '=', 'present')]"/>
+                <filter name="filter_missing" string="Manquant"
+                        domain="[('physical_status', '=', 'missing')]"/>
+                <filter name="filter_degraded" string="Dégradé"
+                        domain="[('physical_status', '=', 'degraded')]"/>
+                <filter name="filter_to_repair" string="À réparer"
+                        domain="[('physical_status', '=', 'to_repair')]"/>
+                <filter name="filter_no_status" string="Sans statut"
+                        domain="[('physical_status', '=', False)]"/>
+                <separator/>
+                <filter name="filter_with_asset" string="Avec immobilisation"
+                        domain="[('asset_id', '!=', False)]"/>
+                <filter name="filter_without_asset" string="Sans immobilisation"
+                        domain="[('asset_id', '=', False)]"/>
+                <separator/>
+                <filter name="filter_my_lines" string="Mes lignes"
+                        domain="[('responsible_id', '=', uid)]"/>
+                <!-- <group expand="0" string="Grouper par">
+                    <filter name="groupby_campaign" string="Campagne"
+                            context="{'group_by': 'campaign_id'}"/>
+                    <filter name="groupby_status" string="État physique"
+                            context="{'group_by': 'physical_status'}"/>
+                    <filter name="groupby_location" string="Emplacement"
+                            context="{'group_by': 'location_id'}"/>
+                    <filter name="groupby_responsible" string="Responsable"
+                            context="{'group_by': 'responsible_id'}"/>
+                    <filter name="groupby_asset_state" string="État comptable"
+                            context="{'group_by': 'asset_state'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- Line: Graph View - Pie chart by physical status -->
+    <record id="asset_inventory_line_view_graph" model="ir.ui.view">
+        <field name="name">asset.inventory.line.graph</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="arch" type="xml">
+            <graph string="État physique des immobilisations" type="pie" sample="1">
+                <field name="physical_status"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Line: Graph View - Bar chart of values by location -->
+    <record id="asset_inventory_line_view_graph_bar" model="ir.ui.view">
+        <field name="name">asset.inventory.line.graph.bar</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <graph string="Valeurs par emplacement" type="bar" sample="1">
+                <field name="location_id"/>
+                <field name="net_book_value" type="measure"/>
+                <field name="original_value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Line: Pivot View - Full financial analysis -->
+    <record id="asset_inventory_line_view_pivot" model="ir.ui.view">
+        <field name="name">asset.inventory.line.pivot</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse financière des immobilisations" sample="1">
+                <field name="campaign_id" type="row"/>
+                <field name="physical_status" type="col"/>
+                <field name="original_value" type="measure"/>
+                <field name="net_book_value" type="measure"/>
+                <field name="accumulated_depreciation" type="measure"/>
+                <field name="inventory_valuation" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Line: Kanban View -->
+    <record id="asset_inventory_line_view_kanban" model="ir.ui.view">
+        <field name="name">asset.inventory.line.kanban</field>
+        <field name="model">asset.inventory.line</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_group_by="physical_status">
+                <field name="product_id"/>
+                <field name="product_name"/>
+                <field name="product_code"/>
+                <field name="asset_id"/>
+                <field name="physical_status"/>
+                <field name="location_id"/>
+                <field name="responsible_id"/>
+                <field name="net_book_value"/>
+                <field name="currency_id"/>
+                <field name="image"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_image">
+                            <t t-if="record.image.raw_value">
+                                <img t-att-src="kanban_image('asset.inventory.line', 'image', record.id.raw_value)" 
+                                     alt="Photo"/>
+                            </t>
+                            <t t-else="1">
+                                <span class="fa fa-cube fa-2x" aria-label="Produit"/>
+                            </t>
+                        </div>
+                        <div class="oe_kanban_details">
+                            <strong class="o_kanban_record_title">
+                                <field name="product_name"/>
+                            </strong>
+                            <div class="text-muted" t-if="record.product_code.value">
+                                [<field name="product_code"/>]
+                            </div>
+                            <div class="o_kanban_record_subtitle">
+                                <field name="location_id"/>
+                            </div>
+                            <div>
+                                <field name="net_book_value" widget="monetary"/>
+                            </div>
+                        </div>
+                        <footer>
+                            <field name="responsible_id" widget="many2one_avatar_user"/>
+                            <field name="physical_status" widget="label_selection"
+                                   options="{'classes': {
+                                       'present': 'success',
+                                       'missing': 'danger',
+                                       'degraded': 'warning',
+                                       'to_repair': 'warning'
+                                   }}"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- WIZARD VIEWS                                                       -->
+    <!-- ================================================================== -->
+
+    <!-- Generate Lines Wizard: Form View -->
+    <record id="asset_inventory_generate_lines_view_form" model="ir.ui.view">
+        <field name="name">asset.inventory.generate.lines.form</field>
+        <field name="model">asset.inventory.generate.lines</field>
+        <field name="arch" type="xml">
+            <form string="Générer les lignes d'inventaire">
+                <group>
+                    <group string="Campagne">
+                        <field name="campaign_id" readonly="1"/>
+                        <field name="company_id" invisible="1"/>
+                    </group>
+                    <group string="Mode de génération">
+                        <field name="generation_mode" widget="radio"/>
+                    </group>
+                </group>
+                <group>
+                    <group string="Filtres produits" invisible="generation_mode != 'products_with_assets'">
+                        <field name="product_categ_id"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group string="Filtres immobilisations">
+                        <field name="asset_state"/>
+                        <field name="asset_group_id"
+                               options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <group>
+                    <group string="Localisation (optionnel)">
+                        <field name="warehouse_id"
+                               options="{'no_create': True}"/>
+                        <field name="location_ids"
+                               widget="many2many_tags"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group string="Options">
+                        <field name="skip_existing"/>
+                        <field name="preview_count" readonly="1"/>
+                    </group>
+                </group>
+                <div class="alert alert-info" role="alert">
+                    <i class="fa fa-info-circle"/>
+                    <strong> <field name="preview_count" readonly="1"/> ligne(s)</strong>
+                    seront ajoutées à la campagne d'inventaire.
+                </div>
+                <footer>
+                    <button name="action_generate"
+                            string="Générer"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="action_preview"
+                            string="Prévisualiser"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- ACTIONS                                                            -->
+    <!-- IMPORTANT: Actions MUST be defined BEFORE menus (Odoo 19 rule)     -->
+    <!-- ================================================================== -->
+
+    <!-- Action: Campaign tree (main action with all views) -->
+    <record id="action_asset_inventory_campaign" model="ir.actions.act_window">
+        <field name="name">Campagnes d'inventaire</field>
+        <field name="res_model">asset.inventory.campaign</field>
+        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="search_view_id" ref="asset_inventory_campaign_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer une nouvelle campagne d'inventaire
+            </p>
+            <p>
+                Les campagnes d'inventaire permettent de suivre l'état physique
+                des immobilisations de l'entreprise.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Campaign Graph Analysis -->
+    <record id="action_asset_inventory_campaign_graph" model="ir.actions.act_window">
+        <field name="name">Analyse des campagnes</field>
+        <field name="res_model">asset.inventory.campaign</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="asset_inventory_campaign_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse graphique des campagnes
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Line tree (main action with all views) -->
+    <record id="action_asset_inventory_line" model="ir.actions.act_window">
+        <field name="name">Lignes d'inventaire</field>
+        <field name="res_model">asset.inventory.line</field>
+        <field name="view_mode">list,kanban,form,graph,pivot</field>
+        <field name="search_view_id" ref="asset_inventory_line_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune ligne d'inventaire
+            </p>
+            <p>
+                Créez une campagne d'inventaire et générez les lignes
+                à partir des immobilisations existantes.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Line Graph Analysis -->
+    <record id="action_asset_inventory_line_analysis" model="ir.actions.act_window">
+        <field name="name">Analyse des immobilisations</field>
+        <field name="res_model">asset.inventory.line</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="asset_inventory_line_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse des lignes d'inventaire
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Generate Lines Wizard -->
+    <record id="action_asset_inventory_generate_lines" model="ir.actions.act_window">
+        <field name="name">Générer les lignes</field>
+        <field name="res_model">asset.inventory.generate.lines</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

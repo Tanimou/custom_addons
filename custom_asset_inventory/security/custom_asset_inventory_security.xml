@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- ============================================================ -->
+        <!-- Module: Inventaire des Immobilisations                       -->
+        <!-- Security Groups Configuration                                 -->
+        <!-- ============================================================ -->
+        
+        <!-- 
+            IMPORTANT Odoo 19: Use privilege_id instead of category_id on res.groups
+            The res.groups.privilege model links to ir.module.category via category_id
+            
+            Following the pattern from stock module (stock_security.xml)
+        -->
+        
+        <!-- Security Privilege for Asset Inventory (under Supply Chain category) -->
+        <record id="res_groups_privilege_asset_inventory" model="res.groups.privilege">
+            <field name="name">Inventaire Immobilisations</field>
+            <field name="category_id" ref="base.module_category_supply_chain"/>
+        </record>
+        
+        <!-- User Group: Basic access to asset inventory -->
+        <record id="group_asset_inventory_user" model="res.groups">
+            <field name="name">Utilisateur</field>
+            <field name="sequence">10</field>
+            <field name="privilege_id" ref="res_groups_privilege_asset_inventory"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">
+                Accès de base à l'inventaire des immobilisations:
+                - Consultation des campagnes d'inventaire
+                - Création et modification des lignes d'inventaire
+                - Utilisation de l'assistant de génération
+            </field>
+        </record>
+        
+        <!-- Manager Group: Full access to asset inventory (implies user) -->
+        <record id="group_asset_inventory_manager" model="res.groups">
+            <field name="name">Responsable</field>
+            <field name="sequence">20</field>
+            <field name="privilege_id" ref="res_groups_privilege_asset_inventory"/>
+            <field name="implied_ids" eval="[(4, ref('group_asset_inventory_user'))]"/>
+            <field name="comment">
+                Accès complet à l'inventaire des immobilisations:
+                - Tous les droits utilisateur
+                - Création et gestion des campagnes d'inventaire
+                - Validation et clôture des campagnes
+                - Suppression des données
+            </field>
+        </record>
+        
+    </data>
+</odoo>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================== -->
+    <!-- Extension des vues Produit pour le lien Immobilisation             -->
+    <!-- ================================================================== -->
+
+    <!-- Product Product Form: Add asset link after general info -->
+    <record id="product_product_view_form_asset_link" model="ir.ui.view">
+        <field name="name">product.product.form.asset.link</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Add asset fields after barcode field -->
+            <xpath expr="//field[@name='barcode']" position="after">
+                <field name="asset_id" 
+                       options="{'no_create': True}"
+                       groups="account.group_account_readonly"/>
+            </xpath>
+            <!-- Add smart button to view asset in button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_asset"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-building"
+                        invisible="not asset_id"
+                        groups="account.group_account_readonly">
+                    <div class="o_stat_info">
+                        <field name="asset_book_value" widget="monetary"/>
+                        <span class="o_stat_text">VNC</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Template Form: Add asset link for single-variant products -->
+    <record id="product_template_view_form_asset_link" model="ir.ui.view">
+        <field name="name">product.template.form.asset.link</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Add asset field after internal reference, only for single variant -->
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="variant_asset_id"
+                       options="{'no_create': True}"
+                       invisible="product_variant_count != 1"
+                       groups="account.group_account_readonly"/>
+            </xpath>
+            <!-- Add smart button for asset -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_asset"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-building"
+                        invisible="product_variant_count != 1 or not variant_asset_id"
+                        groups="account.group_account_readonly">
+                    <div class="o_stat_info">
+                        <field name="variant_asset_book_value" widget="monetary"/>
+                        <span class="o_stat_text">VNC</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Tree: Add asset column (optional) -->
+    <record id="product_product_view_tree_asset" model="ir.ui.view">
+        <field name="name">product.product.tree.asset</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="has_asset" optional="hide" 
+                       groups="account.group_account_readonly"/>
+                <field name="asset_id" optional="hide"
+                       groups="account.group_account_readonly"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Search: Add filter for products with assets -->
+    <record id="product_product_view_search_asset" model="ir.ui.view">
+        <field name="name">product.product.search.asset</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_search_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='inactive']" position="before">
+                <separator/>
+                <filter name="filter_with_asset" string="Avec immobilisation"
+                        domain="[('asset_id', '!=', False)]"
+                        groups="account.group_account_readonly"/>
+                <filter name="filter_without_asset" string="Sans immobilisation"
+                        domain="[('asset_id', '=', False)]"
+                        groups="account.group_account_readonly"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- ACTION: Products with Assets                                        -->
+    <!-- ================================================================== -->
+
+    <record id="action_product_with_asset" model="ir.actions.act_window">
+        <field name="name">Produits avec immobilisation</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="domain">[('asset_id', '!=', False)]</field>
+        <field name="context">{'search_default_filter_with_asset': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun produit avec immobilisation
+            </p>
+            <p>
+                Liez des immobilisations à vos produits depuis leur fiche.
+            </p>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- WIZARD: Product Assign Barcode                                      -->
+    <!-- ================================================================== -->
+
+    <record id="product_assign_barcode_wizard_form" model="ir.ui.view">
+        <field name="name">product.assign.barcode.wizard.form</field>
+        <field name="model">product.assign.barcode.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assigner des codes-barres">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="count_total" readonly="1"/>
+                            <field name="count_without_barcode" readonly="1"/>
+                            <field name="count_with_barcode" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Warning if products have existing barcodes -->
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not has_products_with_barcode">
+                        <i class="fa fa-exclamation-triangle"/> 
+                        <strong>Attention :</strong> 
+                        <field name="count_with_barcode" readonly="1" class="oe_inline"/> produit(s) 
+                        ont déjà un code-barres. 
+                        <br/>
+                        Cochez l'option ci-dessous si vous souhaitez écraser les codes-barres existants.
+                    </div>
+                    
+                    <group invisible="not has_products_with_barcode">
+                        <field name="regenerate_existing"/>
+                    </group>
+                    
+                    <div class="alert alert-info" role="alert"
+                         invisible="has_products_with_barcode">
+                        <i class="fa fa-info-circle"/> 
+                        Tous les produits sélectionnés recevront un code-barres unique de 10 chiffres.
+                    </div>
+                    
+                    <field name="product_ids" invisible="1"/>
+                    <field name="has_products_with_barcode" invisible="1"/>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object" 
+                            string="Confirmer" class="btn-primary"/>
+                    <button name="action_cancel" type="object" 
+                            string="Annuler" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_product_assign_barcode_wizard" model="ir.actions.act_window">
+        <field name="name">Assigner des codes-barres</field>
+        <field name="res_model">product.assign.barcode.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- SERVER ACTION: Bulk Assign Barcodes to Products                     -->
+    <!-- ================================================================== -->
+
+    <!-- Server action for product.product (variant view) -->
+    <record id="action_product_assign_barcode" model="ir.actions.server">
+        <field name="name">Assigner des codes-barres</field>
+        <field name="model_id" ref="product.model_product_product"/>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    wizard = env['product.assign.barcode.wizard'].create({
+        'product_ids': [(6, 0, records.ids)],
+    })
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'Assigner des codes-barres',
+        'res_model': 'product.assign.barcode.wizard',
+        'res_id': wizard.id,
+        'view_mode': 'form',
+        'target': 'new',
+    }
+        </field>
+    </record>
+
+    <!-- Server action for product.template (main product view in Inventory) -->
+    <record id="action_product_template_assign_barcode" model="ir.actions.server">
+        <field name="name">Assigner des codes-barres</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    # Get all product variants from selected templates
+    products = records.mapped('product_variant_ids')
+    wizard = env['product.assign.barcode.wizard'].create({
+        'product_ids': [(6, 0, products.ids)],
+    })
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'Assigner des codes-barres',
+        'res_model': 'product.assign.barcode.wizard',
+        'res_id': wizard.id,
+        'view_mode': 'form',
+        'target': 'new',
+    }
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+        ===========================================================================
+        RAPPORT DE CAMPAGNE D'INVENTAIRE (TASK-009)
+        ===========================================================================
+        Rapport PDF complet montrant toutes les lignes d'une campagne d'inventaire
+        avec les statistiques, les statuts physiques et les valeurs comptables.
+        -->
+        <record id="action_report_asset_inventory_campaign" model="ir.actions.report">
+            <field name="name">Rapport de campagne d'inventaire</field>
+            <field name="model">asset.inventory.campaign</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_asset_inventory.report_asset_inventory_campaign</field>
+            <field name="report_file">custom_asset_inventory.report_asset_inventory_campaign</field>
+            <field name="print_report_name">'Inventaire_%s_%s' % (object.code or object.name, object.date_start)</field>
+            <field name="binding_model_id" ref="model_asset_inventory_campaign"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!--
+        ===========================================================================
+        RAPPORT DES ÉCARTS D'INVENTAIRE (TASK-010)
+        ===========================================================================
+        Rapport PDF montrant uniquement les lignes avec des écarts:
+        - Immobilisations manquantes
+        - Immobilisations dégradées
+        - Immobilisations à réparer
+        Avec impact financier et regroupement par statut.
+        -->
+        <record id="action_report_asset_inventory_variance" model="ir.actions.report">
+            <field name="name">Rapport des écarts d'inventaire</field>
+            <field name="model">asset.inventory.campaign</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_asset_inventory.report_asset_inventory_variance</field>
+            <field name="report_file">custom_asset_inventory.report_asset_inventory_variance</field>
+            <field name="print_report_name">'Ecarts_Inventaire_%s_%s' % (object.code or object.name, object.date_start)</field>
+            <field name="binding_model_id" ref="model_asset_inventory_campaign"/>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!--
+        ===========================================================================
+        RAPPORT DE VALORISATION (TASK-011)
+        ===========================================================================
+        Rapport PDF de valorisation financière montrant:
+        - Toutes les lignes groupées par emplacement
+        - Valeur d'origine, amortissements cumulés, VNC, valeur résiduelle
+        - Sous-totaux par emplacement
+        - Totaux généraux
+        -->
+        <record id="action_report_asset_inventory_valuation" model="ir.actions.report">
+            <field name="name">Rapport de valorisation</field>
+            <field name="model">asset.inventory.campaign</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_asset_inventory.report_asset_inventory_valuation</field>
+            <field name="report_file">custom_asset_inventory.report_asset_inventory_valuation</field>
+            <field name="print_report_name">'Valorisation_%s_%s' % (object.code or object.name, object.date_start)</field>
+            <field name="binding_model_id" ref="model_asset_inventory_campaign"/>
+            <field name="binding_type">report</field>
+        </record>
+
+    </data>
+</odoo>

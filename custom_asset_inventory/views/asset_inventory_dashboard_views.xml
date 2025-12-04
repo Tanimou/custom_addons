@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================== -->
+    <!-- Module: Inventaire des Immobilisations                             -->
+    <!-- Dashboard Views                                                     -->
+    <!-- ================================================================== -->
+
+    <!-- ================================================================== -->
+    <!-- DASHBOARD SUMMARY ACTIONS (for KPI tiles in main campaign view)    -->
+    <!-- ================================================================== -->
+
+    <!-- Action: In Progress Campaigns (for dashboard) -->
+    <record id="action_asset_inventory_campaign_in_progress" model="ir.actions.act_window">
+        <field name="name">Campagnes en cours</field>
+        <field name="res_model">asset.inventory.campaign</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'in_progress')]</field>
+        <field name="context">{'search_default_filter_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune campagne en cours
+            </p>
+            <p>
+                Démarrez une campagne pour commencer l'inventaire.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Missing Assets -->
+    <record id="action_asset_inventory_line_missing" model="ir.actions.act_window">
+        <field name="name">Immobilisations manquantes</field>
+        <field name="res_model">asset.inventory.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('physical_status', '=', 'missing')]</field>
+        <field name="context">{'search_default_filter_missing': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune immobilisation manquante
+            </p>
+            <p>
+                Toutes les immobilisations inventoriées sont présentes.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Degraded Assets -->
+    <record id="action_asset_inventory_line_degraded" model="ir.actions.act_window">
+        <field name="name">Immobilisations dégradées</field>
+        <field name="res_model">asset.inventory.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('physical_status', 'in', ('degraded', 'to_repair'))]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune immobilisation dégradée
+            </p>
+            <p>
+                Toutes les immobilisations sont en bon état.
+            </p>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- KANBAN DASHBOARD VIEW (Modern dashboard)                           -->
+    <!-- ================================================================== -->
+
+    <!-- Campaign: Kanban View for Dashboard Overview -->
+    <record id="asset_inventory_campaign_view_kanban_dashboard" model="ir.ui.view">
+        <field name="name">asset.inventory.campaign.kanban.dashboard</field>
+        <field name="model">asset.inventory.campaign</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard o_asset_inventory_kanban" default_group_by="state">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="state"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="line_count"/>
+                <field name="line_present_count"/>
+                <field name="line_missing_count"/>
+                <field name="progress_percent"/>
+                <field name="periodicity"/>
+                <field name="warehouse_id"/>
+                <templates>
+                    <t t-name="card" class="row g-0">
+                        <div class="col-3">
+                            <div class="o_kanban_image">
+                                <span class="fa fa-clipboard-list fa-3x text-muted" aria-label="Campagne"/>
+                            </div>
+                        </div>
+                        <div class="col-9">
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+                                <div class="o_kanban_record_subtitle text-muted">
+                                    <field name="code"/> - <field name="periodicity"/>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge bg-primary me-1">
+                                        <field name="line_count"/> lignes
+                                    </span>
+                                    <span class="badge bg-success me-1" t-if="record.line_present_count.raw_value > 0">
+                                        <field name="line_present_count"/> présent(s)
+                                    </span>
+                                    <span class="badge bg-danger" t-if="record.line_missing_count.raw_value > 0">
+                                        <field name="line_missing_count"/> manquant(s)
+                                    </span>
+                                </div>
+                                <div class="mt-2">
+                                    <field name="progress_percent" widget="progressbar"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action: Dashboard Kanban View -->
+    <record id="action_asset_inventory_dashboard_kanban" model="ir.actions.act_window">
+        <field name="name">Vue d'ensemble des campagnes</field>
+        <field name="res_model">asset.inventory.campaign</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
+        <field name="view_id" ref="asset_inventory_campaign_view_kanban_dashboard"/>
+        <field name="search_view_id" ref="asset_inventory_campaign_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer une nouvelle campagne d'inventaire
+            </p>
+            <p>
+                Le tableau de bord vous permet de suivre l'avancement
+                de vos campagnes d'inventaire.
+            </p>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- REPORTING ACTIONS                                                  -->
+    <!-- ================================================================== -->
+
+    <!-- Action: Campaign Analysis Report (Graph/Pivot focused) -->
+    <record id="action_asset_inventory_campaign_analysis" model="ir.actions.act_window">
+        <field name="name">Analyse des campagnes</field>
+        <field name="res_model">asset.inventory.campaign</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="asset_inventory_campaign_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse des campagnes d'inventaire
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Financial Analysis Report -->
+    <record id="action_asset_inventory_financial_analysis" model="ir.actions.act_window">
+        <field name="name">Analyse financière</field>
+        <field name="res_model">asset.inventory.line</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="asset_inventory_line_view_search"/>
+        <field name="context">{
+            'pivot_measures': ['original_value', 'net_book_value', 'accumulated_depreciation', 'inventory_valuation'],
+            'pivot_row_groupby': ['campaign_id'],
+            'pivot_column_groupby': ['physical_status']
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse financière des immobilisations
+            </p>
+            <p>
+                Visualisez la valeur de votre parc immobilier par campagne,
+                statut et emplacement.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Physical Status Report -->
+    <record id="action_asset_inventory_status_report" model="ir.actions.act_window">
+        <field name="name">Rapport par état physique</field>
+        <field name="res_model">asset.inventory.line</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="asset_inventory_line_view_search"/>
+        <field name="context">{
+            'graph_mode': 'pie',
+            'graph_groupbys': ['physical_status']
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Rapport des états physiques
+            </p>
+            <p>
+                Visualisez la distribution des immobilisations par état physique.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================== -->
+    <!-- Template: Fiche de Contrôle d'Inventaire                          -->
+    <!-- QWeb report template for single inventory line                     -->
+    <!-- ODOO 19: t-field cannot be used directly on td elements            -->
+    <!-- ================================================================== -->
+
+    <!-- Main Template: Fiche de Contrôle (Single Line) -->
+    <template id="report_fiche_controle">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="line">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <h1>FICHE DE CONTRÔLE D'INVENTAIRE</h1>
+                                <h3><span t-field="line.campaign_id.name"/></h3>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="font-weight-bold" style="width: 40%;">Date du contrôle:</td>
+                                        <td>____________________</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold">Contrôleur:</td>
+                                        <td><span t-field="line.responsible_id.name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6 text-end">
+                                <p class="text-muted">
+                                    Code campagne: <span t-field="line.campaign_id.code"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <!-- Product Information Section -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h4 class="bg-light p-2">1. IDENTIFICATION DU PRODUIT</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td class="font-weight-bold bg-light" style="width: 30%;">Désignation du produit</td>
+                                        <td><span t-esc="line.product_name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold bg-light">Référence interne</td>
+                                        <td>
+                                            <t t-if="line.product_code">
+                                                <span t-esc="line.product_code"/>
+                                            </t>
+                                            <t t-else="1">
+                                                <span class="text-muted">Non renseignée</span>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold bg-light">Catégorie</td>
+                                        <td><span t-esc="line.product_categ_id.display_name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold bg-light">Emplacement</td>
+                                        <td>
+                                            <t t-if="line.location_id">
+                                                <span t-esc="line.location_id.display_name"/>
+                                            </t>
+                                            <t t-else="1">
+                                                <span class="text-muted">À définir</span>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Asset Information Section -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h4 class="bg-light p-2">2. INFORMATIONS COMPTABLES (IMMOBILISATION)</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <t t-if="line.asset_id">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td class="font-weight-bold bg-light" style="width: 30%;">Nom de l'immobilisation</td>
+                                            <td><span t-esc="line.asset_id.name"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Groupe d'immobilisation</td>
+                                            <td>
+                                                <t t-if="line.asset_group_id">
+                                                    <span t-esc="line.asset_group_id.name"/>
+                                                </t>
+                                                <t t-else="1">
+                                                    <span class="text-muted">Non classé</span>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Date d'acquisition</td>
+                                            <td><span t-field="line.asset_acquisition_date" t-options='{"widget": "date"}'/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">État comptable</td>
+                                            <td>
+                                                <t t-if="line.asset_state == 'open'">En cours</t>
+                                                <t t-elif="line.asset_state == 'paused'">En pause</t>
+                                                <t t-elif="line.asset_state == 'close'">Clôturé</t>
+                                                <t t-else="1"><span t-esc="line.asset_state"/></t>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Valeur d'origine</td>
+                                            <td><span t-field="line.original_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Amortissements cumulés</td>
+                                            <td><span t-field="line.accumulated_depreciation" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Valeur nette comptable (VNC)</td>
+                                            <td class="font-weight-bold"><span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/></td>
+                                        </tr>
+                                    </table>
+                                </t>
+                                <t t-else="1">
+                                    <div class="alert alert-warning">
+                                        <i class="fa fa-exclamation-triangle"/> Ce produit n'a pas d'immobilisation liée.
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Physical Control Section -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h4 class="bg-light p-2">3. CONTRÔLE PHYSIQUE</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td class="font-weight-bold bg-light" style="width: 30%;">État physique constaté</td>
+                                        <td>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-check">
+                                                        <span>☐ Présent et en bon état</span>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <span>☐ Présent mais dégradé</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-check">
+                                                        <span>☐ Manquant / Non trouvé</span>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <span>☐ À réparer</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold bg-light">Emplacement réel</td>
+                                        <td style="height: 40px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold bg-light">Estimation de la valeur d'inventaire</td>
+                                        <td style="height: 40px;">
+                                            <span class="text-muted">Montant: __________________ €</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Observations Section -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h4 class="bg-light p-2">4. OBSERVATIONS</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="border p-2" style="min-height: 100px;">
+                                    <t t-if="line.comment">
+                                        <span t-esc="line.comment"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Signature Section -->
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td class="text-center bg-light font-weight-bold">Contrôleur</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="height: 60px;">
+                                            <div>Nom: _________________________</div>
+                                            <div class="mt-2">Signature:</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td class="text-center bg-light font-weight-bold">Responsable</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="height: 60px;">
+                                            <div>Nom: _________________________</div>
+                                            <div class="mt-2">Signature:</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Footer with photo placeholder -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="border p-2 text-center" style="min-height: 120px;">
+                                    <t t-if="line.image">
+                                        <img t-att-src="image_data_uri(line.image)" 
+                                             style="max-height: 100px; max-width: 100%;"/>
+                                    </t>
+                                    <t t-else="1">
+                                        <span class="text-muted">
+                                            <i class="fa fa-camera fa-2x"/>
+                                            <br/>Photo (à joindre)
+                                        </span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Template: Fiches de Contrôle for Campaign (Multiple Lines) -->
+    <template id="report_fiche_controle_campaign">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="campaign">
+                <t t-foreach="campaign.line_ids" t-as="line">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <!-- Header -->
+                            <div class="row">
+                                <div class="col-12 text-center">
+                                    <h1>FICHE DE CONTRÔLE D'INVENTAIRE</h1>
+                                    <h3><span t-esc="campaign.name"/></h3>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-6">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td class="font-weight-bold" style="width: 40%;">Date du contrôle:</td>
+                                            <td>____________________</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold">Contrôleur:</td>
+                                            <td><span t-esc="line.responsible_id.name or '-'"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <p class="text-muted">
+                                        Code campagne: <span t-esc="campaign.code"/>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <hr/>
+
+                            <!-- Product Information Section -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h4 class="bg-light p-2">1. IDENTIFICATION DU PRODUIT</h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td class="font-weight-bold bg-light" style="width: 30%;">Désignation du produit</td>
+                                            <td><span t-esc="line.product_name or '-'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Référence interne</td>
+                                            <td><span t-esc="line.product_code or 'Non renseignée'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Catégorie</td>
+                                            <td><span t-esc="line.product_categ_id.display_name if line.product_categ_id else '-'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Emplacement</td>
+                                            <td><span t-esc="line.location_id.display_name if line.location_id else 'À définir'"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Asset Information Section -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h4 class="bg-light p-2">2. INFORMATIONS COMPTABLES (IMMOBILISATION)</h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <t t-if="line.asset_id">
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <td class="font-weight-bold bg-light" style="width: 30%;">Nom de l'immobilisation</td>
+                                                <td><span t-esc="line.asset_id.name"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold bg-light">Groupe d'immobilisation</td>
+                                                <td><span t-esc="line.asset_group_id.name if line.asset_group_id else 'Non classé'"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold bg-light">Date d'acquisition</td>
+                                                <td><span t-field="line.asset_acquisition_date" t-options='{"widget": "date"}'/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold bg-light">État comptable</td>
+                                                <td>
+                                                    <t t-if="line.asset_state == 'open'">En cours</t>
+                                                    <t t-elif="line.asset_state == 'paused'">En pause</t>
+                                                    <t t-elif="line.asset_state == 'close'">Clôturé</t>
+                                                    <t t-else="1"><span t-esc="line.asset_state or '-'"/></t>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold bg-light">Valeur d'origine</td>
+                                                <td><span t-field="line.original_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold bg-light">Amortissements cumulés</td>
+                                                <td><span t-field="line.accumulated_depreciation" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold bg-light">Valeur nette comptable (VNC)</td>
+                                                <td class="font-weight-bold"><span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/></td>
+                                            </tr>
+                                        </table>
+                                    </t>
+                                    <t t-else="1">
+                                        <div class="alert alert-warning">
+                                            <i class="fa fa-exclamation-triangle"/> Ce produit n'a pas d'immobilisation liée.
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Physical Control Section -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h4 class="bg-light p-2">3. CONTRÔLE PHYSIQUE</h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td class="font-weight-bold bg-light" style="width: 30%;">État physique constaté</td>
+                                            <td>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div>☐ Présent et en bon état</div>
+                                                        <div>☐ Présent mais dégradé</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div>☐ Manquant / Non trouvé</div>
+                                                        <div>☐ À réparer</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Emplacement réel</td>
+                                            <td style="height: 40px;"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-weight-bold bg-light">Estimation de la valeur d'inventaire</td>
+                                            <td style="height: 40px;">
+                                                <span class="text-muted">Montant: __________________ €</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Observations Section -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h4 class="bg-light p-2">4. OBSERVATIONS</h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="border p-2" style="min-height: 100px;">
+                                        <span t-esc="line.comment or ''"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Signature Section -->
+                            <div class="row mt-4">
+                                <div class="col-6">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td class="text-center bg-light font-weight-bold">Contrôleur</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="height: 60px;">
+                                                <div>Nom: _________________________</div>
+                                                <div class="mt-2">Signature:</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-6">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td class="text-center bg-light font-weight-bold">Responsable</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="height: 60px;">
+                                                <div>Nom: _________________________</div>
+                                                <div class="mt-2">Signature:</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Photo placeholder -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="border p-2 text-center" style="min-height: 80px;">
+                                        <t t-if="line.image">
+                                            <img t-att-src="image_data_uri(line.image)" 
+                                                 style="max-height: 70px; max-width: 100%;"/>
+                                        </t>
+                                        <t t-else="1">
+                                            <span class="text-muted">Photo (à joindre)</span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Template: Synthèse de Campagne -->
+    <template id="report_campaign_summary">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="campaign">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <h1>SYNTHÈSE DE CAMPAGNE D'INVENTAIRE</h1>
+                                <h2><span t-esc="campaign.name"/></h2>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="font-weight-bold" style="width: 40%;">Code:</td>
+                                        <td><span t-esc="campaign.code"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold">Société:</td>
+                                        <td><span t-esc="campaign.company_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold">Entrepôt:</td>
+                                        <td><span t-esc="campaign.warehouse_id.name if campaign.warehouse_id else 'Tous'"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="font-weight-bold" style="width: 40%;">Date début:</td>
+                                        <td><span t-field="campaign.date_start" t-options='{"widget": "date"}'/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold">Date fin:</td>
+                                        <td><span t-field="campaign.date_end" t-options='{"widget": "date"}'/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-weight-bold">État:</td>
+                                        <td>
+                                            <t t-if="campaign.state == 'draft'">Brouillon</t>
+                                            <t t-elif="campaign.state == 'in_progress'">En cours</t>
+                                            <t t-elif="campaign.state == 'done'">Terminé</t>
+                                            <t t-elif="campaign.state == 'cancel'">Annulé</t>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <!-- Statistics Section -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h4 class="bg-primary text-white p-2">STATISTIQUES GLOBALES</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3 text-center">
+                                <div class="border p-3">
+                                    <h2><span t-esc="campaign.line_count"/></h2>
+                                    <p class="mb-0">Total lignes</p>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="border p-3 bg-success text-white">
+                                    <h2><span t-esc="campaign.line_present_count"/></h2>
+                                    <p class="mb-0">Présents</p>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="border p-3 bg-danger text-white">
+                                    <h2><span t-esc="campaign.line_missing_count"/></h2>
+                                    <p class="mb-0">Manquants</p>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="border p-3">
+                                    <h2><span t-esc="campaign.progress_percent"/>%</h2>
+                                    <p class="mb-0">Progression</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Lines Section -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h4 class="bg-light p-2">DÉTAIL DES LIGNES D'INVENTAIRE</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Produit</th>
+                                            <th>Réf.</th>
+                                            <th>Immobilisation</th>
+                                            <th>État physique</th>
+                                            <th>Emplacement</th>
+                                            <th class="text-end">VNC</th>
+                                            <th>Responsable</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="campaign.line_ids" t-as="line">
+                                            <tr t-attf-class="#{
+                                                'table-success' if line.physical_status == 'present' else
+                                                'table-danger' if line.physical_status == 'missing' else
+                                                'table-warning' if line.physical_status in ('degraded', 'to_repair') else ''
+                                            }">
+                                                <td><span t-esc="line.product_name or '-'"/></td>
+                                                <td><span t-esc="line.product_code or '-'"/></td>
+                                                <td><span t-esc="line.asset_id.name if line.asset_id else '-'"/></td>
+                                                <td>
+                                                    <t t-if="line.physical_status == 'present'">✓ Présent</t>
+                                                    <t t-elif="line.physical_status == 'missing'">✗ Manquant</t>
+                                                    <t t-elif="line.physical_status == 'degraded'">⚠ Dégradé</t>
+                                                    <t t-elif="line.physical_status == 'to_repair'">🔧 À réparer</t>
+                                                    <t t-else="1">-</t>
+                                                </td>
+                                                <td><span t-esc="line.location_id.name if line.location_id else '-'"/></td>
+                                                <td class="text-end">
+                                                    <span t-field="line.net_book_value" t-options='{"widget": "monetary", "display_currency": line.currency_id}'/>
+                                                </td>
+                                                <td><span t-esc="line.responsible_id.name if line.responsible_id else '-'"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="font-weight-bold">
+                                            <td colspan="5" class="text-end">TOTAL:</td>
+                                            <td class="text-end">
+                                                <t t-set="total_vnc" t-value="sum(campaign.line_ids.mapped('net_book_value'))"/>
+                                                <span t-esc="'{:,.2f}'.format(total_vnc)"/> <span t-esc="campaign.company_id.currency_id.symbol"/>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Signature Section -->
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td class="text-center bg-light font-weight-bold">Établi par</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="height: 80px;">
+                                            <div>Nom: _________________________</div>
+                                            <div class="mt-2">Date: _________________________</div>
+                                            <div class="mt-2">Signature:</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td class="text-center bg-light font-weight-bold">Approuvé par</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="height: 80px;">
+                                            <div>Nom: _________________________</div>
+                                            <div class="mt-2">Date: _________________________</div>
+                                            <div class="mt-2">Signature:</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
