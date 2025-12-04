@@ -8,16 +8,20 @@
             
             <!-- Add status ribbon banners (shows vehicle availability status) -->
             <xpath expr="//div[@name='button_box']" position="before">
+                <!-- En Mission ribbon: Show whenever vehicle is on mission, even during maintenance -->
                 <widget name="web_ribbon" text="En Mission" bg_color="text-bg-warning" 
-                        invisible="not is_on_mission or maintenance_state == 'maintenance'"/>
+                        invisible="not is_on_mission"/>
+                <!-- En Maintenance ribbon: Show only when in maintenance AND NOT on mission -->
                 <widget name="web_ribbon" text="En Maintenance" bg_color="text-bg-danger" 
-                        invisible="maintenance_state != 'maintenance'"/>
+                        invisible="maintenance_state != 'maintenance' or is_on_mission"/>
+                <!-- Disponible ribbon: Show when NOT on mission AND NOT in maintenance -->
                 <widget name="web_ribbon" text="Disponible" bg_color="text-bg-success" 
                         invisible="is_on_mission or maintenance_state == 'maintenance'"/>
             </xpath>
             
             <xpath expr="//header" position="inside">
-                <button name="action_create_curative_intervention" type="object" string="Déclarer une panne" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_user" invisible="is_on_mission"/>
+                <!-- Déclarer une panne button: Visible when vehicle is operational (even if on mission) -->
+                <button name="action_create_curative_intervention" type="object" string="Déclarer une panne" class="btn btn-secondary" groups="custom_fleet_maintenance.group_fleet_maintenance_user" invisible="maintenance_state != 'operational'"/>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_open_maintenance_history" type="object" class="oe_stat_button" icon="fa-stethoscope">
