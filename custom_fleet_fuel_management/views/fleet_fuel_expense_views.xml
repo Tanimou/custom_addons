@@ -32,16 +32,21 @@
                         <field name="state" widget="statusbar" statusbar_visible="draft,submitted,validated,rejected"/>
                     </header>
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_purchase_order" type="object" class="oe_stat_button" icon="fa-shopping-cart" invisible="purchase_order_count == 0">
+                                <field name="purchase_order_count" widget="statinfo" string="Commande"/>
+                            </button>
+                        </div>
                         <group>
                             <group>
                                 <field name="name" readonly="1"/>
                                 <field name="card_id" options="{'no_open': True}"/>
-                                <field name="vehicle_id" options="{'no_open': True}"/>
-                                <field name="driver_id" options="{'no_open': True}"/>
+                                <field name="vehicle_id" options="{'no_open': True}" readonly="card_id and card_id.vehicle_id"/>
+                                <field name="driver_id" options="{'no_open': True}" readonly="card_id and card_id.driver_id"/>
                                 <field name="expense_date"/>
                                 <field name="station_partner_id" options="{'no_open': True}"/>
-                                <field name="analytic_account_id"/>
-                                <field name="budget_line_id"/>
+                                <field name="analytic_account_id" invisible="1"/>
+                                <field name="budget_line_id" invisible="1"/>
                                 <field name="batch_id" readonly="1"/>
                             </group>
                             <group>
@@ -57,8 +62,7 @@
                             </group>
                         </group>
                         <group>
-                            <field name="receipt_attachment" filename="receipt_filename" widget="binary"/>
-                            <field name="receipt_filename" readonly="1"/>
+                            <field name="receipt_attachment" filename="receipt_filename" widget="many2many_binary"/>
                         </group>
                         <field name="notes" widget="html" placeholder="Commentaires"/>
                     </sheet>

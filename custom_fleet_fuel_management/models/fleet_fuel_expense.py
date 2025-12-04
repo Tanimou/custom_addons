@@ -67,9 +67,16 @@ class FleetFuelExpense(models.Model):
     )
     analytic_account_id = fields.Many2one("account.analytic.account", string="Centre de coûts")
     budget_line_id = fields.Many2one("budget.line", string="Ligne budgétaire")
+    purchase_order_id = fields.Many2one("purchase.order", string="Commande d'achat", copy=False)
+    purchase_order_count = fields.Integer(compute="_compute_purchase_order_count", string="Nombre de commandes")
     batch_id = fields.Many2one("fleet.fuel.expense.batch", string="Lot d'import", ondelete="set null")
     import_hash = fields.Char(string="Hash import", copy=False, index=True)
-    receipt_attachment = fields.Binary(string="Justificatif", attachment=True, required=True)
+    receipt_attachment = fields.Many2many(
+        'ir.attachment',
+        string='Justificatif',
+        ondelete='cascade',
+        help="Scan ou PDF du document"
+    )
     receipt_filename = fields.Char(string="Nom du justificatif")
     state = fields.Selection(
         [
@@ -113,6 +120,43 @@ class FleetFuelExpense(models.Model):
                 expense.price_per_liter = expense.amount / expense.liter_qty
             else:
                 expense.price_per_liter = 0.0
+
+    @api.depends("purchase_order_id")
+    def _compute_purchase_order_count(self):
+        for record in self:
+            record.purchase_order_count = 1 if record.purchase_order_id else 0
+
+    @api.onchange('card_id')
+    def _onchange_card_id(self):
+        """Auto-fill vehicle and driver from fuel card."""
+        if self.card_id:
+            if self.card_id.vehicle_id:
+                self.vehicle_id = self.card_id.vehicle_id
+            if self.card_id.driver_id:
+                self.driver_id = self.card_id.driver_id
+        else:
+            # Clear fields if card is removed
+            self.vehicle_id = False
+            self.driver_id = False
+
+    @api.model
+    def _get_or_create_fuel_product(self):
+        """Get or create the 'Carburant' product for fuel expenses."""
+        product = self.env['product.product'].search([
+            ('name', '=', 'Carburant'),
+        ], limit=1)
+        
+        if not product:
+            # In Odoo 19, 'type' field is on product.template (not detailed_type)
+            # Create via product.template to set the type correctly
+            template = self.env['product.template'].sudo().create({
+                'name': 'Carburant',
+                'type': 'consu',
+                'purchase_ok': True,
+                'sale_ok': False,
+            })
+            product = template.product_variant_id
+        return product
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -204,6 +248,7 @@ class FleetFuelExpense(models.Model):
 
     def action_validate(self):
         service = self._balance_service()
+        action = None
         for record in self:
             if record.state not in ("draft", "submitted"):
                 raise UserError(_("Seules les dépenses brouillon ou soumises peuvent être validées."))
@@ -212,7 +257,68 @@ class FleetFuelExpense(models.Model):
             record.validated_by_id = self.env.user
             record.validated_date = fields.Datetime.now()
             record.message_post(body=_("Dépense validée et déduite du solde."))
+            
+            # Create Purchase Order and get redirect action
+            if record.station_partner_id:
+                action = record.action_create_purchase_order()
+        
+        # Return the action to redirect to PO form (for last/single expense)
+        if action:
+            return action
         return True
+
+    def action_create_purchase_order(self):
+        """Create a purchase order for the fuel expense."""
+        self.ensure_one()
+        
+        if not self.station_partner_id:
+            raise UserError(_("Veuillez définir une station service avant de créer une commande."))
+        
+        product = self._get_or_create_fuel_product()
+        
+        # Use liters if available, otherwise quantity = 1 with total amount
+        if self.liter_qty and self.liter_qty > 0:
+            qty = self.liter_qty
+            price = self.price_per_liter
+        else:
+            qty = 1
+            price = self.amount
+        
+        order_vals = {
+            "partner_id": self.station_partner_id.id,
+            "origin": self.name,
+            "company_id": self.company_id.id,
+            "currency_id": self.currency_id.id,
+            "order_line": [(0, 0, {
+                "product_id": product.id,
+                "name": _("Carburant - %s", self.name),
+                "product_qty": qty,
+                "product_uom_id": product.uom_id.id,  # Odoo 19: renamed from product_uom
+                "price_unit": price,
+                "date_planned": self.expense_date or fields.Date.today(),
+                "analytic_distribution": self.analytic_account_id and {str(self.analytic_account_id.id): 100} or False,
+            })],
+        }
+        
+        order = self.env["purchase.order"].sudo().create(order_vals)
+        self.purchase_order_id = order.id
+        self.message_post(body=_("Commande d'achat %s créée.", order.name))
+        
+        # Return action to redirect to PO form
+        action = self.env.ref("purchase.purchase_form_action").sudo().read()[0]
+        action["res_id"] = order.id
+        action["views"] = [(self.env.ref("purchase.purchase_order_form").id, "form")]
+        return action
+
+    def action_view_purchase_order(self):
+        """Open the linked purchase order."""
+        self.ensure_one()
+        if not self.purchase_order_id:
+            return False
+        action = self.env.ref("purchase.purchase_form_action").sudo().read()[0]
+        action["res_id"] = self.purchase_order_id.id
+        action["views"] = [(self.env.ref("purchase.purchase_order_form").id, "form")]
+        return action
 
     def action_reject(self, reason=None):
         for record in self:

@@ -13,6 +13,7 @@
         "hr",
         "account",
         "account_budget",
+        "purchase",
         "analytic",
         "mail",
         "board",
