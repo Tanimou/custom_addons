@@ -395,9 +395,10 @@ class AssetInventoryGenerateLines(models.TransientModel):
                 'name': _("Produits à inventorier"),
                 'type': 'ir.actions.act_window',
                 'res_model': 'product.product',
-                'view_mode': 'tree,form',
+                'view_mode': 'list,form',
                 'domain': [('id', 'in', products.ids)],
                 'context': {'create': False},
+                'target': 'current',
             }
         else:
             assets = self._get_assets_to_generate()
@@ -405,7 +406,8 @@ class AssetInventoryGenerateLines(models.TransientModel):
                 'name': _("Immobilisations à inventorier"),
                 'type': 'ir.actions.act_window',
                 'res_model': 'account.asset',
-                'view_mode': 'tree,form',
+                'view_mode': 'list,form',
                 'domain': [('id', 'in', assets.ids)],
                 'context': {'create': False},
+                'target': 'current',
             }

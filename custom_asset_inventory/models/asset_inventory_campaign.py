@@ -315,7 +315,7 @@ class AssetInventoryCampaign(models.Model):
             'name': _("Lignes d'inventaire"),
             'type': 'ir.actions.act_window',
             'res_model': 'asset.inventory.line',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [('campaign_id', '=', self.id)],
             'context': {'default_campaign_id': self.id},
         }
