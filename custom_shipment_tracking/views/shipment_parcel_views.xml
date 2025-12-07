@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =================================================================== -->
+    <!-- list VIEW - Colis                                                   -->
+    <!-- =================================================================== -->
+    <record id="shipment_parcel_view_tree" model="ir.ui.view">
+        <field name="name">shipment.parcel.view.tree</field>
+        <field name="model">shipment.parcel</field>
+        <field name="arch" type="xml">
+            <list string="Colis" editable="bottom"
+                  decoration-info="state == 'registered'"
+                  decoration-warning="state == 'grouping'"
+                  decoration-primary="state == 'in_transit'"
+                  decoration-success="state in ('arrived', 'delivered')">
+                <field name="name" string="Référence" readonly="1"/>
+                <field name="main_number" string="N° principal" readonly="1"/>
+                <field name="sequence" string="Séquence" readonly="1"/>
+                <field name="weight" string="Poids (kg)"/>
+                <field name="content_description" string="Nature du contenu"/>
+                <field name="declared_value" string="Valeur déclarée"/>
+                <field name="currency_id" string="Devise" optional="hide"/>
+                <field name="effective_transport_mode" string="Mode transport" readonly="1"/>
+                <field name="effective_destination_country_id" string="Pays destination" readonly="1"/>
+                <field name="state" string="Statut" widget="badge"
+                       decoration-info="state == 'registered'"
+                       decoration-warning="state == 'grouping'"
+                       decoration-primary="state == 'in_transit'"
+                       decoration-success="state in ('arrived', 'delivered')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- FORM VIEW - Colis                                                   -->
+    <!-- =================================================================== -->
+    <record id="shipment_parcel_view_form" model="ir.ui.view">
+        <field name="name">shipment.parcel.view.form</field>
+        <field name="model">shipment.parcel</field>
+        <field name="arch" type="xml">
+            <form string="Colis">
+                <header>
+                    <button name="action_set_grouping"
+                            string="Passer en groupage"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'registered'"/>
+                    <button name="action_set_in_transit"
+                            string="Mettre en transit"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'grouping'"/>
+                    <button name="action_set_arrived"
+                            string="Marquer arrivé"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'in_transit'"/>
+                    <button name="action_set_delivered"
+                            string="Marquer livré"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'arrived'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="registered,grouping,in_transit,arrived,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_generate_tracking_link"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-link">
+                            <span>Lien de suivi</span>
+                        </button>
+                        <button name="action_view_tracking_events"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-history">
+                            <span>Événements</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" placeholder="Nouveau colis"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="identification" string="Identification">
+                            <field name="shipment_request_id" string="Demande d'expédition"/>
+                            <field name="main_number" string="Numéro principal" readonly="1"/>
+                            <field name="sequence" string="N° sous-référence" readonly="1"/>
+                            <field name="partner_id" string="Client" readonly="1"/>
+                        </group>
+                        <group name="dimensions" string="Dimensions physiques">
+                            <field name="weight" string="Poids (kg)"/>
+                            <field name="length" string="Longueur (cm)"/>
+                            <field name="width" string="Largeur (cm)"/>
+                            <field name="height" string="Hauteur (cm)"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group name="content" string="Contenu">
+                            <field name="content_description" string="Nature du contenu"/>
+                            <field name="declared_value" string="Valeur déclarée"/>
+                            <field name="currency_id" string="Devise"/>
+                        </group>
+                        <group name="transport" string="Transport &amp; Destination">
+                            <field name="transport_mode" string="Mode de transport (spécifique)"
+                                   placeholder="Hériter de la demande"/>
+                            <field name="effective_transport_mode" string="Mode effectif" readonly="1"/>
+                            <field name="destination_country_id" string="Pays de destination (spécifique)"
+                                   placeholder="Hériter de la demande"/>
+                            <field name="effective_destination_country_id" string="Pays effectif" readonly="1"/>
+                            <field name="destination_city" string="Ville de destination"/>
+                        </group>
+                    </group>
+                    <group name="company" string="Société" groups="base.group_multi_company">
+                        <field name="company_id" string="Société" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- SEARCH VIEW - Colis                                                 -->
+    <!-- =================================================================== -->
+    <record id="shipment_parcel_view_search" model="ir.ui.view">
+        <field name="name">shipment.parcel.view.search</field>
+        <field name="model">shipment.parcel</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des colis">
+                <!-- Champs de recherche -->
+                <field name="name" string="Référence"/>
+                <field name="main_number" string="Numéro principal"/>
+                <field name="shipment_request_id" string="Demande d'expédition"/>
+                <field name="partner_id" string="Client"/>
+                <field name="content_description" string="Nature du contenu"/>
+
+                <!-- Filtres par statut -->
+                <separator/>
+                <filter name="filter_registered"
+                        string="Enregistrés"
+                        domain="[('state', '=', 'registered')]"/>
+                <filter name="filter_grouping"
+                        string="En groupage"
+                        domain="[('state', '=', 'grouping')]"/>
+                <filter name="filter_in_transit"
+                        string="En transit"
+                        domain="[('state', '=', 'in_transit')]"/>
+                <filter name="filter_arrived"
+                        string="Arrivés"
+                        domain="[('state', '=', 'arrived')]"/>
+                <filter name="filter_delivered"
+                        string="Livrés"
+                        domain="[('state', '=', 'delivered')]"/>
+
+                <!-- Filtres par mode transport -->
+                <separator/>
+                <filter name="filter_air"
+                        string="Transport aérien"
+                        domain="[('effective_transport_mode', '=', 'air')]"/>
+                <filter name="filter_sea"
+                        string="Transport maritime"
+                        domain="[('effective_transport_mode', '=', 'sea')]"/>
+
+                <!-- Regroupements -->
+                <!-- <group expand="0" string="Regrouper par">
+                    <filter name="groupby_state"
+                            string="Statut"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="groupby_shipment_request"
+                            string="Demande d'expédition"
+                            context="{'group_by': 'shipment_request_id'}"/>
+                    <filter name="groupby_partner"
+                            string="Client"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="groupby_transport_mode"
+                            string="Mode de transport"
+                            context="{'group_by': 'effective_transport_mode'}"/>
+                    <filter name="groupby_destination_country"
+                            string="Pays de destination"
+                            context="{'group_by': 'effective_destination_country_id'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- ACTION - Colis                                                      -->
+    <!-- =================================================================== -->
+    <record id="action_shipment_parcel" model="ir.actions.act_window">
+        <field name="name">Colis</field>
+        <field name="res_model">shipment.parcel</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="shipment_parcel_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer un premier colis
+            </p>
+            <p>
+                Les colis sont généralement créés depuis une demande d'expédition.
+                Vous pouvez également créer des colis directement ici pour une gestion avancée.
+            </p>
+        </field>
+    </record>
+
+</odoo>

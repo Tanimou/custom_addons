@@ -1,0 +1,3 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from . import shipment_parcel, shipment_request, tracking_event, tracking_link

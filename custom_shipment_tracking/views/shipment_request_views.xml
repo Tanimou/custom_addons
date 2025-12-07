@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========================== -->
+    <!-- TREE VIEW                   -->
+    <!-- =========================== -->
+    <record id="shipment_request_view_tree" model="ir.ui.view">
+        <field name="name">shipment.request.view.tree</field>
+        <field name="model">shipment.request</field>
+        <field name="arch" type="xml">
+            <list string="Demandes d'expédition" decoration-info="state == 'registered'" decoration-warning="state == 'grouping'" decoration-success="state == 'delivered'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="destination_country_id"/>
+                <field name="destination_city" optional="show"/>
+                <field name="transport_mode"/>
+                <field name="planned_date"/>
+                <field name="parcel_count"/>
+                <field name="state" widget="badge" decoration-info="state == 'registered'" decoration-warning="state in ('grouping', 'in_transit')" decoration-success="state in ('arrived', 'delivered')"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =========================== -->
+    <!-- FORM VIEW                   -->
+    <!-- =========================== -->
+    <record id="shipment_request_view_form" model="ir.ui.view">
+        <field name="name">shipment.request.view.form</field>
+        <field name="model">shipment.request</field>
+        <field name="arch" type="xml">
+            <form string="Demande d'expédition">
+                <header>
+                    <button name="action_set_grouping" type="object" string="Passer en groupage" class="btn-primary" invisible="state != 'registered'"/>
+                    <button name="action_set_in_transit" type="object" string="Mettre en transit" class="btn-primary" invisible="state != 'grouping'"/>
+                    <button name="action_set_arrived" type="object" string="Marquer arrivé" class="btn-primary" invisible="state != 'in_transit'"/>
+                    <button name="action_set_delivered" type="object" string="Marquer livré" class="btn-primary" invisible="state != 'arrived'"/>
+                    <button name="action_generate_tracking_link" type="object" string="Générer liens de suivi" class="btn-secondary" invisible="parcel_count == 0 or tracking_link_id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="registered,grouping,in_transit,arrived,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Stat buttons can be added here when needed -->
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="client_info" string="Informations client">
+                            <field name="partner_id"/>
+                            <field name="partner_shipping_id" context="{'default_parent_id': partner_id, 'default_type': 'delivery'}"/>
+                            <field name="sale_order_ids" widget="many2many_tags" readonly="1"/>
+                        </group>
+                        <group name="destination_info" string="Destination">
+                            <field name="destination_country_id"/>
+                            <field name="destination_city"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group name="transport_info" string="Transport">
+                            <field name="transport_mode" widget="radio"/>
+                            <field name="main_parcel_number"/>
+                        </group>
+                        <group name="dates_info" string="Dates et suivi">
+                            <field name="planned_date"/>
+                            <field name="tracking_link_id" readonly="1"/>
+                            <field name="tracking_url" widget="url" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="company_info" groups="base.group_multi_company">
+                        <field name="company_id"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Colis" name="parcels">
+                            <field name="parcel_ids" nolabel="1">
+                                <list string="Colis" editable="bottom"
+                                      decoration-info="state == 'registered'"
+                                      decoration-warning="state == 'grouping'"
+                                      decoration-primary="state == 'in_transit'"
+                                      decoration-success="state in ('arrived', 'delivered')">
+                                    <field name="name" readonly="1"/>
+                                    <field name="main_number" readonly="1"/>
+                                    <field name="sequence" readonly="1"/>
+                                    <field name="weight"/>
+                                    <field name="content_description"/>
+                                    <field name="declared_value" optional="hide"/>
+                                    <field name="transport_mode" optional="hide"/>
+                                    <field name="destination_country_id" optional="hide"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'registered'"
+                                           decoration-warning="state == 'grouping'"
+                                           decoration-primary="state == 'in_transit'"
+                                           decoration-success="state in ('arrived', 'delivered')"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Transport aérien" name="air_transport" invisible="transport_mode != 'air'">
+                            <group>
+                                <group string="Informations de vol">
+                                    <field name="air_flight_number"/>
+                                    <field name="air_departure_datetime"/>
+                                </group>
+                                <group string="Aéroports">
+                                    <field name="air_departure_airport"/>
+                                    <field name="air_arrival_airport"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Transport maritime" name="sea_transport" invisible="transport_mode != 'sea'">
+                            <group>
+                                <group string="Informations navire">
+                                    <field name="sea_vessel_name"/>
+                                    <field name="sea_container_number"/>
+                                    <field name="sea_embarkation_date"/>
+                                </group>
+                                <group string="Ports">
+                                    <field name="sea_departure_port"/>
+                                    <field name="sea_arrival_port"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Notes internes concernant cette expédition..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- =========================== -->
+    <!-- SEARCH VIEW                 -->
+    <!-- =========================== -->
+    <record id="shipment_request_view_search" model="ir.ui.view">
+        <field name="name">shipment.request.view.search</field>
+        <field name="model">shipment.request</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des expéditions">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="destination_country_id"/>
+                <field name="destination_city"/>
+                <field name="main_parcel_number"/>
+                <separator/>
+                <filter string="Enregistré" name="filter_registered" domain="[('state', '=', 'registered')]"/>
+                <filter string="Groupage" name="filter_grouping" domain="[('state', '=', 'grouping')]"/>
+                <filter string="En transit" name="filter_in_transit" domain="[('state', '=', 'in_transit')]"/>
+                <filter string="Arrivé" name="filter_arrived" domain="[('state', '=', 'arrived')]"/>
+                <filter string="Livré" name="filter_delivered" domain="[('state', '=', 'delivered')]"/>
+                <separator/>
+                <filter string="Transport aérien" name="filter_air" domain="[('transport_mode', '=', 'air')]"/>
+                <filter string="Transport maritime" name="filter_sea" domain="[('transport_mode', '=', 'sea')]"/>
+                <separator/>
+                <filter string="Ma société" name="filter_my_company" domain="[('company_id', '=', company_id)]" groups="base.group_multi_company"/>
+                <!-- <separator/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Statut" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Mode de transport" name="groupby_transport_mode" context="{'group_by': 'transport_mode'}"/>
+                    <filter string="Client" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Pays de destination" name="groupby_country" context="{'group_by': 'destination_country_id'}"/>
+                    <filter string="Date prévue" name="groupby_planned_date" context="{'group_by': 'planned_date'}"/>
+                    <filter string="Société" name="groupby_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- =========================== -->
+    <!-- KANBAN VIEW                 -->
+    <!-- =========================== -->
+    <record id="shipment_request_view_kanban" model="ir.ui.view">
+        <field name="name">shipment.request.view.kanban</field>
+        <field name="model">shipment.request</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" sample="1">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="destination_country_id"/>
+                <field name="destination_city"/>
+                <field name="transport_mode"/>
+                <field name="state"/>
+                <field name="planned_date"/>
+                <field name="parcel_count"/>
+                <field name="tracking_url"/>
+                <progressbar field="state" colors='{"registered": "info", "grouping": "warning", "in_transit": "warning", "arrived": "success", "delivered": "success"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_card_header">
+                            <div class="o_kanban_card_header_title">
+                                <strong><field name="name"/></strong>
+                            </div>
+                        </div>
+                        <div class="o_kanban_card_content">
+                            <div class="mb-1">
+                                <i class="fa fa-user me-1" title="Client"/>
+                                <field name="partner_id"/>
+                            </div>
+                            <div class="mb-1">
+                                <i class="fa fa-map-marker me-1" title="Destination"/>
+                                <field name="destination_country_id"/>
+                                <t t-if="record.destination_city.raw_value">
+                                    - <field name="destination_city"/>
+                                </t>
+                            </div>
+                            <div class="mb-1">
+                                <t t-if="record.transport_mode.raw_value == 'air'">
+                                    <span class="badge text-bg-info">
+                                        <i class="fa fa-plane me-1"/>Aérien
+                                    </span>
+                                </t>
+                                <t t-if="record.transport_mode.raw_value == 'sea'">
+                                    <span class="badge text-bg-primary">
+                                        <i class="fa fa-ship me-1"/>Maritime
+                                    </span>
+                                </t>
+                            </div>
+                        </div>
+                        <footer class="pt-2">
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <span t-if="record.planned_date.raw_value" class="text-muted small">
+                                    <i class="fa fa-calendar me-1"/>
+                                    <field name="planned_date"/>
+                                </span>
+                                <span class="badge text-bg-secondary">
+                                    <i class="fa fa-cube me-1"/>
+                                    <field name="parcel_count"/> colis
+                                </span>
+                            </div>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+</odoo>

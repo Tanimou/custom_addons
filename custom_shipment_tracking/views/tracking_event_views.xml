@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =================================================================== -->
+    <!-- TREE VIEW - Événements de suivi                                     -->
+    <!-- =================================================================== -->
+    <record id="tracking_event_view_tree" model="ir.ui.view">
+        <field name="name">shipment.tracking.event.view.tree</field>
+        <field name="model">shipment.tracking.event</field>
+        <field name="arch" type="xml">
+            <list string="Événements de suivi"
+                  decoration-muted="not is_public"
+                  default_order="event_date desc">
+                <field name="event_date" string="Date"/>
+                <field name="parcel_name" string="Colis"/>
+                <field name="event_type" string="Type" widget="badge"
+                       decoration-info="event_type == 'registered'"
+                       decoration-warning="event_type == 'grouping'"
+                       decoration-primary="event_type == 'in_transit'"
+                       decoration-success="event_type in ('arrived', 'delivered')"
+                       decoration-danger="event_type == 'exception'"
+                       decoration-muted="event_type == 'note'"/>
+                <field name="location" string="Lieu" optional="show"/>
+                <field name="description" string="Description"/>
+                <field name="is_public" string="Public" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- FORM VIEW - Événements de suivi                                     -->
+    <!-- =================================================================== -->
+    <record id="tracking_event_view_form" model="ir.ui.view">
+        <field name="name">shipment.tracking.event.view.form</field>
+        <field name="model">shipment.tracking.event</field>
+        <field name="arch" type="xml">
+            <form string="Événement de suivi">
+                <sheet>
+                    <group>
+                        <group name="event_info" string="Informations de l'événement">
+                            <field name="event_date" string="Date de l'événement"/>
+                            <field name="event_type" string="Type d'événement" widget="radio"
+                                   options="{'horizontal': true}"/>
+                            <field name="parcel_id" string="Colis"/>
+                            <field name="location" string="Lieu"
+                                   placeholder="Ville, entrepôt, aéroport..."/>
+                        </group>
+                        <group name="visibility" string="Visibilité">
+                            <field name="is_public" string="Visible publiquement"
+                                   widget="boolean_toggle"/>
+                            <field name="user_id" string="Créé par" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="description_group">
+                        <field name="description" string="Description"
+                               placeholder="Détails supplémentaires sur l'événement..."
+                               nolabel="1" colspan="2"/>
+                    </group>
+                    <group name="related_info" string="Informations liées">
+                        <group>
+                            <field name="parcel_name" string="Référence colis" readonly="1"/>
+                            <field name="partner_id" string="Client" readonly="1"/>
+                        </group>
+                        <group groups="base.group_multi_company">
+                            <field name="company_id" string="Société" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- SEARCH VIEW - Événements de suivi                                   -->
+    <!-- =================================================================== -->
+    <record id="tracking_event_view_search" model="ir.ui.view">
+        <field name="name">shipment.tracking.event.view.search</field>
+        <field name="model">shipment.tracking.event</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des événements">
+                <!-- Champs de recherche -->
+                <field name="parcel_id" string="Colis"/>
+                <field name="parcel_name" string="Référence colis"/>
+                <field name="partner_id" string="Client"/>
+                <field name="location" string="Lieu"/>
+                <field name="description" string="Description"/>
+
+                <!-- Filtres par type d'événement -->
+                <separator/>
+                <filter name="filter_registered"
+                        string="Enregistrement"
+                        domain="[('event_type', '=', 'registered')]"/>
+                <filter name="filter_grouping"
+                        string="Groupage"
+                        domain="[('event_type', '=', 'grouping')]"/>
+                <filter name="filter_in_transit"
+                        string="En transit"
+                        domain="[('event_type', '=', 'in_transit')]"/>
+                <filter name="filter_arrived"
+                        string="Arrivé"
+                        domain="[('event_type', '=', 'arrived')]"/>
+                <filter name="filter_delivered"
+                        string="Livré"
+                        domain="[('event_type', '=', 'delivered')]"/>
+                <filter name="filter_exception"
+                        string="Exception"
+                        domain="[('event_type', '=', 'exception')]"/>
+
+                <!-- Filtres par visibilité -->
+                <separator/>
+                <filter name="filter_public"
+                        string="Publics"
+                        domain="[('is_public', '=', True)]"/>
+                <filter name="filter_private"
+                        string="Privés"
+                        domain="[('is_public', '=', False)]"/>
+
+                <!-- Filtres par date -->
+                <separator/>
+                <filter name="filter_today"
+                        string="Aujourd'hui"
+                        domain="[('event_date', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                                 ('event_date', '&lt;', datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0,0,0)))]"/>
+                <filter name="filter_this_week"
+                        string="Cette semaine"
+                        domain="[('event_date', '>=', (context_today() - relativedelta(days=context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+
+                <!-- Regroupements -->
+                <!-- <group expand="0" string="Regrouper par">
+                    <filter name="groupby_event_type"
+                            string="Type d'événement"
+                            context="{'group_by': 'event_type'}"/>
+                    <filter name="groupby_parcel"
+                            string="Colis"
+                            context="{'group_by': 'parcel_id'}"/>
+                    <filter name="groupby_partner"
+                            string="Client"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="groupby_date"
+                            string="Date"
+                            context="{'group_by': 'event_date:day'}"/>
+                    <filter name="groupby_is_public"
+                            string="Visibilité"
+                            context="{'group_by': 'is_public'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- ACTION - Événements de suivi                                        -->
+    <!-- =================================================================== -->
+    <record id="action_tracking_event" model="ir.actions.act_window">
+        <field name="name">Événements de suivi</field>
+        <field name="res_model">shipment.tracking.event</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="tracking_event_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun événement de suivi
+            </p>
+            <p>
+                Les événements de suivi tracent l'historique des changements de statut
+                des colis. Ils sont généralement créés automatiquement lors des
+                transitions d'état, mais peuvent aussi être ajoutés manuellement.
+            </p>
+        </field>
+    </record>
+
+</odoo>

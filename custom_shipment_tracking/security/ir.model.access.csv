@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_shipment_request_user,shipment.request.user,model_shipment_request,group_shipment_user,1,1,1,0
+access_shipment_request_manager,shipment.request.manager,model_shipment_request,group_shipment_manager,1,1,1,1
+access_shipment_parcel_user,shipment.parcel.user,model_shipment_parcel,group_shipment_user,1,1,1,0
+access_shipment_parcel_manager,shipment.parcel.manager,model_shipment_parcel,group_shipment_manager,1,1,1,1
+access_shipment_tracking_link_user,shipment.tracking.link.user,model_shipment_tracking_link,group_shipment_user,1,1,1,0
+access_shipment_tracking_link_manager,shipment.tracking.link.manager,model_shipment_tracking_link,group_shipment_manager,1,1,1,1
+access_shipment_tracking_event_user,shipment.tracking.event.user,model_shipment_tracking_event,group_shipment_user,1,1,1,0
+access_shipment_tracking_event_manager,shipment.tracking.event.manager,model_shipment_tracking_event,group_shipment_manager,1,1,1,1

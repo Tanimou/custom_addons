@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Sequence for shipment request reference -->
+        <record id="seq_shipment_request" model="ir.sequence">
+            <field name="name">Référence demande d'expédition</field>
+            <field name="code">shipment.request</field>
+            <field name="prefix">EXP/</field>
+            <field name="padding">5</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Sequence for main parcel number (ABXXXX) -->
+        <record id="seq_shipment_parcel_main_number" model="ir.sequence">
+            <field name="name">Numéro de colis principal</field>
+            <field name="code">shipment.parcel.main.number</field>
+            <field name="prefix">AB</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

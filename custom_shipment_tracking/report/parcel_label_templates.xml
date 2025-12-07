@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- PARCEL LABEL REPORT - QWeb Template        -->
+    <!-- ========================================== -->
+
+    <!-- External Report Template -->
+    <template id="report_parcel_label">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="parcel">
+                <t t-call="custom_shipment_tracking.report_parcel_label_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Single Parcel Label Document -->
+    <template id="report_parcel_label_document">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <!-- Label Container - A6 size approximately -->
+                <div class="parcel-label" style="border: 2px solid #333; padding: 15px; margin: 20px auto; max-width: 400px; font-family: Arial, sans-serif;">
+
+                    <!-- Header with Company Logo -->
+                    <div class="label-header" style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
+                        <t t-if="parcel.company_id.logo">
+                            <img t-att-src="'data:image/png;base64,' + parcel.company_id.logo.decode('utf-8')"
+                                 style="max-height: 50px; max-width: 150px;"
+                                 alt="Company Logo"/>
+                        </t>
+                        <t t-else="">
+                            <strong t-field="parcel.company_id.name" style="font-size: 16pt;"/>
+                        </t>
+                    </div>
+
+                    <!-- Main Parcel Number - Large and prominent -->
+                    <div class="label-number" style="text-align: center; margin: 20px 0;">
+                        <div style="font-size: 32pt; font-weight: bold; letter-spacing: 3px; color: #000;">
+                            <t t-out="parcel.name"/>
+                        </div>
+                        <div style="font-size: 12pt; color: #666; margin-top: 5px;">
+                            Numéro de colis
+                        </div>
+                    </div>
+
+                    <!-- Barcode - Code128 of parcel name -->
+                    <div class="label-barcode" style="text-align: center; margin: 15px 0;">
+                        <img t-att-src="'/report/barcode/Code128/%s?width=300&amp;height=60' % parcel.name"
+                             style="max-width: 100%;"
+                             alt="Barcode"/>
+                    </div>
+
+                    <!-- Recipient Information -->
+                    <div class="label-recipient" style="border-top: 1px dashed #999; padding-top: 15px; margin-top: 15px;">
+                        <div style="font-size: 10pt; color: #666; text-transform: uppercase; margin-bottom: 5px;">
+                            Destinataire
+                        </div>
+                        <div style="font-size: 14pt; font-weight: bold;">
+                            <t t-out="parcel.partner_id.name"/>
+                        </div>
+                        <div t-if="parcel.partner_id.street" style="font-size: 11pt;">
+                            <t t-out="parcel.partner_id.street"/>
+                        </div>
+                        <div t-if="parcel.partner_id.street2" style="font-size: 11pt;">
+                            <t t-out="parcel.partner_id.street2"/>
+                        </div>
+                        <div style="font-size: 11pt;">
+                            <t t-if="parcel.partner_id.zip">
+                                <t t-out="parcel.partner_id.zip"/>
+                            </t>
+                            <t t-if="parcel.partner_id.city">
+                                <t t-out="parcel.partner_id.city"/>
+                            </t>
+                        </div>
+                        <div style="font-size: 11pt; font-weight: bold;">
+                            <t t-out="parcel.effective_destination_country_id.name or parcel.partner_id.country_id.name"/>
+                        </div>
+                    </div>
+
+                    <!-- Destination City (if specific) -->
+                    <div t-if="parcel.destination_city" class="label-destination-city" style="background: #f5f5f5; padding: 10px; margin: 15px 0; text-align: center;">
+                        <div style="font-size: 10pt; color: #666;">Ville de destination</div>
+                        <div style="font-size: 16pt; font-weight: bold;">
+                            <t t-out="parcel.destination_city"/>
+                        </div>
+                    </div>
+
+                    <!-- Parcel Details -->
+                    <div class="label-details" style="display: flex; justify-content: space-between; border-top: 1px dashed #999; padding-top: 10px; margin-top: 10px;">
+                        <!-- Weight -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="font-size: 10pt; color: #666;">Poids</div>
+                            <div style="font-size: 14pt; font-weight: bold;">
+                                <t t-out="parcel.weight"/> kg
+                            </div>
+                        </div>
+                        <!-- Transport Mode -->
+                        <div style="text-align: center; flex: 1; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
+                            <div style="font-size: 10pt; color: #666;">Transport</div>
+                            <div style="font-size: 14pt; font-weight: bold;">
+                                <t t-if="parcel.effective_transport_mode == 'air'">
+                                    ✈ Aérien
+                                </t>
+                                <t t-elif="parcel.effective_transport_mode == 'sea'">
+                                    🚢 Maritime
+                                </t>
+                            </div>
+                        </div>
+                        <!-- Country -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="font-size: 10pt; color: #666;">Pays</div>
+                            <div style="font-size: 12pt; font-weight: bold;">
+                                <t t-out="parcel.effective_destination_country_id.code or '--'"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Description (if available) -->
+                    <div t-if="parcel.content_description" class="label-content" style="border-top: 1px dashed #999; padding-top: 10px; margin-top: 10px;">
+                        <div style="font-size: 10pt; color: #666;">Contenu</div>
+                        <div style="font-size: 11pt;">
+                            <t t-out="parcel.content_description"/>
+                        </div>
+                    </div>
+
+                    <!-- Shipment Request Reference -->
+                    <div class="label-reference" style="border-top: 1px solid #333; padding-top: 10px; margin-top: 15px; text-align: center;">
+                        <div style="font-size: 9pt; color: #666;">
+                            Expédition: <strong t-out="parcel.shipment_request_id.name"/>
+                        </div>
+                        <div style="font-size: 9pt; color: #999; margin-top: 5px;">
+                            Imprimé le <t t-out="datetime.datetime.now().strftime('%d/%m/%Y %H:%M')"/>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================================== -->
+    <!-- MULTIPLE LABELS PER PAGE (4-up layout)    -->
+    <!-- ========================================== -->
+    <template id="report_parcel_labels_4up">
+        <t t-call="web.html_container">
+            <div class="page">
+                <style>
+                    .labels-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        grid-gap: 10px;
+                        padding: 10px;
+                    }
+                    .label-mini {
+                        border: 1px solid #333;
+                        padding: 8px;
+                        font-size: 9pt;
+                        page-break-inside: avoid;
+                    }
+                    .label-mini .number {
+                        font-size: 18pt;
+                        font-weight: bold;
+                        text-align: center;
+                        margin: 10px 0;
+                    }
+                    .label-mini .barcode img {
+                        width: 100%;
+                        height: 40px;
+                    }
+                </style>
+                <div class="labels-grid">
+                    <t t-foreach="docs" t-as="parcel">
+                        <div class="label-mini">
+                            <div class="number">
+                                <t t-out="parcel.name"/>
+                            </div>
+                            <div class="barcode" style="text-align: center;">
+                                <img t-att-src="'/report/barcode/Code128/%s?width=200&amp;height=40' % parcel.name"/>
+                            </div>
+                            <div style="margin-top: 5px;">
+                                <strong><t t-out="parcel.partner_id.name"/></strong>
+                            </div>
+                            <div>
+                                <t t-out="parcel.effective_destination_country_id.name or '-'"/>
+                                <t t-if="parcel.destination_city">
+                                    - <t t-out="parcel.destination_city"/>
+                                </t>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 8pt; color: #666;">
+                                <span><t t-out="parcel.weight"/> kg</span>
+                                <span>
+                                    <t t-if="parcel.effective_transport_mode == 'air'">✈</t>
+                                    <t t-elif="parcel.effective_transport_mode == 'sea'">🚢</t>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- REPORT ACTION - Single Parcel Label       -->
+    <!-- ========================================== -->
+    <record id="action_report_parcel_label" model="ir.actions.report">
+        <field name="name">Étiquette colis</field>
+        <field name="model">shipment.parcel</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_shipment_tracking.report_parcel_label</field>
+        <field name="report_file">custom_shipment_tracking.report_parcel_label</field>
+        <field name="print_report_name">'Etiquette_Colis_%s' % object.name.replace('/', '_')</field>
+        <field name="binding_model_id" ref="model_shipment_parcel"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- REPORT ACTION - Multiple Labels (4-up)    -->
+    <!-- ========================================== -->
+    <record id="action_report_parcel_labels_4up" model="ir.actions.report">
+        <field name="name">Étiquettes colis (4 par page)</field>
+        <field name="model">shipment.parcel</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_shipment_tracking.report_parcel_labels_4up</field>
+        <field name="report_file">custom_shipment_tracking.report_parcel_labels_4up</field>
+        <field name="print_report_name">'Etiquettes_Colis_%s' % (datetime.date.today().strftime('%Y%m%d'))</field>
+        <field name="binding_model_id" ref="model_shipment_parcel"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- REPORT PAPERFORMAT - A6 Label Format      -->
+    <!-- ========================================== -->
+    <record id="paperformat_parcel_label" model="report.paperformat">
+        <field name="name">Format étiquette colis (A6)</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_width">105</field>
+        <field name="page_height">148</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">5</field>
+        <field name="margin_bottom">5</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+</odoo>

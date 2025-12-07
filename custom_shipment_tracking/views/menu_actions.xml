@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========================== -->
+    <!-- ACTIONS (defined BEFORE menus) -->
+    <!-- =========================== -->
+
+    <!-- Action for Shipment Requests -->
+    <record id="action_shipment_request" model="ir.actions.act_window">
+        <field name="name">Demandes d'expédition</field>
+        <field name="res_model">shipment.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="shipment_request_view_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer votre première demande d'expédition
+            </p>
+            <p>
+                Les demandes d'expédition permettent de suivre l'envoi de colis
+                par transport aérien ou maritime vers vos clients.
+            </p>
+        </field>
+    </record>
+
+    <!-- =========================== -->
+    <!-- MENUS                       -->
+    <!-- =========================== -->
+
+    <!-- Root Menu (Application) -->
+    <menuitem
+        id="menu_shipment_root"
+        name="Expéditions"
+        web_icon="custom_shipment_tracking,static/description/icon.png"
+        sequence="45"/>
+
+    <!-- Sub-menu: Shipment Requests -->
+    <menuitem
+        id="menu_shipment_request"
+        name="Demandes d'expédition"
+        parent="menu_shipment_root"
+        action="action_shipment_request"
+        sequence="10"/>
+
+    <!-- Sub-menu: Parcels -->
+    <menuitem
+        id="menu_shipment_parcel"
+        name="Colis"
+        parent="menu_shipment_root"
+        action="action_shipment_parcel"
+        sequence="20"/>
+
+    <!-- Sub-menu: Tracking Links -->
+    <menuitem
+        id="menu_tracking_link"
+        name="Liens de suivi"
+        parent="menu_shipment_root"
+        action="action_tracking_link"
+        sequence="30"/>
+
+    <!-- Sub-menu: Tracking Events -->
+    <menuitem
+        id="menu_tracking_event"
+        name="Événements"
+        parent="menu_shipment_root"
+        action="action_tracking_event"
+        sequence="40"/>
+
+</odoo>

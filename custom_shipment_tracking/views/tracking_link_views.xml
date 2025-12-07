@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =================================================================== -->
+    <!-- TREE VIEW - Liens de suivi                                          -->
+    <!-- =================================================================== -->
+    <record id="tracking_link_view_tree" model="ir.ui.view">
+        <field name="name">shipment.tracking.link.view.tree</field>
+        <field name="model">shipment.tracking.link</field>
+        <field name="arch" type="xml">
+            <list string="Liens de suivi"
+                  decoration-muted="not is_active"
+                  decoration-success="is_active">
+                <field name="token" string="Token"/>
+                <field name="parcel_name" string="Référence colis"/>
+                <field name="partner_id" string="Client"/>
+                <field name="url" string="URL de suivi" widget="CopyClipboardChar"/>
+                <field name="is_active" string="Actif" widget="boolean_toggle"/>
+                <field name="access_count" string="Nb accès"/>
+                <field name="last_access" string="Dernier accès"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- FORM VIEW - Liens de suivi                                          -->
+    <!-- =================================================================== -->
+    <record id="tracking_link_view_form" model="ir.ui.view">
+        <field name="name">shipment.tracking.link.view.form</field>
+        <field name="model">shipment.tracking.link</field>
+        <field name="arch" type="xml">
+            <form string="Lien de suivi">
+                <header>
+                    <button name="action_deactivate"
+                            string="Désactiver le lien"
+                            type="object"
+                            class="btn-secondary"
+                            confirm="Êtes-vous sûr de vouloir désactiver ce lien de suivi ?"
+                            invisible="not is_active"/>
+                    <button name="action_regenerate_token"
+                            string="Régénérer le token"
+                            type="object"
+                            class="btn-secondary"
+                            confirm="Attention : régénérer le token invalidera l'URL actuelle. Continuer ?"
+                            groups="base.group_system"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_shipment_parcel)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-cube"
+                                context="{'search_default_id': parcel_id}">
+                            <field name="parcel_state" widget="statusbar" readonly="1"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Inactif" bg_color="text-bg-secondary"
+                            invisible="is_active"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="parcel_name" readonly="1" placeholder="Colis"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="parcel_info" string="Informations colis">
+                            <field name="parcel_id" string="Colis"/>
+                            <field name="partner_id" string="Client"/>
+                            <field name="parcel_state" string="Statut du colis" widget="badge"
+                                   decoration-info="parcel_state == 'registered'"
+                                   decoration-warning="parcel_state == 'grouping'"
+                                   decoration-primary="parcel_state == 'in_transit'"
+                                   decoration-success="parcel_state in ('arrived', 'delivered')"/>
+                        </group>
+                        <group name="token_info" string="Token de suivi">
+                            <field name="token" string="Token"/>
+                            <field name="is_active" string="Actif" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group name="url_section" string="URL de suivi">
+                            <field name="url" string="URL" widget="CopyClipboardChar"/>
+                        </group>
+                        <group name="stats" string="Statistiques d'accès">
+                            <field name="access_count" string="Nombre d'accès"/>
+                            <field name="last_access" string="Dernier accès"/>
+                        </group>
+                    </group>
+                    <group name="company" string="Société" groups="base.group_multi_company">
+                        <field name="company_id" string="Société" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- SEARCH VIEW - Liens de suivi                                        -->
+    <!-- =================================================================== -->
+    <record id="tracking_link_view_search" model="ir.ui.view">
+        <field name="name">shipment.tracking.link.view.search</field>
+        <field name="model">shipment.tracking.link</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des liens de suivi">
+                <!-- Champs de recherche -->
+                <field name="token" string="Token"/>
+                <field name="parcel_id" string="Colis"/>
+                <field name="parcel_name" string="Référence colis"/>
+                <field name="partner_id" string="Client"/>
+
+                <!-- Filtres par statut -->
+                <separator/>
+                <filter name="filter_active"
+                        string="Actifs"
+                        domain="[('is_active', '=', True)]"/>
+                <filter name="filter_inactive"
+                        string="Inactifs"
+                        domain="[('is_active', '=', False)]"/>
+
+                <!-- Filtres par accès -->
+                <separator/>
+                <filter name="filter_accessed"
+                        string="Déjà accédés"
+                        domain="[('access_count', '>', 0)]"/>
+                <filter name="filter_never_accessed"
+                        string="Jamais accédés"
+                        domain="[('access_count', '=', 0)]"/>
+
+                <!-- Regroupements -->
+                <!-- <group expand="0" string="Regrouper par">
+                    <filter name="groupby_is_active"
+                            string="Statut actif"
+                            context="{'group_by': 'is_active'}"/>
+                    <filter name="groupby_parcel"
+                            string="Colis"
+                            context="{'group_by': 'parcel_id'}"/>
+                    <filter name="groupby_partner"
+                            string="Client"
+                            context="{'group_by': 'partner_id'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- ACTION - Liens de suivi                                             -->
+    <!-- =================================================================== -->
+    <record id="action_tracking_link" model="ir.actions.act_window">
+        <field name="name">Liens de suivi</field>
+        <field name="res_model">shipment.tracking.link</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="tracking_link_view_search"/>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun lien de suivi disponible
+            </p>
+            <p>
+                Les liens de suivi permettent à vos clients de suivre leurs colis
+                via une page publique sans authentification.
+                Ils sont généralement créés automatiquement lors de l'enregistrement d'un colis.
+            </p>
+        </field>
+    </record>
+
+</odoo>
