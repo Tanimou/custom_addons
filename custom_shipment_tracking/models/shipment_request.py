@@ -3,7 +3,7 @@
 import logging
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -88,6 +88,11 @@ class ShipmentRequest(models.Model):
         required=True,
         default=lambda self: self.env.company,
         index=True,
+    )
+    active = fields.Boolean(
+        string='Actif',
+        default=True,
+        help='Si décoché, la demande est archivée et n\'apparaît plus dans les listes.',
     )
     parcel_ids = fields.One2many(
         comodel_name='shipment.parcel',
@@ -200,21 +205,86 @@ class ShipmentRequest(models.Model):
             )
         return self.main_parcel_number
 
+    def _set_state_with_parcels(self, new_state):
+        """Set status on shipment and cascade to all its parcels, creating tracking events."""
+        self.write({'state': new_state})
+        # Cascade state to all parcels
+        parcels = self.mapped('parcel_ids')
+        parcels.write({'state': new_state})
+        # Create tracking events for each parcel
+        TrackingEvent = self.env['shipment.tracking.event']
+        for parcel in parcels:
+            TrackingEvent.create_status_event(parcel, new_state)
+
     def action_set_grouping(self):
-        """Set status to Groupage."""
-        self.write({'state': 'grouping'})
+        """Set status to Groupage (shipment + parcels)."""
+        self._set_state_with_parcels('grouping')
 
     def action_set_in_transit(self):
-        """Set status to En transit."""
-        self.write({'state': 'in_transit'})
+        """Set status to En transit (shipment + parcels).
+        
+        Validates that all ordered products have been packed into parcels
+        before allowing the transition.
+        """
+        for shipment in self:
+            shipment._check_all_products_packed()
+        self._set_state_with_parcels('in_transit')
+
+    def _check_all_products_packed(self):
+        """Check that all ordered products are fully packed in parcels.
+        
+        Raises UserError if any product quantity remains unpacked.
+        """
+        self.ensure_one()
+        
+        if not self.sale_order_ids:
+            return  # No orders, nothing to check
+        
+        # Get all physical product lines from linked orders
+        order_lines = self.sale_order_ids.mapped('order_line').filtered(
+            lambda l: l.product_id and l.product_id.type in ('product', 'consu')
+        )
+        
+        if not order_lines:
+            return  # No physical products to pack
+        
+        # Calculate total ordered quantity
+        total_ordered = sum(order_lines.mapped('product_uom_qty'))
+        
+        # Calculate total packed quantity
+        ParcelLine = self.env['shipment.parcel.line']
+        parcel_lines = ParcelLine.search([
+            ('parcel_id.shipment_request_id', '=', self.id),
+        ])
+        total_packed = sum(parcel_lines.mapped('quantity'))
+        
+        if total_packed < total_ordered:
+            # Build detailed message with unpacked products
+            unpacked_details = []
+            for sol in order_lines:
+                packed_qty = sum(ParcelLine.search([
+                    ('sale_order_line_id', '=', sol.id),
+                    ('parcel_id.shipment_request_id', '=', self.id),
+                ]).mapped('quantity'))
+                remaining = sol.product_uom_qty - packed_qty
+                if remaining > 0:
+                    unpacked_details.append(
+                        f"• {sol.product_id.display_name}: {remaining:.2f} unités non emballées"
+                    )
+            
+            details_str = '\n'.join(unpacked_details) if unpacked_details else ''
+            raise UserError(
+                "Tous les produits doivent être emballés dans un colis avant de passer en transit.\n\n"
+                f"Produits restants à emballer:\n{details_str}"
+            )
 
     def action_set_arrived(self):
-        """Set status to Arrivé à destination."""
-        self.write({'state': 'arrived'})
+        """Set status to Arrivé à destination (shipment + parcels)."""
+        self._set_state_with_parcels('arrived')
 
     def action_set_delivered(self):
-        """Set status to Livré."""
-        self.write({'state': 'delivered'})
+        """Set status to Livré (shipment + parcels)."""
+        self._set_state_with_parcels('delivered')
 
     def action_generate_tracking_link(self):
         """Generate tracking links for all parcels of this shipment."""

@@ -48,6 +48,9 @@ Fonctionnalités principales:
         'views/tracking_event_views.xml',
         'views/tracking_page_templates.xml',
         'views/menu_actions.xml',
+        # Wizards
+        'wizard/parcel_product_wizard_views.xml',
+        'wizard/shipment_regrouping_wizard_views.xml',
         # Reports
         'report/parcel_label_templates.xml',
         'report/report_actions.xml',

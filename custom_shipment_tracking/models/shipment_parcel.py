@@ -124,6 +124,28 @@ class ShipmentParcel(models.Model):
         inverse_name='parcel_id',
         string='Événements de suivi',
     )
+    parcel_line_ids = fields.One2many(
+        comodel_name='shipment.parcel.line',
+        inverse_name='parcel_id',
+        string='Produits du colis',
+    )
+    product_count = fields.Integer(
+        string='Nombre de produits',
+        compute='_compute_product_info',
+        store=True,
+    )
+    product_summary = fields.Char(
+        string='Contenu',
+        compute='_compute_product_info',
+        store=True,
+        help='Résumé des produits contenus dans ce colis',
+    )
+    total_value = fields.Monetary(
+        string='Valeur totale',
+        compute='_compute_product_info',
+        store=True,
+        currency_field='currency_id',
+    )
     shipment_transport_mode = fields.Selection(
         related='shipment_request_id.transport_mode',
         string='Mode transport (expédition)',
@@ -191,6 +213,22 @@ class ShipmentParcel(models.Model):
                 parcel.destination_country_id
                 or parcel.shipment_request_id.destination_country_id
             )
+
+    @api.depends('parcel_line_ids', 'parcel_line_ids.product_id', 'parcel_line_ids.quantity', 'parcel_line_ids.subtotal')
+    def _compute_product_info(self):
+        """Compute product count, summary, and total value from parcel lines."""
+        for parcel in self:
+            lines = parcel.parcel_line_ids
+            parcel.product_count = len(lines)
+            if lines:
+                product_names = lines.mapped('product_id.name')
+                parcel.product_summary = ', '.join(filter(None, product_names[:3]))
+                if len(product_names) > 3:
+                    parcel.product_summary += f' (+{len(product_names) - 3})'
+                parcel.total_value = sum(lines.mapped('subtotal'))
+            else:
+                parcel.product_summary = ''
+                parcel.total_value = 0.0
     # endregion
 
     # region Onchange
@@ -284,5 +322,28 @@ class ShipmentParcel(models.Model):
             'domain': [('parcel_id', '=', self.id)],
             'context': {'default_parcel_id': self.id},
             'name': f'Événements - {self.name}',
+        }
+
+    def action_open_product_wizard(self):
+        """Open wizard to add/view products in parcel.
+        
+        When shipment is in 'registered' state, allows editing.
+        In other states, opens in read-only mode.
+        """
+        self.ensure_one()
+        shipment_state = self.shipment_request_id.state
+        is_readonly = shipment_state != 'registered'
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'parcel.product.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'name': f'Produits du colis {self.name}',
+            'context': {
+                'default_parcel_id': self.id,
+                'default_shipment_request_id': self.shipment_request_id.id,
+                'readonly_mode': is_readonly,
+            },
         }
     # endregion

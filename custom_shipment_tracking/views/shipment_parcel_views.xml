@@ -17,6 +17,9 @@
                 <field name="main_number" string="N° principal" readonly="1"/>
                 <field name="sequence" string="Séquence" readonly="1"/>
                 <field name="weight" string="Poids (kg)"/>
+                <field name="product_summary" string="Produits" readonly="1"/>
+                <field name="product_count" string="Nb produits" optional="hide" readonly="1"/>
+                <field name="total_value" string="Valeur produits" optional="hide" readonly="1"/>
                 <field name="content_description" string="Nature du contenu"/>
                 <field name="declared_value" string="Valeur déclarée"/>
                 <field name="currency_id" string="Devise" optional="hide"/>
@@ -27,6 +30,11 @@
                        decoration-warning="state == 'grouping'"
                        decoration-primary="state == 'in_transit'"
                        decoration-success="state in ('arrived', 'delivered')"/>
+                <button name="action_open_product_wizard" 
+                        type="object" 
+                        string="Produits" 
+                        icon="fa-cubes"
+                        title="Gérer les produits du colis"/>
             </list>
         </field>
     </record>
@@ -65,6 +73,12 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_open_product_wizard"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-cubes">
+                            <field name="product_count" widget="statinfo" string="Produits"/>
+                        </button>
                         <button name="action_generate_tracking_link"
                                 type="object"
                                 class="oe_stat_button"
@@ -116,6 +130,33 @@
                     <group name="company" string="Société" groups="base.group_multi_company">
                         <field name="company_id" string="Société" readonly="1"/>
                     </group>
+                    
+                    <!-- Produits du colis -->
+                    <notebook>
+                        <page string="Produits" name="products">
+                            <group>
+                                <group>
+                                    <field name="product_summary" string="Résumé des produits" readonly="1"/>
+                                    <field name="total_value" string="Valeur totale produits" readonly="1"/>
+                                </group>
+                                <group>
+                                    <button name="action_open_product_wizard" 
+                                            type="object" 
+                                            string="Gérer les produits" 
+                                            class="btn-secondary"
+                                            icon="fa-cubes"/>
+                                </group>
+                            </group>
+                            <field name="parcel_line_ids" nolabel="1" readonly="1">
+                                <list>
+                                    <field name="product_id" string="Produit"/>
+                                    <field name="quantity" string="Quantité"/>
+                                    <field name="unit_price" string="Prix unitaire"/>
+                                    <field name="subtotal" string="Sous-total"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

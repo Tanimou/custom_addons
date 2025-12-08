@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Wizard Form View -->
+    <record id="parcel_product_wizard_view_form" model="ir.ui.view">
+        <field name="name">parcel.product.wizard.form</field>
+        <field name="model">parcel.product.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Produits du colis">
+                <!-- Hidden fields -->
+                <field name="is_readonly" invisible="1"/>
+                <field name="shipment_state" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                
+                <!-- Header info -->
+                <group>
+                    <group string="Informations du colis">
+                        <field name="parcel_name" string="Colis"/>
+                        <field name="shipment_request_id" string="Demande d'expédition" 
+                               options="{'no_open': True}"/>
+                    </group>
+                    <group string="Résumé de la sélection">
+                        <field name="total_products" string="Produits sélectionnés"/>
+                        <field name="total_value" string="Valeur totale"/>
+                    </group>
+                </group>
+                
+                <!-- Read-only notice -->
+                <div invisible="not is_readonly" class="alert alert-info" role="alert">
+                    <i class="fa fa-info-circle"/> 
+                    Mode consultation : la demande n'est pas au statut "Enregistré".
+                    Les modifications ne sont pas autorisées.
+                </div>
+                
+                <!-- Available products - Editable mode -->
+                <group string="Produits disponibles" invisible="is_readonly">
+                    <field name="available_line_ids" nolabel="1">
+                        <list editable="bottom" create="0" delete="0">
+                            <field name="is_selected" string="Sel." widget="boolean_toggle"/>
+                            <field name="product_id" string="Produit" readonly="1"/>
+                            <field name="sale_order_name" string="Commande" readonly="1"/>
+                            <field name="order_qty" string="Qté cmd" readonly="1"/>
+                            <field name="assigned_to_others" string="Autres colis" readonly="1" optional="hide"/>
+                            <field name="remaining_qty" string="Disponible" readonly="1"
+                                   decoration-success="remaining_qty > 0"
+                                   decoration-danger="remaining_qty == 0"/>
+                            <field name="qty_in_parcel" string="Actuel" readonly="1" optional="hide"/>
+                            <field name="selected_qty" string="Qté à mettre"/>
+                            <field name="unit_price" string="Prix unit." readonly="1"/>
+                            <field name="subtotal" string="Sous-total" readonly="1"/>
+                            <field name="sale_order_line_id" column_invisible="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </group>
+                
+                <!-- Products in parcel - Read-only mode (shows selected products only) -->
+                <group string="Contenu du colis" invisible="not is_readonly">
+                    <field name="available_line_ids" nolabel="1" readonly="1">
+                        <list>
+                            <field name="product_id" string="Produit"/>
+                            <field name="sale_order_name" string="Commande"/>
+                            <field name="qty_in_parcel" string="Quantité"/>
+                            <field name="unit_price" string="Prix unitaire"/>
+                            <field name="subtotal" string="Sous-total"/>
+                            <field name="is_selected" column_invisible="1"/>
+                            <field name="sale_order_line_id" column_invisible="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </group>
+                
+                <footer>
+                    <!-- Edit mode buttons -->
+                    <button name="action_select_all" 
+                            string="Tout sélectionner" 
+                            type="object" 
+                            class="btn-secondary"
+                            invisible="is_readonly"/>
+                    <button name="action_clear_all" 
+                            string="Tout effacer" 
+                            type="object" 
+                            class="btn-secondary"
+                            invisible="is_readonly"/>
+                    <button name="action_confirm" 
+                            string="Confirmer" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="is_readonly"/>
+                    <!-- Read-only mode button -->
+                    <button name="action_confirm" 
+                            string="Fermer" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="not is_readonly"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard Action (for manual opening if needed) -->
+    <record id="action_parcel_product_wizard" model="ir.actions.act_window">
+        <field name="name">Produits du colis</field>
+        <field name="res_model">parcel.product.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="parcel_product_wizard_view_form"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

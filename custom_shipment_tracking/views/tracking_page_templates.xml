@@ -90,6 +90,10 @@
                                             <td class="text-muted">Contenu</td>
                                             <td><t t-out="parcel.content_description"/></td>
                                         </tr>
+                                        <tr t-if="parcel.product_count">
+                                            <td class="text-muted">Produits</td>
+                                            <td><t t-out="parcel.product_count"/> article(s)</td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -124,6 +128,62 @@
                                                 <t t-else="">Non spécifié</t>
                                             </td>
                                         </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parcel Contents - Products -->
+                    <div class="row mb-4" t-if="parcel.parcel_line_ids">
+                        <div class="col-12 col-md-10 offset-md-1">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-cubes me-2"/>
+                                        Contenu du colis
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Produit</th>
+                                                <th class="text-center">Quantité</th>
+                                                <th class="text-end">Prix unitaire</th>
+                                                <th class="text-end">Sous-total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="parcel.parcel_line_ids" t-as="line">
+                                                <tr>
+                                                    <td>
+                                                        <strong t-out="line.product_id.name"/>
+                                                        <br t-if="line.sale_order_line_id.order_id"/>
+                                                        <small t-if="line.sale_order_line_id.order_id" class="text-muted">
+                                                            Commande: <t t-out="line.sale_order_line_id.order_id.name"/>
+                                                        </small>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-out="line.quantity"/>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <t t-out="line.unit_price" t-options="{'widget': 'monetary', 'display_currency': parcel.currency_id}"/>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <t t-out="line.subtotal" t-options="{'widget': 'monetary', 'display_currency': parcel.currency_id}"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                        <tfoot class="table-light">
+                                            <tr>
+                                                <td colspan="3" class="text-end fw-bold">Total</td>
+                                                <td class="text-end fw-bold">
+                                                    <t t-out="parcel.total_value" t-options="{'widget': 'monetary', 'display_currency': parcel.currency_id}"/>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>

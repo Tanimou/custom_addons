@@ -75,7 +75,8 @@
 
                     <notebook>
                         <page string="Colis" name="parcels">
-                            <field name="parcel_ids" nolabel="1">
+                            <field name="parcel_ids" nolabel="1"
+                                   readonly="state not in ('registered', 'grouping')">
                                 <list string="Colis" editable="bottom"
                                       decoration-info="state == 'registered'"
                                       decoration-warning="state == 'grouping'"
@@ -85,6 +86,9 @@
                                     <field name="main_number" readonly="1"/>
                                     <field name="sequence" readonly="1"/>
                                     <field name="weight"/>
+                                    <field name="product_summary" string="Produits" readonly="1"/>
+                                    <field name="product_count" string="Nb produits" optional="hide" readonly="1"/>
+                                    <field name="total_value" string="Valeur produits" optional="hide" readonly="1"/>
                                     <field name="content_description"/>
                                     <field name="declared_value" optional="hide"/>
                                     <field name="transport_mode" optional="hide"/>
@@ -94,6 +98,11 @@
                                            decoration-warning="state == 'grouping'"
                                            decoration-primary="state == 'in_transit'"
                                            decoration-success="state in ('arrived', 'delivered')"/>
+                                    <button name="action_open_product_wizard" 
+                                            type="object" 
+                                            string="Produits" 
+                                            icon="fa-cubes"
+                                            title="Gérer les produits du colis"/>
                                 </list>
                             </field>
                         </page>

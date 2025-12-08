@@ -1,0 +1,630 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* custom_shipment_tracking
+#
+# Translators:
+# French (France) translation for custom_shipment_tracking module
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-08 00:00+0000\n"
+"PO-Revision-Date: 2025-12-08 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French <https://www.odoo.com>\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_shipment_tracking
+#: model:ir.model,name:custom_shipment_tracking.model_shipment_request
+msgid "Shipment Request"
+msgstr "Demande d'expédition"
+
+#. module: custom_shipment_tracking
+#: model:ir.model,name:custom_shipment_tracking.model_shipment_parcel
+msgid "Shipment Parcel"
+msgstr "Colis"
+
+#. module: custom_shipment_tracking
+#: model:ir.model,name:custom_shipment_tracking.model_shipment_tracking_link
+msgid "Tracking Link"
+msgstr "Lien de suivi"
+
+#. module: custom_shipment_tracking
+#: model:ir.model,name:custom_shipment_tracking.model_shipment_tracking_event
+msgid "Tracking Event"
+msgstr "Événement de suivi"
+
+#. module: custom_shipment_tracking
+#: model:ir.model,name:custom_shipment_tracking.model_shipment_regrouping_wizard
+msgid "Shipment Regrouping Wizard"
+msgstr "Assistant de regroupement"
+
+#. module: custom_shipment_tracking
+#: model:res.groups,name:custom_shipment_tracking.group_shipment_user
+msgid "Logistics User"
+msgstr "Utilisateur Logistique"
+
+#. module: custom_shipment_tracking
+#: model:res.groups,name:custom_shipment_tracking.group_shipment_manager
+msgid "Logistics Manager"
+msgstr "Responsable Logistique"
+
+#. module: custom_shipment_tracking
+#: model:res.groups.privilege,name:custom_shipment_tracking.module_category_shipment
+msgid "Shipments"
+msgstr "Expéditions"
+
+#. module: custom_shipment_tracking
+#: model:ir.actions.act_window,name:custom_shipment_tracking.action_shipment_request
+msgid "Shipment Requests"
+msgstr "Demandes d'expédition"
+
+#. module: custom_shipment_tracking
+#: model:ir.actions.act_window,name:custom_shipment_tracking.action_shipment_parcel
+msgid "Parcels"
+msgstr "Colis"
+
+#. module: custom_shipment_tracking
+#: model:ir.actions.act_window,name:custom_shipment_tracking.action_tracking_link
+msgid "Tracking Links"
+msgstr "Liens de suivi"
+
+#. module: custom_shipment_tracking
+#: model:ir.actions.act_window,name:custom_shipment_tracking.action_tracking_event
+msgid "Tracking Events"
+msgstr "Événements de suivi"
+
+#. module: custom_shipment_tracking
+#: model:ir.ui.menu,name:custom_shipment_tracking.menu_shipment_root
+msgid "Shipments"
+msgstr "Expéditions"
+
+#. module: custom_shipment_tracking
+#: model:ir.ui.menu,name:custom_shipment_tracking.menu_shipment_request
+msgid "Shipment Requests"
+msgstr "Demandes d'expédition"
+
+#. module: custom_shipment_tracking
+#: model:ir.ui.menu,name:custom_shipment_tracking.menu_shipment_parcel
+msgid "Parcels"
+msgstr "Colis"
+
+#. module: custom_shipment_tracking
+#: model:ir.ui.menu,name:custom_shipment_tracking.menu_tracking_link
+msgid "Tracking Links"
+msgstr "Liens de suivi"
+
+#. module: custom_shipment_tracking
+#: model:ir.ui.menu,name:custom_shipment_tracking.menu_tracking_event
+msgid "Events"
+msgstr "Événements"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.request,state:0
+#: selection:shipment.parcel,state:0
+msgid "Registered"
+msgstr "Enregistré"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.request,state:0
+#: selection:shipment.parcel,state:0
+msgid "Grouping"
+msgstr "Groupage"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.request,state:0
+#: selection:shipment.parcel,state:0
+msgid "In Transit"
+msgstr "En transit"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.request,state:0
+#: selection:shipment.parcel,state:0
+msgid "Arrived"
+msgstr "Arrivé à destination"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.request,state:0
+#: selection:shipment.parcel,state:0
+msgid "Delivered"
+msgstr "Livré"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.request,transport_mode:0
+#: selection:shipment.parcel,transport_mode:0
+msgid "Air"
+msgstr "Aérien"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.request,transport_mode:0
+#: selection:shipment.parcel,transport_mode:0
+msgid "Sea"
+msgstr "Maritime"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.tracking.event,event_type:0
+msgid "Registration"
+msgstr "Enregistrement"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.tracking.event,event_type:0
+msgid "Grouping Start"
+msgstr "Mise en groupage"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.tracking.event,event_type:0
+msgid "Transit Start"
+msgstr "Départ en transit"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.tracking.event,event_type:0
+msgid "Arrival"
+msgstr "Arrivée à destination"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.tracking.event,event_type:0
+msgid "Delivery"
+msgstr "Livraison"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.tracking.event,event_type:0
+msgid "Note"
+msgstr "Note"
+
+#. module: custom_shipment_tracking
+#: selection:shipment.tracking.event,event_type:0
+msgid "Exception"
+msgstr "Exception"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__name
+msgid "Reference"
+msgstr "Référence"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__partner_id
+msgid "Customer"
+msgstr "Client"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__partner_shipping_id
+msgid "Delivery Address"
+msgstr "Adresse de livraison"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__destination_country_id
+msgid "Destination Country"
+msgstr "Pays de destination"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__destination_city
+msgid "Destination City"
+msgstr "Ville de destination"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__transport_mode
+msgid "Transport Mode"
+msgstr "Mode de transport"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__planned_date
+msgid "Planned Shipment Date"
+msgstr "Date prévue d'expédition"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__state
+msgid "Status"
+msgstr "Statut"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__parcel_ids
+msgid "Parcels"
+msgstr "Colis"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__parcel_count
+msgid "Number of Parcels"
+msgstr "Nombre de colis"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__tracking_link_id
+msgid "Tracking Link"
+msgstr "Lien de suivi"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__main_parcel_number
+msgid "Main Parcel Number"
+msgstr "Numéro principal"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__notes
+msgid "Internal Notes"
+msgstr "Notes internes"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__air_flight_number
+msgid "Flight Number"
+msgstr "Numéro de vol"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__air_departure_airport
+msgid "Departure Airport"
+msgstr "Aéroport de départ"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__air_arrival_airport
+msgid "Arrival Airport"
+msgstr "Aéroport d'arrivée"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__air_departure_datetime
+msgid "Departure Date/Time"
+msgstr "Date/heure de départ"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__sea_vessel_name
+msgid "Vessel Name"
+msgstr "Nom du navire"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__sea_container_number
+msgid "Container Number"
+msgstr "Numéro de conteneur"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__sea_departure_port
+msgid "Departure Port"
+msgstr "Port de départ"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__sea_arrival_port
+msgid "Arrival Port"
+msgstr "Port d'arrivée"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_request__sea_embarkation_date
+msgid "Embarkation Date"
+msgstr "Date d'embarquement"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__main_number
+msgid "Main Number"
+msgstr "Numéro principal"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__sequence
+msgid "Sub-reference Number"
+msgstr "N° sous-référence"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__weight
+msgid "Weight (kg)"
+msgstr "Poids (kg)"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__length
+msgid "Length (cm)"
+msgstr "Longueur (cm)"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__width
+msgid "Width (cm)"
+msgstr "Largeur (cm)"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__height
+msgid "Height (cm)"
+msgstr "Hauteur (cm)"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__content_description
+msgid "Content Description"
+msgstr "Nature du contenu"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_parcel__declared_value
+msgid "Declared Value"
+msgstr "Valeur déclarée"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_link__token
+msgid "Token"
+msgstr "Token"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_link__url
+msgid "Tracking URL"
+msgstr "URL de suivi"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_link__is_active
+msgid "Active"
+msgstr "Actif"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_link__access_count
+msgid "Access Count"
+msgstr "Nombre d'accès"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_link__last_access
+msgid "Last Access"
+msgstr "Dernier accès"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_event__event_date
+msgid "Event Date"
+msgstr "Date de l'événement"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_event__event_type
+msgid "Event Type"
+msgstr "Type d'événement"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_event__location
+msgid "Location"
+msgstr "Lieu"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_event__description
+msgid "Description"
+msgstr "Description"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_tracking_event__is_public
+msgid "Publicly Visible"
+msgstr "Visible publiquement"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/models/shipment_request.py:0
+#, python-format
+msgid "New"
+msgstr "Nouveau"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/models/tracking_event.py:0
+#, python-format
+msgid "Parcel registered in the system"
+msgstr "Colis enregistré dans le système"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/models/tracking_event.py:0
+#, python-format
+msgid "Parcel being grouped for shipment"
+msgstr "Colis en cours de groupage pour expédition"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/models/tracking_event.py:0
+#, python-format
+msgid "Parcel in transit to destination"
+msgstr "Colis en transit vers la destination"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/models/tracking_event.py:0
+#, python-format
+msgid "Parcel arrived at destination, awaiting delivery"
+msgstr "Colis arrivé à destination, en attente de livraison"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/models/tracking_event.py:0
+#, python-format
+msgid "Parcel delivered to recipient"
+msgstr "Colis livré au destinataire"
+
+#. module: custom_shipment_tracking
+#: model:ir.actions.report,name:custom_shipment_tracking.action_report_parcel_label
+msgid "Parcel Label"
+msgstr "Étiquette colis"
+
+#. module: custom_shipment_tracking
+#: model:ir.actions.report,name:custom_shipment_tracking.action_report_parcel_labels_4up
+msgid "Parcel Labels (4-up)"
+msgstr "Étiquettes colis (4 par page)"
+
+#. module: custom_shipment_tracking
+#. Wizard strings
+#: model:ir.actions.act_window,name:custom_shipment_tracking.action_shipment_regroup_wizard
+msgid "Regroup Shipment Requests"
+msgstr "Regrouper les demandes d'expédition"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_regrouping_wizard__shipment_ids
+msgid "Selected Requests"
+msgstr "Demandes sélectionnées"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_regrouping_wizard__master_shipment_id
+msgid "Master Request"
+msgstr "Demande principale"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_regrouping_wizard__compatible_count
+msgid "Compatible Requests"
+msgstr "Demandes compatibles"
+
+#. module: custom_shipment_tracking
+#: model:ir.model.fields,field_description:custom_shipment_tracking.field_shipment_regrouping_wizard__incompatible_warning
+msgid "Incompatibility Warning"
+msgstr "Avertissement d'incompatibilité"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/wizard/shipment_regrouping_wizard.py:0
+#, python-format
+msgid "You must select at least 2 shipment requests to regroup."
+msgstr "Vous devez sélectionner au moins 2 demandes d'expédition à regrouper."
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/wizard/shipment_regrouping_wizard.py:0
+#, python-format
+msgid "Only requests in 'Registered' status can be regrouped."
+msgstr "Seules les demandes au statut 'Enregistré' peuvent être regroupées."
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/wizard/shipment_regrouping_wizard.py:0
+#, python-format
+msgid "All requests must have the same customer, transport mode, and destination country."
+msgstr "Toutes les demandes doivent avoir le même client, mode de transport et pays de destination."
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/wizard/shipment_regrouping_wizard.py:0
+#, python-format
+msgid "Parcels merged from requests: %s"
+msgstr "Colis fusionnés depuis les demandes : %s"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/wizard/shipment_regrouping_wizard.py:0
+#, python-format
+msgid "Request merged into %s"
+msgstr "Demande fusionnée dans %s"
+
+#. module: custom_shipment_tracking
+#. Button labels
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Set to Grouping"
+msgstr "Passer en groupage"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Set In Transit"
+msgstr "Mettre en transit"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Mark as Arrived"
+msgstr "Marquer arrivé"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Mark as Delivered"
+msgstr "Marquer livré"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Generate Tracking Links"
+msgstr "Générer liens de suivi"
+
+#. module: custom_shipment_tracking
+#. Form group labels
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Customer Information"
+msgstr "Informations client"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Destination"
+msgstr "Destination"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Transport"
+msgstr "Transport"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Dates and Tracking"
+msgstr "Dates et suivi"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Flight Information"
+msgstr "Informations de vol"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Airports"
+msgstr "Aéroports"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Vessel Information"
+msgstr "Informations navire"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/shipment_request_views.xml:0
+#, python-format
+msgid "Ports"
+msgstr "Ports"
+
+#. module: custom_shipment_tracking
+#. Tracking page strings
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Track Your Shipment"
+msgstr "Suivre votre expédition"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Parcel"
+msgstr "Colis"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Customer"
+msgstr "Client"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Transport"
+msgstr "Transport"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Weight"
+msgstr "Poids"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Tracking History"
+msgstr "Historique de suivi"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "No events recorded yet"
+msgstr "Aucun événement enregistré"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Tracking Not Found"
+msgstr "Suivi non trouvé"
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "The tracking link you followed is invalid or has expired."
+msgstr "Le lien de suivi que vous avez suivi est invalide ou a expiré."
+
+#. module: custom_shipment_tracking
+#: code:addons/custom_shipment_tracking/views/tracking_page_templates.xml:0
+#, python-format
+msgid "Return to homepage"
+msgstr "Retourner à l'accueil"

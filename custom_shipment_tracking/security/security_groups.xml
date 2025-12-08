@@ -21,4 +21,79 @@
         <field name="comment">Accès complet aux expéditions, y compris suppression et configuration</field>
     </record>
 
+    <!-- ==================== Record Rules ==================== -->
+
+    <!-- Multi-company rule: Users can only see shipments from their company -->
+    <record id="rule_shipment_request_multi_company" model="ir.rule">
+        <field name="name">Demande d'expédition: Multi-société</field>
+        <field name="model_id" ref="model_shipment_request"/>
+        <field name="domain_force">[
+            '|',
+            ('company_id', '=', False),
+            ('company_id', 'in', company_ids)
+        ]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_shipment_parcel_multi_company" model="ir.rule">
+        <field name="name">Colis: Multi-société</field>
+        <field name="model_id" ref="model_shipment_parcel"/>
+        <field name="domain_force">[
+            '|',
+            ('company_id', '=', False),
+            ('company_id', 'in', company_ids)
+        ]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_tracking_link_multi_company" model="ir.rule">
+        <field name="name">Lien de suivi: Multi-société</field>
+        <field name="model_id" ref="model_shipment_tracking_link"/>
+        <field name="domain_force">[
+            '|',
+            ('company_id', '=', False),
+            ('company_id', 'in', company_ids)
+        ]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_tracking_event_multi_company" model="ir.rule">
+        <field name="name">Événement de suivi: Multi-société</field>
+        <field name="model_id" ref="model_shipment_tracking_event"/>
+        <field name="domain_force">[
+            '|',
+            ('company_id', '=', False),
+            ('company_id', 'in', company_ids)
+        ]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Manager-only delete rule for shipment requests -->
+    <record id="rule_shipment_request_unlink_manager" model="ir.rule">
+        <field name="name">Demande d'expédition: Suppression (Responsable seulement)</field>
+        <field name="model_id" ref="model_shipment_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_shipment_manager'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
 </odoo>

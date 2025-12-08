@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Wizard Form View -->
+    <record id="shipment_regrouping_wizard_view_form" model="ir.ui.view">
+        <field name="name">shipment.regrouping.wizard.form</field>
+        <field name="model">shipment.regrouping.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Regrouper les demandes d'expédition">
+                <group>
+                    <group string="Résumé">
+                        <field name="compatible_count" string="Demandes compatibles"/>
+                        <field name="total_parcels" string="Total colis"/>
+                        <field name="total_weight" string="Poids total (kg)"/>
+                    </group>
+                    <group string="Demande principale">
+                        <field name="master_shipment_id" 
+                               string="Demande principale"
+                               options="{'no_create': True, 'no_open': True}"
+                               required="1"/>
+                    </group>
+                </group>
+
+                <!-- Incompatibility Warning -->
+                <div invisible="not incompatible_warning" class="alert alert-warning" role="alert">
+                    <field name="incompatible_warning" nolabel="1" readonly="1"/>
+                </div>
+                <field name="is_compatible" invisible="1"/>
+
+                <!-- Selected Shipments Tree -->
+                <group string="Demandes sélectionnées">
+                    <field name="shipment_ids" nolabel="1" readonly="1">
+                        <list>
+                            <field name="name" string="Référence"/>
+                            <field name="partner_id" string="Client"/>
+                            <field name="transport_mode" string="Mode de transport"/>
+                            <field name="destination_country_id" string="Pays de destination"/>
+                            <field name="state" string="Statut" widget="badge" 
+                                   decoration-info="state == 'registered'"
+                                   decoration-warning="state == 'grouping'"
+                                   decoration-primary="state == 'in_transit'"
+                                   decoration-success="state in ('arrived', 'delivered')"/>
+                            <field name="parcel_count" string="Colis"/>
+                        </list>
+                    </field>
+                </group>
+
+                <footer>
+                    <button name="action_regroup" 
+                            string="Regrouper" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="not is_compatible"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard Action -->
+    <record id="action_shipment_regrouping_wizard" model="ir.actions.act_window">
+        <field name="name">Regrouper les demandes d'expédition</field>
+        <field name="res_model">shipment.regrouping.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="shipment_regrouping_wizard_view_form"/>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_shipment_request"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+</odoo>
