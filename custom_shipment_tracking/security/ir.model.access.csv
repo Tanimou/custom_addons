@@ -15,3 +15,5 @@ access_parcel_product_wizard_user,parcel.product.wizard.user,model_parcel_produc
 access_parcel_product_wizard_manager,parcel.product.wizard.manager,model_parcel_product_wizard,group_shipment_manager,1,1,1,1
 access_parcel_product_wizard_line_user,parcel.product.wizard.line.user,model_parcel_product_wizard_line,group_shipment_user,1,1,1,1
 access_parcel_product_wizard_line_manager,parcel.product.wizard.line.manager,model_parcel_product_wizard_line,group_shipment_manager,1,1,1,1
+access_shipment_document_user,shipment.document.user,model_shipment_document,group_shipment_user,1,1,1,0
+access_shipment_document_manager,shipment.document.manager,model_shipment_document,group_shipment_manager,1,1,1,1

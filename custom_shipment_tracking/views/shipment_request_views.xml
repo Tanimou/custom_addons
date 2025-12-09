@@ -32,15 +32,42 @@
             <form string="Demande d'expédition">
                 <header>
                     <button name="action_set_grouping" type="object" string="Passer en groupage" class="btn-primary" invisible="state != 'registered'"/>
-                    <button name="action_set_in_transit" type="object" string="Mettre en transit" class="btn-primary" invisible="state != 'grouping'"/>
                     <button name="action_set_arrived" type="object" string="Marquer arrivé" class="btn-primary" invisible="state != 'in_transit'"/>
                     <button name="action_set_delivered" type="object" string="Marquer livré" class="btn-primary" invisible="state != 'arrived'"/>
                     <button name="action_generate_tracking_link" type="object" string="Générer liens de suivi" class="btn-secondary" invisible="parcel_count == 0 or tracking_link_id"/>
+                    <!-- Proforma / Invoice buttons -->
+                    <button name="action_create_proforma" type="object" string="Créer Proforma" class="btn-secondary" 
+                            invisible="proforma_state != 'none' or parcel_count == 0"
+                            title="Créer un proforma avec les détails des colis et frais de transport"/>
+                    <button name="action_confirm_and_invoice" type="object" string="Confirmer et Créer Facture" class="btn-warning" 
+                            invisible="proforma_state not in ('draft',)"
+                            title="Valider le proforma et créer la facture définitive"/>
+                    <!-- Document buttons -->
+                    <button name="action_generate_documents" type="object" string="Générer Documents" class="btn-secondary"
+                            invisible="document_count > 0 or state == 'registered'"
+                            title="Générer les documents requis (FDI, DCVI, Déclaration, LTA)"/>
+                    <button name="action_ready_for_transit" type="object" string="Prêt pour envoi" class="btn-success"
+                            invisible="state != 'grouping' or not all_docs_validated or proforma_state != 'confirmed'"
+                            title="Valider l'envoi (tous les documents doivent être validés et la facture confirmée)"/>
                     <field name="state" widget="statusbar" statusbar_visible="registered,grouping,in_transit,arrived,delivered"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <!-- Stat buttons can be added here when needed -->
+                        <!-- Smart button for documents -->
+                        <button name="action_view_documents" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="document_count == 0">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="docs_validated_count"/>/<field name="document_count"/>
+                                </span>
+                                <span class="o_stat_text">Documents</span>
+                            </div>
+                        </button>
+                        <!-- Smart button for invoices -->
+                        <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-money"
+                                invisible="invoice_count == 0">
+                            <field name="invoice_count" widget="statinfo" string="Factures"/>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <h1>
@@ -62,6 +89,9 @@
                         <group name="transport_info" string="Transport">
                             <field name="transport_mode" widget="radio"/>
                             <field name="main_parcel_number"/>
+                            <field name="airline_name" placeholder="ex: Sky Mali"/>
+                            <field name="lta_number" placeholder="Numéro LTA"/>
+                            <field name="nature_colis"/>
                         </group>
                         <group name="dates_info" string="Dates et suivi">
                             <field name="planned_date"/>
@@ -133,6 +163,49 @@
                         </page>
                         <page string="Notes" name="notes">
                             <field name="notes" nolabel="1" placeholder="Notes internes concernant cette expédition..."/>
+                        </page>
+                        <page string="Facturation" name="invoicing">
+                            <group>
+                                <group name="invoicing_info" string="Informations de facturation">
+                                    <field name="proforma_state" readonly="1"/>
+                                    <field name="proforma_invoice_id" readonly="1"/>
+                                    <field name="invoice_id" readonly="1"/>
+                                </group>
+                                <group name="transport_fees" string="Frais de transport">
+                                    <field name="total_weight" readonly="1"/>
+                                    <field name="total_declared_value" readonly="1"/>
+                                    <field name="transport_fee_rate"/>
+                                    <field name="transport_fee" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group name="additional_fees" string="Frais supplémentaires">
+                                    <field name="customs_fees"/>
+                                    <field name="service_fees"/>
+                                </group>
+                                <group name="document_status" string="État des documents">
+                                    <field name="document_count" readonly="1"/>
+                                    <field name="docs_validated_count" readonly="1"/>
+                                    <field name="all_docs_validated" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Documents" name="documents" invisible="document_count == 0">
+                            <field name="document_ids" nolabel="1" readonly="1">
+                                <list decoration-danger="state == 'to_prepare'" 
+                                      decoration-warning="state == 'in_progress'"
+                                      decoration-info="state == 'ready'"
+                                      decoration-success="state == 'validated'">
+                                    <field name="name"/>
+                                    <field name="document_type"/>
+                                    <field name="reference"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="responsible_id" widget="many2one_avatar_user"/>
+                                    <field name="deadline"/>
+                                    <field name="attachment_count" string="📎"/>
+                                    <button name="action_view_attachments" type="object" icon="fa-paperclip" title="Voir pièces jointes"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>

@@ -159,6 +159,114 @@ class ShipmentRequest(models.Model):
         related='tracking_link_id.url',
         readonly=True,
     )
+    
+    # Proforma/Invoice fields
+    proforma_invoice_id = fields.Many2one(
+        comodel_name='account.move',
+        string='Proforma',
+        readonly=True,
+        copy=False,
+        domain=[('move_type', '=', 'out_invoice')],
+        help='Facture proforma générée pour cette expédition',
+    )
+    invoice_id = fields.Many2one(
+        comodel_name='account.move',
+        string='Facture',
+        readonly=True,
+        copy=False,
+        domain=[('move_type', '=', 'out_invoice')],
+        help='Facture finale confirmée pour cette expédition',
+    )
+    proforma_state = fields.Selection(
+        selection=[
+            ('none', 'Aucun'),
+            ('draft', 'Proforma créé'),
+            ('confirmed', 'Facturé'),
+        ],
+        string='État Proforma',
+        default='none',
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
+    transport_fee = fields.Float(
+        string='Frais de transport',
+        help='Frais de transport calculés ou manuels',
+    )
+    transport_fee_rate = fields.Float(
+        string='Taux par kg',
+        default=5.0,
+        help='Taux de frais de transport par kg (pour calcul automatique)',
+    )
+    invoice_count = fields.Integer(
+        string='Nombre de factures',
+        compute='_compute_invoice_count',
+    )
+    total_weight = fields.Float(
+        string='Poids total (kg)',
+        compute='_compute_total_weight',
+        store=True,
+    )
+    total_declared_value = fields.Float(
+        string='Valeur déclarée totale',
+        compute='_compute_total_declared_value',
+        store=True,
+    )
+
+    # Additional fields for Mali/Sky Mali shipments
+    lta_number = fields.Char(
+        string='N° LTA',
+        help='Numéro de Lettre de Transport Aérien',
+        tracking=True,
+    )
+    airline_name = fields.Char(
+        string='Compagnie aérienne',
+        help='Nom de la compagnie aérienne (ex: Sky Mali)',
+        tracking=True,
+    )
+    nature_colis = fields.Selection(
+        selection=[
+            ('documents', 'Documents'),
+            ('marchandises', 'Marchandises'),
+            ('denrees', 'Denrées alimentaires'),
+            ('electronique', 'Électronique'),
+            ('textile', 'Textile'),
+            ('divers', 'Divers'),
+        ],
+        string='Nature du colis',
+        default='marchandises',
+        tracking=True,
+    )
+    customs_fees = fields.Float(
+        string='Taxes douanières',
+        help='Montant des taxes douanières applicables',
+    )
+    service_fees = fields.Float(
+        string='Services annexes',
+        help='Frais de transit, emballage et autres services',
+    )
+
+    # Document tracking
+    document_ids = fields.One2many(
+        comodel_name='shipment.document',
+        inverse_name='shipment_request_id',
+        string='Documents',
+    )
+    document_count = fields.Integer(
+        string='Nombre de documents',
+        compute='_compute_document_count',
+    )
+    all_docs_validated = fields.Boolean(
+        string='Tous documents validés',
+        compute='_compute_all_docs_validated',
+        store=True,
+        help='Indique si tous les documents requis sont validés',
+    )
+    docs_validated_count = fields.Integer(
+        string='Documents validés',
+        compute='_compute_all_docs_validated',
+        store=True,
+    )
     # endregion
 
     # region Computes
@@ -176,6 +284,61 @@ class ShipmentRequest(models.Model):
                 ('is_active', '=', True),
             ], limit=1)
             record.tracking_link_id = link.id if link else False
+
+    def _compute_invoice_count(self):
+        """Compute the number of invoices linked to this shipment."""
+        for record in self:
+            count = 0
+            if record.proforma_invoice_id:
+                count += 1
+            if record.invoice_id and record.invoice_id != record.proforma_invoice_id:
+                count += 1
+            record.invoice_count = count
+
+    @api.depends('parcel_ids.weight')
+    def _compute_total_weight(self):
+        """Compute total weight of all parcels."""
+        for record in self:
+            record.total_weight = sum(record.parcel_ids.mapped('weight'))
+
+    @api.depends('parcel_ids.declared_value', 'parcel_ids.total_value')
+    def _compute_total_declared_value(self):
+        """Compute total declared value of all parcels."""
+        for record in self:
+            # Use declared_value if set, otherwise use total_value from products
+            total = 0.0
+            for parcel in record.parcel_ids:
+                if parcel.declared_value:
+                    total += parcel.declared_value
+                else:
+                    total += parcel.total_value
+            record.total_declared_value = total
+
+    def _compute_document_count(self):
+        """Compute the number of documents for this shipment."""
+        for record in self:
+            record.document_count = len(record.document_ids)
+
+    @api.depends('document_ids.state')
+    def _compute_all_docs_validated(self):
+        """Compute if all required documents are validated."""
+        for record in self:
+            docs = record.document_ids
+            validated_count = len(docs.filtered(lambda d: d.state == 'validated'))
+            total_count = len(docs)
+            record.docs_validated_count = validated_count
+            # All docs validated if there are documents and all are validated
+            record.all_docs_validated = total_count > 0 and validated_count == total_count
+
+    def _check_document_validation_complete(self):
+        """Called when a document is validated to check if all are done."""
+        self.ensure_one()
+        if self.all_docs_validated:
+            # Post a message in chatter
+            self.message_post(
+                body="✅ Tous les documents requis ont été validés. L'expédition est prête pour l'envoi.",
+                message_type='notification',
+            )
     # endregion
 
     # region CRUD
@@ -219,16 +382,6 @@ class ShipmentRequest(models.Model):
     def action_set_grouping(self):
         """Set status to Groupage (shipment + parcels)."""
         self._set_state_with_parcels('grouping')
-
-    def action_set_in_transit(self):
-        """Set status to En transit (shipment + parcels).
-        
-        Validates that all ordered products have been packed into parcels
-        before allowing the transition.
-        """
-        for shipment in self:
-            shipment._check_all_products_packed()
-        self._set_state_with_parcels('in_transit')
 
     def _check_all_products_packed(self):
         """Check that all ordered products are fully packed in parcels.
@@ -331,6 +484,330 @@ class ShipmentRequest(models.Model):
                     'sticky': False,
                 }
             }
+
+    # region Proforma / Invoice Methods
+    def _get_transport_product(self):
+        """Get or create the transport service product for invoicing."""
+        # Try to get the transport product by XML ID using env.ref
+        try:
+            transport_product = self.env.ref(
+                'custom_shipment_tracking.product_transport_service', raise_if_not_found=False
+            )
+            if transport_product:
+                return transport_product
+        except Exception:
+            pass
+
+        # Search by default_code as fallback
+        Product = self.env['product.product']
+        transport_product = Product.search([
+            ('default_code', '=', 'TRANSPORT_SERVICE'),
+        ], limit=1)
+
+        if not transport_product:
+            transport_product = Product.create({
+                'name': 'Service de Transport',
+                'default_code': 'TRANSPORT_SERVICE',
+                'type': 'service',
+                'sale_ok': True,
+                'purchase_ok': False,
+                'list_price': 0.0,
+                'description_sale': 'Frais de transport',
+            })
+            _logger.info('Created transport service product: %s', transport_product.name)
+
+        return transport_product
+
+    def _calculate_transport_fee(self):
+        """Calculate transport fee based on total weight and rate."""
+        self.ensure_one()
+        return self.total_weight * self.transport_fee_rate
+
+    def _prepare_proforma_lines(self):
+        """Prepare invoice lines for the proforma.
+        
+        Returns a list of invoice line vals including:
+        - One line per parcel with its declared value
+        - One line for transport fees
+        - One line for customs fees (if any)
+        - One line for service fees (if any)
+        """
+        self.ensure_one()
+        lines = []
+
+        # Add a line for each parcel with its products summary
+        for parcel in self.parcel_ids:
+            # Build description from parcel products
+            product_details = []
+            for line in parcel.parcel_line_ids:
+                product_details.append(
+                    f"  - {line.product_id.display_name}: {line.quantity:.2f} x {line.unit_price:.2f}"
+                )
+            product_desc = '\n'.join(product_details) if product_details else 'Aucun produit'
+            
+            # Use declared value or total_value
+            parcel_value = parcel.declared_value if parcel.declared_value else parcel.total_value
+            
+            lines.append({
+                'name': f"Colis {parcel.name} ({parcel.weight:.2f} kg)\n{product_desc}",
+                'quantity': 1,
+                'price_unit': parcel_value,
+            })
+
+        # Add transport fee line
+        transport_fee = self._calculate_transport_fee()
+        if transport_fee > 0:
+            transport_product = self._get_transport_product()
+            lines.append({
+                'product_id': transport_product.id,
+                'name': f"Frais de transport ({self.total_weight:.2f} kg x {self.transport_fee_rate:.2f} / kg)",
+                'quantity': 1,
+                'price_unit': transport_fee,
+            })
+            self.transport_fee = transport_fee
+
+        # Add customs fees line (if any)
+        if self.customs_fees > 0:
+            lines.append({
+                'name': 'Taxes douanières',
+                'quantity': 1,
+                'price_unit': self.customs_fees,
+            })
+
+        # Add service fees line (if any)
+        if self.service_fees > 0:
+            lines.append({
+                'name': 'Services annexes (transit, emballage)',
+                'quantity': 1,
+                'price_unit': self.service_fees,
+            })
+
+        return lines
+
+    def action_create_proforma(self):
+        """Create a proforma invoice (draft) for this shipment."""
+        self.ensure_one()
+
+        if self.proforma_invoice_id:
+            raise UserError("Un proforma existe déjà pour cette expédition.")
+
+        if not self.parcel_ids:
+            raise UserError("Aucun colis n'est associé à cette expédition.")
+
+        if not self.partner_id:
+            raise UserError("Veuillez définir un client pour cette expédition.")
+
+        # Prepare invoice vals
+        invoice_vals = {
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_id.id,
+            'invoice_date': fields.Date.today(),
+            'ref': f"Proforma - {self.name}",
+            'narration': f"Expédition: {self.name}\nNuméro principal colis: {self.main_parcel_number or 'N/A'}",
+            'invoice_line_ids': [(0, 0, line) for line in self._prepare_proforma_lines()],
+        }
+
+        # Create the invoice
+        invoice = self.env['account.move'].create(invoice_vals)
+        
+        # Link invoice to shipment
+        self.write({
+            'proforma_invoice_id': invoice.id,
+            'proforma_state': 'draft',
+        })
+
+        _logger.info(
+            'Created proforma invoice %s for shipment %s',
+            invoice.name,
+            self.name,
+        )
+
+        # Return action to view the created proforma
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+            'view_mode': 'form',
+            'res_id': invoice.id,
+            'target': 'current',
+        }
+
+    def action_confirm_and_invoice(self):
+        """Confirm the proforma and convert it to a final invoice."""
+        self.ensure_one()
+
+        if not self.proforma_invoice_id:
+            raise UserError("Aucun proforma n'existe pour cette expédition. Créez d'abord un proforma.")
+
+        # If invoice is already posted, just update state and return
+        if self.proforma_invoice_id.state == 'posted':
+            if self.proforma_state != 'confirmed':
+                self.write({
+                    'invoice_id': self.proforma_invoice_id.id,
+                    'proforma_state': 'confirmed',
+                })
+            raise UserError("La facture a déjà été confirmée.")
+
+        if self.proforma_state == 'confirmed':
+            raise UserError("La facture a déjà été confirmée.")
+
+        if self.proforma_invoice_id.state != 'draft':
+            raise UserError("Le proforma doit être à l'état brouillon pour être confirmé.")
+
+        # Post the invoice to confirm it
+        self.proforma_invoice_id.action_post()
+
+        # Update shipment
+        self.write({
+            'invoice_id': self.proforma_invoice_id.id,
+            'proforma_state': 'confirmed',
+        })
+
+        _logger.info(
+            'Confirmed invoice %s for shipment %s',
+            self.proforma_invoice_id.name,
+            self.name,
+        )
+
+        # Return action to view the confirmed invoice
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+            'view_mode': 'form',
+            'res_id': self.proforma_invoice_id.id,
+            'target': 'current',
+        }
+
+    def action_view_invoices(self):
+        """Open invoices related to this shipment."""
+        self.ensure_one()
+        
+        invoice_ids = []
+        if self.proforma_invoice_id:
+            invoice_ids.append(self.proforma_invoice_id.id)
+        if self.invoice_id and self.invoice_id.id not in invoice_ids:
+            invoice_ids.append(self.invoice_id.id)
+
+        if not invoice_ids:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Information',
+                    'message': 'Aucune facture associée à cette expédition.',
+                    'type': 'info',
+                    'sticky': False,
+                }
+            }
+
+        if len(invoice_ids) == 1:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'form',
+                'res_id': invoice_ids[0],
+                'target': 'current',
+            }
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', invoice_ids)],
+            'name': 'Factures',
+            'target': 'current',
+        }
+
+    # region Document Methods
+    def action_generate_documents(self):
+        """Generate all required documents for this shipment."""
+        self.ensure_one()
+        
+        if self.document_ids:
+            raise UserError("Les documents ont déjà été générés pour cette expédition.")
+        
+        Document = self.env['shipment.document']
+        document_types = ['fdi', 'dcvi', 'declaration', 'lta']
+        
+        created_docs = self.env['shipment.document']
+        for doc_type in document_types:
+            doc = Document.create({
+                'shipment_request_id': self.id,
+                'document_type': doc_type,
+                'responsible_id': self.env.user.id,
+            })
+            created_docs |= doc
+        
+        _logger.info(
+            'Generated %d documents for shipment %s',
+            len(created_docs),
+            self.name,
+        )
+        
+        self.message_post(
+            body=f"📄 {len(created_docs)} documents générés: FDI, DCVI, Déclaration de contenu, N° LTA",
+            message_type='notification',
+        )
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Documents générés',
+            'res_model': 'shipment.document',
+            'view_mode': 'kanban,list,form',
+            'domain': [('id', 'in', created_docs.ids)],
+            'target': 'current',
+        }
+
+    def action_view_documents(self):
+        """Open documents related to this shipment."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Documents - {self.name}',
+            'res_model': 'shipment.document',
+            'view_mode': 'kanban,list,form',
+            'domain': [('shipment_request_id', '=', self.id)],
+            'context': {'default_shipment_request_id': self.id},
+            'target': 'current',
+        }
+
+    def action_ready_for_transit(self):
+        """Set shipment to in_transit after all validations pass.
+        
+        This is the 'Prêt pour envoi' button that validates:
+        1. All products are packed
+        2. Invoice is confirmed
+        3. All documents are validated
+        """
+        for shipment in self:
+            # Check products are packed
+            shipment._check_all_products_packed()
+            
+            # Check invoice is confirmed
+            if shipment.proforma_state != 'confirmed':
+                raise UserError(
+                    "La facture doit être confirmée avant de pouvoir envoyer l'expédition.\n"
+                    "Créez d'abord un proforma puis confirmez-le."
+                )
+            
+            # Check all documents are validated
+            if not shipment.all_docs_validated:
+                missing_docs = shipment.document_ids.filtered(lambda d: d.state != 'validated')
+                doc_names = ', '.join(missing_docs.mapped('name'))
+                raise UserError(
+                    f"Tous les documents doivent être validés avant l'envoi.\n\n"
+                    f"Documents non validés:\n{doc_names}"
+                )
+        
+        # All checks passed, set to in_transit
+        self._set_state_with_parcels('in_transit')
+        
+        for shipment in self:
+            shipment.message_post(
+                body="🚀 Expédition prête pour envoi - Tous les documents validés, facture confirmée.",
+                message_type='notification',
+            )
+    # endregion
+    # endregion
     # endregion
 
 

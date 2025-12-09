@@ -34,6 +34,7 @@ Fonctionnalités principales:
         'crm',
         'sale',
         'website',
+        'account',
     ],
     'data': [
         # Security
@@ -41,9 +42,11 @@ Fonctionnalités principales:
         'security/ir.model.access.csv',
         # Data
         'data/sequences.xml',
+        'data/transport_products.xml',
         # Views
         'views/shipment_request_views.xml',
         'views/shipment_parcel_views.xml',
+        'views/shipment_document_views.xml',
         'views/tracking_link_views.xml',
         'views/tracking_event_views.xml',
         'views/tracking_page_templates.xml',

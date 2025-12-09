@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Transport Service Product -->
+        <record id="product_transport_service" model="product.product">
+            <field name="name">Service de Transport</field>
+            <field name="default_code">TRANSPORT_SERVICE</field>
+            <field name="type">service</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="description_sale">Frais de transport pour expédition</field>
+        </record>
+
+        <!-- Air Transport Service Product -->
+        <record id="product_air_transport_service" model="product.product">
+            <field name="name">Transport Aérien</field>
+            <field name="default_code">AIR_TRANSPORT</field>
+            <field name="type">service</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="description_sale">Frais de transport aérien</field>
+        </record>
+
+        <!-- Sea Transport Service Product -->
+        <record id="product_sea_transport_service" model="product.product">
+            <field name="name">Transport Maritime</field>
+            <field name="default_code">SEA_TRANSPORT</field>
+            <field name="type">service</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="description_sale">Frais de transport maritime</field>
+        </record>
+
+    </data>
+</odoo>

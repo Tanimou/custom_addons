@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================== -->
+    <!-- Shipment Document Views                   -->
+    <!-- ========================================== -->
+    
+    <!-- ==================== Kanban View ==================== -->
+    <record id="shipment_document_view_kanban" model="ir.ui.view">
+        <field name="name">shipment.document.view.kanban</field>
+        <field name="model">shipment.document</field>
+        <field name="arch" type="xml">
+            <kanban 
+                default_group_by="state"
+                class="o_kanban_small_column"
+                quick_create="false"
+                group_create="false"
+                group_delete="false"
+                group_edit="false"
+                records_draggable="true">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="state"/>
+                <field name="color"/>
+                <field name="responsible_id"/>
+                <field name="deadline"/>
+                <field name="reference"/>
+                <field name="attachment_count"/>
+                <field name="shipment_request_id"/>
+                <progressbar field="state" colors='{"to_prepare": "danger", "in_progress": "warning", "ready": "info", "validated": "success"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_content">
+                            <div class="o_kanban_record_top mb-1">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                </div>
+                                <field name="color" invisible="1" widget="color_picker"/>
+                            </div>
+                            
+                            <div class="o_kanban_record_body">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">
+                                        <i class="fa fa-plane me-1"/>
+                                        <field name="shipment_request_id"/>
+                                    </span>
+                                </div>
+                                
+                                <div t-if="record.reference.raw_value" class="mb-1">
+                                    <span class="badge bg-primary">
+                                        <i class="fa fa-barcode me-1"/>
+                                        <field name="reference"/>
+                                    </span>
+                                </div>
+                                
+                                <div t-if="record.deadline.raw_value" class="mb-1">
+                                    <span class="text-muted">
+                                        <i class="fa fa-calendar me-1"/>
+                                        <field name="deadline"/>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <footer class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <field name="responsible_id" widget="many2one_avatar_user"/>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span t-if="record.attachment_count.raw_value > 0" class="badge bg-secondary me-1" title="Pièces jointes">
+                                        <i class="fa fa-paperclip"/> <field name="attachment_count"/>
+                                    </span>
+                                </div>
+                            </footer>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ==================== List/Tree View ==================== -->
+    <record id="shipment_document_view_tree" model="ir.ui.view">
+        <field name="name">shipment.document.view.tree</field>
+        <field name="model">shipment.document</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'to_prepare'" 
+                  decoration-warning="state == 'in_progress'"
+                  decoration-info="state == 'ready'"
+                  decoration-success="state == 'validated'">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="document_type" optional="show"/>
+                <field name="shipment_request_id"/>
+                <field name="reference" optional="show"/>
+                <field name="state" widget="badge" 
+                       decoration-danger="state == 'to_prepare'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-info="state == 'ready'"
+                       decoration-success="state == 'validated'"/>
+                <field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="deadline" optional="show"/>
+                <field name="attachment_count" string="📎" optional="show"/>
+                <field name="validation_date" optional="hide"/>
+                <field name="validated_by_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ==================== Form View ==================== -->
+    <record id="shipment_document_view_form" model="ir.ui.view">
+        <field name="name">shipment.document.view.form</field>
+        <field name="model">shipment.document</field>
+        <field name="arch" type="xml">
+            <form string="Document d'expédition">
+                <header>
+                    <button name="action_set_in_progress" type="object" string="Commencer" 
+                            class="btn-primary" 
+                            invisible="state != 'to_prepare'"/>
+                    <button name="action_set_ready" type="object" string="Marquer prêt" 
+                            class="btn-primary" 
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_validate" type="object" string="Valider" 
+                            class="btn-success" 
+                            invisible="state != 'ready'"/>
+                    <button name="action_reset_to_prepare" type="object" string="Réinitialiser" 
+                            class="btn-secondary" 
+                            invisible="state == 'to_prepare'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="to_prepare,in_progress,ready,validated"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_attachments" type="object" 
+                                class="oe_stat_button" icon="fa-paperclip"
+                                invisible="attachment_count == 0">
+                            <field name="attachment_count" widget="statinfo" string="Pièces jointes"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Validé" bg_color="text-bg-success" invisible="state != 'validated'"/>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Informations générales">
+                            <field name="shipment_request_id" readonly="state == 'validated'"/>
+                            <field name="document_type" readonly="state == 'validated'"/>
+                            <field name="reference" placeholder="Numéro de référence du document"/>
+                        </group>
+                        <group string="Suivi">
+                            <field name="responsible_id" widget="many2one_avatar_user"/>
+                            <field name="deadline"/>
+                        </group>
+                    </group>
+                    
+                    <group invisible="state != 'validated'" string="Validation">
+                        <group>
+                            <field name="validation_date" readonly="1"/>
+                            <field name="validated_by_id" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Ajouter des notes ou instructions pour ce document..."/>
+                        </page>
+                        <page string="Pièces jointes" name="attachments">
+                            <field name="attachment_ids" widget="many2many_binary">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="mimetype"/>
+                                    <field name="create_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== Search View ==================== -->
+    <record id="shipment_document_view_search" model="ir.ui.view">
+        <field name="name">shipment.document.view.search</field>
+        <field name="model">shipment.document</field>
+        <field name="arch" type="xml">
+            <search string="Recherche Documents">
+                <field name="name"/>
+                <field name="reference"/>
+                <field name="shipment_request_id"/>
+                <field name="responsible_id"/>
+                
+                <separator/>
+                <filter string="À préparer" name="filter_to_prepare" domain="[('state', '=', 'to_prepare')]"/>
+                <filter string="En cours" name="filter_in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Prêts" name="filter_ready" domain="[('state', '=', 'ready')]"/>
+                <filter string="Validés" name="filter_validated" domain="[('state', '=', 'validated')]"/>
+                
+                <separator/>
+                <filter string="FDI" name="filter_fdi" domain="[('document_type', '=', 'fdi')]"/>
+                <filter string="DCVI" name="filter_dcvi" domain="[('document_type', '=', 'dcvi')]"/>
+                <filter string="Déclaration" name="filter_declaration" domain="[('document_type', '=', 'declaration')]"/>
+                <filter string="N° LTA" name="filter_lta" domain="[('document_type', '=', 'lta')]"/>
+                
+                <separator/>
+                <filter string="Mes documents" name="filter_my_docs" domain="[('responsible_id', '=', uid)]"/>
+                <filter string="Échéance dépassée" name="filter_overdue" 
+                        domain="[('deadline', '&lt;', context_today().strftime('%Y-%m-%d')), ('state', 'not in', ['validated'])]"/>
+                
+                <!-- <separator/>
+                <group expand="0" string="Grouper par">
+                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'document_type'}"/>
+                    <filter string="Expédition" name="group_shipment" context="{'group_by': 'shipment_request_id'}"/>
+                    <filter string="Responsable" name="group_responsible" context="{'group_by': 'responsible_id'}"/>
+                    <filter string="Échéance" name="group_deadline" context="{'group_by': 'deadline:month'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- ==================== Actions ==================== -->
+    <record id="shipment_document_action" model="ir.actions.act_window">
+        <field name="name">Documents d'expédition</field>
+        <field name="res_model">shipment.document</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="shipment_document_view_search"/>
+        <field name="context">{'search_default_filter_to_prepare': 1, 'search_default_filter_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun document à traiter
+            </p>
+            <p>
+                Les documents sont automatiquement générés lors de la création d'une nouvelle expédition.
+            </p>
+        </field>
+    </record>
+
+    <record id="shipment_document_action_my_docs" model="ir.actions.act_window">
+        <field name="name">Mes Documents</field>
+        <field name="res_model">shipment.document</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="shipment_document_view_search"/>
+        <field name="context">{'search_default_filter_my_docs': 1}</field>
+        <field name="domain">[('state', 'not in', ['validated'])]</field>
+    </record>
+
+    <record id="shipment_document_action_all" model="ir.actions.act_window">
+        <field name="name">Tous les Documents</field>
+        <field name="res_model">shipment.document</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="shipment_document_view_search"/>
+    </record>
+
+    <!-- ==================== Menu Items ==================== -->
+    <!-- Note: Main menu 'menu_shipment_root' defined in menu_actions.xml -->
+    
+    <menuitem 
+        id="menu_shipment_documents"
+        name="Documents"
+        parent="menu_shipment_root"
+        action="shipment_document_action"
+        sequence="15"/>
+    
+    <menuitem 
+        id="menu_shipment_documents_my"
+        name="Mes Documents"
+        parent="menu_shipment_documents"
+        action="shipment_document_action_my_docs"
+        sequence="10"/>
+    
+    <menuitem 
+        id="menu_shipment_documents_all"
+        name="Tous les Documents"
+        parent="menu_shipment_documents"
+        action="shipment_document_action_all"
+        sequence="20"/>
+
+</odoo>
