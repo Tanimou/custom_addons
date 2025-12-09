@@ -47,6 +47,7 @@ Fonctionnalités principales:
         'views/shipment_request_views.xml',
         'views/shipment_parcel_views.xml',
         'views/shipment_document_views.xml',
+        'views/sale_order_views.xml',
         'views/tracking_link_views.xml',
         'views/tracking_event_views.xml',
         'views/tracking_page_templates.xml',

@@ -834,13 +834,41 @@ class SaleOrderShipmentExtension(models.Model):
             order.shipment_request_count = len(order.shipment_request_ids)
 
     def action_confirm(self):
-        """Override to create shipment request on CRM-originated order confirmation."""
+        """Override to create shipment request on CRM-originated order confirmation.
+        
+        Also sets the CRM opportunity to 'Won' stage when order is confirmed.
+        """
         res = super().action_confirm()
         for order in self:
             # Check if order originates from CRM (has opportunity_id)
-            if order.opportunity_id and not order.shipment_request_ids:
-                order._create_shipment_request_from_order()
+            if order.opportunity_id:
+                # Create shipment request if not exists
+                if not order.shipment_request_ids:
+                    order._create_shipment_request_from_order()
+                
+                # Set opportunity to Won stage
+                order._set_opportunity_won()
         return res
+
+    def _set_opportunity_won(self):
+        """Set the linked CRM opportunity to 'Won' stage."""
+        self.ensure_one()
+        if not self.opportunity_id:
+            return
+        
+        # Find Won stage (crm.stage_lead4)
+        won_stage = self.env.ref('crm.stage_lead4', raise_if_not_found=False)
+        if not won_stage:
+            # Fallback: search for stage with is_won=True
+            won_stage = self.env['crm.stage'].search([('is_won', '=', True)], limit=1)
+        
+        if won_stage and self.opportunity_id.stage_id != won_stage:
+            self.opportunity_id.write({'stage_id': won_stage.id})
+            _logger.info(
+                'Set opportunity %s to Won stage after order %s confirmation',
+                self.opportunity_id.name,
+                self.name,
+            )
 
     def _create_shipment_request_from_order(self):
         """Create a shipment request linked to this confirmed order."""
@@ -885,12 +913,99 @@ class SaleOrderShipmentExtension(models.Model):
     def action_view_shipment_requests(self):
         """Open shipment requests linked to this order."""
         self.ensure_one()
-        action = self.env['ir.actions.act_window']._for_xml_id(
-            'custom_shipment_tracking.action_shipment_request'
-        )
+        
         if self.shipment_request_count == 1:
-            action['view_mode'] = 'form'
-            action['res_id'] = self.shipment_request_ids.id
+            # Open directly in form view for single shipment
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Expédition',
+                'res_model': 'shipment.request',
+                'view_mode': 'form',
+                'res_id': self.shipment_request_ids.id,
+                'target': 'current',
+            }
         else:
-            action['domain'] = [('id', 'in', self.shipment_request_ids.ids)]
-        return action
+            # Open list view for multiple shipments
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Expéditions',
+                'res_model': 'shipment.request',
+                'view_mode': 'list,form',
+                'domain': [('id', 'in', self.shipment_request_ids.ids)],
+                'target': 'current',
+            }
+
+
+class CrmLeadShipmentExtension(models.Model):
+    """Extend CRM Lead to auto-create quotations on stage change."""
+
+    _inherit = 'crm.lead'
+
+    def write(self, vals):
+        """Override to create quotation when moving to Proposition stage."""
+        res = super().write(vals)
+        
+        # Check if stage is being changed
+        if 'stage_id' in vals:
+            proposition_stage = self.env.ref('crm.stage_lead3', raise_if_not_found=False)
+            if proposition_stage and vals.get('stage_id') == proposition_stage.id:
+                for lead in self:
+                    lead._create_quotation_if_none()
+        
+        return res
+
+    def _create_quotation_if_none(self):
+        """Create a draft quotation for this opportunity if none exists."""
+        self.ensure_one()
+        
+        # Check if any quotation already exists for this opportunity
+        existing_orders = self.env['sale.order'].search([
+            ('opportunity_id', '=', self.id),
+        ], limit=1)
+        
+        if existing_orders:
+            _logger.info(
+                'Opportunity %s already has quotation(s), skipping auto-creation',
+                self.name,
+            )
+            return False
+        
+        # Need partner to create quotation
+        if not self.partner_id:
+            _logger.warning(
+                'Cannot auto-create quotation for opportunity %s: no partner set',
+                self.name,
+            )
+            return False
+        
+        # Create draft quotation
+        SaleOrder = self.env['sale.order']
+        vals = {
+            'partner_id': self.partner_id.id,
+            'opportunity_id': self.id,
+            'origin': self.name,
+            'company_id': self.company_id.id if self.company_id else self.env.company.id,
+        }
+        
+        # Add team if available
+        if self.team_id:
+            vals['team_id'] = self.team_id.id
+        
+        # Add user if available
+        if self.user_id:
+            vals['user_id'] = self.user_id.id
+        
+        order = SaleOrder.create(vals)
+        _logger.info(
+            'Auto-created draft quotation %s from opportunity %s (Proposition stage)',
+            order.name,
+            self.name,
+        )
+        
+        # Post message on opportunity
+        self.message_post(
+            body=f"📋 Devis {order.name} créé automatiquement lors du passage en Proposition.",
+            message_type='notification',
+        )
+        
+        return order
