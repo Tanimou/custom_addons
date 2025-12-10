@@ -35,6 +35,7 @@ Fonctionnalités principales:
         'sale',
         'website',
         'account',
+        'documents',
     ],
     'data': [
         # Security

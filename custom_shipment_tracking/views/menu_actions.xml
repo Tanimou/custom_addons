@@ -10,7 +10,7 @@
         <field name="name">Demandes d'expédition</field>
         <field name="res_model">shipment.request</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="search_view_id" ref="shipment_request_view_search"/>
+        <!-- <field name="search_view_id" ref="shipment_request_view_search"/> -->
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -65,5 +65,28 @@
         parent="menu_shipment_root"
         action="action_tracking_event"
         sequence="40"/>
+
+    <!-- Note: Main menu 'menu_shipment_root' defined in menu_actions.xml -->
+    
+    <menuitem 
+        id="menu_shipment_documents"
+        name="Documents"
+        parent="menu_shipment_root"
+        action="shipment_document_action"
+        sequence="15"/>
+    
+    <menuitem 
+        id="menu_shipment_documents_my"
+        name="Mes Documents"
+        parent="menu_shipment_documents"
+        action="shipment_document_action_my_docs"
+        sequence="10"/>
+    
+    <menuitem 
+        id="menu_shipment_documents_all"
+        name="Tous les Documents"
+        parent="menu_shipment_documents"
+        action="shipment_document_action_all"
+        sequence="20"/>
 
 </odoo>

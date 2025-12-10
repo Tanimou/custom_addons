@@ -3,243 +3,231 @@
 
     <!-- ========================================== -->
     <!-- PUBLIC TRACKING PAGE - Main Template       -->
+    <!-- Shows parcels for a shipment               -->
     <!-- ========================================== -->
-    <template id="tracking_page" name="Page de suivi colis">
+    <template id="tracking_page" name="Page de suivi expédition">
         <t t-call="website.layout">
             <div id="wrap" class="oe_structure">
                 <div class="container py-5">
-                    <!-- Header -->
+                    <!-- Header with Shipment Info -->
                     <div class="row mb-4">
                         <div class="col-12 text-center">
                             <h1 class="display-5 mb-3">
                                 <i class="fa fa-truck me-2"/>
-                                Suivi de votre colis
+                                Suivi de votre expédition
                             </h1>
                             <h2 class="h3 text-muted">
-                                <span t-field="parcel.name"/>
+                                <i class="fa fa-user me-2"/>
+                                <span t-field="partner.name"/>
                             </h2>
+                            <p class="text-muted">
+                                Expédition: <strong t-out="shipment_data['shipment'].name"/>
+                            </p>
                         </div>
                     </div>
 
-                    <!-- Status Card -->
+                    <!-- Summary Stats Cards -->
                     <div class="row mb-4">
-                        <div class="col-12 col-md-8 offset-md-2">
-                            <div class="card shadow-sm">
-                                <div class="card-body text-center py-4">
-                                    <t t-set="status_color" t-value="status_colors.get(parcel.state, 'secondary')"/>
-                                    <t t-set="status_icon" t-value="status_icons.get(parcel.state, 'fa-question')"/>
-                                    <span t-attf-class="badge rounded-pill bg-#{status_color} fs-4 px-4 py-2 mb-3">
-                                        <i t-attf-class="fa #{status_icon} me-2"/>
-                                        <t t-out="status_labels.get(parcel.state, parcel.state)"/>
-                                    </span>
-                                    <p class="text-muted mb-0 mt-2">
-                                        Dernière mise à jour:
-                                        <strong t-if="events">
-                                            <t t-out="events[0].event_date" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/>
-                                        </strong>
-                                        <span t-else="">Non disponible</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Status Progress Bar -->
-                    <div class="row mb-5">
-                        <div class="col-12 col-md-10 offset-md-1">
-                            <div class="d-flex justify-content-between position-relative">
-                                <t t-set="states" t-value="['registered', 'grouping', 'in_transit', 'arrived', 'delivered']"/>
-                                <t t-set="state_index" t-value="states.index(parcel.state) if parcel.state in states else 0"/>
-                                <t t-foreach="states" t-as="st">
-                                    <t t-set="is_done" t-value="states.index(st) &lt;= state_index"/>
-                                    <div class="text-center" style="width: 20%;">
-                                        <div t-attf-class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 #{'bg-success text-white' if is_done else 'bg-light text-muted'}"
-                                             style="width: 40px; height: 40px;">
-                                            <i t-attf-class="fa #{status_icons.get(st, 'fa-check')}"/>
-                                        </div>
-                                        <small t-attf-class="d-block #{'text-success fw-bold' if st == parcel.state else 'text-muted' if not is_done else ''}">
-                                            <t t-out="status_labels.get(st, st)"/>
-                                        </small>
-                                    </div>
-                                </t>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Parcel Information -->
-                    <div class="row mb-4">
-                        <div class="col-12 col-md-6">
-                            <div class="card h-100">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-cube me-2"/>
-                                        Informations colis
-                                    </h5>
-                                </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center h-100 border-primary">
                                 <div class="card-body">
-                                    <table class="table table-borderless mb-0">
-                                        <tr>
-                                            <td class="text-muted">Référence</td>
-                                            <td class="fw-bold"><t t-out="parcel.name"/></td>
-                                        </tr>
-                                        <tr t-if="parcel.weight">
-                                            <td class="text-muted">Poids</td>
-                                            <td><t t-out="parcel.weight"/> kg</td>
-                                        </tr>
-                                        <tr t-if="parcel.content_description">
-                                            <td class="text-muted">Contenu</td>
-                                            <td><t t-out="parcel.content_description"/></td>
-                                        </tr>
-                                        <tr t-if="parcel.product_count">
-                                            <td class="text-muted">Produits</td>
-                                            <td><t t-out="parcel.product_count"/> article(s)</td>
-                                        </tr>
-                                    </table>
+                                    <h3 class="text-primary mb-1"><t t-out="total_parcels"/></h3>
+                                    <small class="text-muted">Total colis</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6 mt-3 mt-md-0">
-                            <div class="card h-100">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-map-marker me-2"/>
-                                        Destination
-                                    </h5>
-                                </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center h-100 border-info">
                                 <div class="card-body">
-                                    <table class="table table-borderless mb-0">
-                                        <tr t-if="parcel.effective_destination_country_id">
-                                            <td class="text-muted">Pays</td>
-                                            <td><t t-out="parcel.effective_destination_country_id.name"/></td>
-                                        </tr>
-                                        <tr t-if="parcel.destination_city or shipment.destination_city">
-                                            <td class="text-muted">Ville</td>
-                                            <td><t t-out="parcel.destination_city or shipment.destination_city"/></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Mode de transport</td>
-                                            <td>
-                                                <t t-if="parcel.effective_transport_mode == 'air'">
-                                                    <i class="fa fa-plane me-1"/>Aérien
-                                                </t>
-                                                <t t-elif="parcel.effective_transport_mode == 'sea'">
-                                                    <i class="fa fa-ship me-1"/>Maritime
-                                                </t>
-                                                <t t-else="">Non spécifié</t>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    <h3 class="text-info mb-1"><t t-out="in_transit_count"/></h3>
+                                    <small class="text-muted">En transit</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mt-3 mt-md-0">
+                            <div class="card text-center h-100 border-warning">
+                                <div class="card-body">
+                                    <h3 class="text-warning mb-1"><t t-out="arrived_count"/></h3>
+                                    <small class="text-muted">Arrivés</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mt-3 mt-md-0">
+                            <div class="card text-center h-100 border-success">
+                                <div class="card-body">
+                                    <h3 class="text-success mb-1"><t t-out="delivered_count"/></h3>
+                                    <small class="text-muted">Livrés</small>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Parcel Contents - Products -->
-                    <div class="row mb-4" t-if="parcel.parcel_line_ids">
-                        <div class="col-12 col-md-10 offset-md-1">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-cubes me-2"/>
-                                        Contenu du colis
-                                    </h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Produit</th>
-                                                <th class="text-center">Quantité</th>
-                                                <th class="text-end">Prix unitaire</th>
-                                                <th class="text-end">Sous-total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <t t-foreach="parcel.parcel_line_ids" t-as="line">
-                                                <tr>
-                                                    <td>
-                                                        <strong t-out="line.product_id.name"/>
-                                                        <br t-if="line.sale_order_line_id.order_id"/>
-                                                        <small t-if="line.sale_order_line_id.order_id" class="text-muted">
-                                                            Commande: <t t-out="line.sale_order_line_id.order_id.name"/>
-                                                        </small>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <t t-out="line.quantity"/>
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <t t-out="line.unit_price" t-options="{'widget': 'monetary', 'display_currency': parcel.currency_id}"/>
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <t t-out="line.subtotal" t-options="{'widget': 'monetary', 'display_currency': parcel.currency_id}"/>
-                                                    </td>
-                                                </tr>
-                                            </t>
-                                        </tbody>
-                                        <tfoot class="table-light">
-                                            <tr>
-                                                <td colspan="3" class="text-end fw-bold">Total</td>
-                                                <td class="text-end fw-bold">
-                                                    <t t-out="parcel.total_value" t-options="{'widget': 'monetary', 'display_currency': parcel.currency_id}"/>
-                                                </td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tracking Events Timeline -->
-                    <div class="row" t-if="events">
-                        <div class="col-12 col-md-10 offset-md-1">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-history me-2"/>
-                                        Historique du suivi
-                                    </h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="list-group list-group-flush">
-                                        <t t-foreach="events" t-as="event">
-                                            <div class="list-group-item">
-                                                <div class="d-flex w-100 justify-content-between align-items-start">
-                                                    <div>
-                                                        <h6 class="mb-1">
-                                                            <t t-set="event_label" t-value="status_labels.get(event.event_type, event.event_type)"/>
-                                                            <span t-attf-class="badge bg-#{status_colors.get(event.event_type, 'secondary')} me-2">
-                                                                <i t-attf-class="fa #{status_icons.get(event.event_type, 'fa-info')} me-1"/>
-                                                                <t t-out="event_label"/>
-                                                            </span>
-                                                            <span t-if="event.location" class="text-muted small">
-                                                                <i class="fa fa-map-marker me-1"/>
-                                                                <t t-out="event.location"/>
-                                                            </span>
-                                                        </h6>
-                                                        <p t-if="event.description" class="mb-0 text-muted small">
-                                                            <t t-out="event.description"/>
-                                                        </p>
-                                                    </div>
-                                                    <small class="text-muted text-nowrap ms-3">
-                                                        <t t-out="event.event_date" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/>
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </t>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- No Events Message -->
-                    <div class="row" t-if="not events">
+                    <!-- No parcels message -->
+                    <div class="row" t-if="not shipment_data['parcels']">
                         <div class="col-12 col-md-8 offset-md-2">
                             <div class="alert alert-info text-center">
                                 <i class="fa fa-info-circle me-2"/>
-                                Aucun événement de suivi disponible pour le moment.
+                                Aucun colis pour cette expédition.
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipment Card -->
+                    <t t-set="shipment" t-value="shipment_data['shipment']"/>
+                    <t t-set="parcels" t-value="shipment_data['parcels']"/>
+                    <t t-set="events" t-value="shipment_data['events']"/>
+
+                    <div class="card mb-4 shadow-sm" t-if="parcels">
+                        <!-- Shipment Header -->
+                        <div class="card-header bg-dark text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">
+                                    <i class="fa fa-shipping-fast me-2"/>
+                                    Expédition <t t-out="shipment.name"/>
+                                </h4>
+                                <t t-set="shipment_status" t-value="shipment.state"/>
+                                <span t-attf-class="badge bg-#{status_colors.get(shipment_status, 'secondary')} fs-6">
+                                    <i t-attf-class="fa #{status_icons.get(shipment_status, 'fa-question')} me-1"/>
+                                    <t t-out="status_labels.get(shipment_status, shipment_status)"/>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Shipment Info Row -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Destination</small>
+                                    <p class="mb-0 fw-bold">
+                                        <t t-if="shipment.destination_country_id">
+                                            <t t-out="shipment.destination_country_id.name"/>
+                                            <t t-if="shipment.destination_city"> - <t t-out="shipment.destination_city"/></t>
+                                        </t>
+                                        <t t-else="">Non spécifié</t>
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Mode de transport</small>
+                                    <p class="mb-0 fw-bold">
+                                        <t t-if="shipment.transport_mode == 'air'">
+                                            <i class="fa fa-plane me-1"/>Aérien
+                                        </t>
+                                        <t t-elif="shipment.transport_mode == 'sea'">
+                                            <i class="fa fa-ship me-1"/>Maritime
+                                        </t>
+                                        <t t-else="">Non spécifié</t>
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Date prévue</small>
+                                    <p class="mb-0 fw-bold">
+                                        <t t-if="shipment.planned_date">
+                                            <t t-out="shipment.planned_date" t-options="{'widget': 'date', 'format': 'dd/MM/yyyy'}"/>
+                                        </t>
+                                        <t t-else="">-</t>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Parcels Table -->
+                            <h5 class="mb-3">
+                                <i class="fa fa-cubes me-2"/>
+                                Colis (<t t-out="len(parcels)"/>)
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Référence</th>
+                                            <th>Contenu</th>
+                                            <th class="text-center">Poids</th>
+                                            <th class="text-center">Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="parcels" t-as="parcel">
+                                            <tr>
+                                                <td class="fw-bold">
+                                                    <t t-out="parcel.name"/>
+                                                </td>
+                                                <td>
+                                                    <t t-if="parcel.content_description">
+                                                        <t t-out="parcel.content_description"/>
+                                                    </t>
+                                                    <t t-elif="parcel.product_count">
+                                                        <t t-out="parcel.product_count"/> article(s)
+                                                    </t>
+                                                    <t t-else="">-</t>
+                                                </td>
+                                                <td class="text-center">
+                                                    <t t-if="parcel.weight">
+                                                        <t t-out="parcel.weight"/> kg
+                                                    </t>
+                                                    <t t-else="">-</t>
+                                                </td>
+                                                <td class="text-center">
+                                                    <t t-set="parcel_color" t-value="status_colors.get(parcel.state, 'secondary')"/>
+                                                    <span t-attf-class="badge bg-#{parcel_color}">
+                                                        <i t-attf-class="fa #{status_icons.get(parcel.state, 'fa-question')} me-1"/>
+                                                        <t t-out="status_labels.get(parcel.state, parcel.state)"/>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <!-- Parcel Contents Expansion (if has products) -->
+                                            <t t-if="parcel.parcel_line_ids">
+                                                <tr class="table-secondary">
+                                                    <td colspan="4" class="ps-4">
+                                                        <small>
+                                                            <strong>Contenu:</strong>
+                                                            <t t-foreach="parcel.parcel_line_ids" t-as="line">
+                                                                <span class="ms-2">
+                                                                    • <t t-out="line.product_id.name"/> 
+                                                                    (<t t-out="line.quantity"/> x <t t-out="line.unit_price" t-options="{'widget': 'monetary', 'display_currency': parcel.currency_id}"/>)
+                                                                </span>
+                                                            </t>
+                                                        </small>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Recent Events for this Shipment -->
+                            <t t-if="events">
+                                <h5 class="mb-3 mt-4">
+                                    <i class="fa fa-history me-2"/>
+                                    Derniers événements
+                                </h5>
+                                <div class="list-group list-group-flush">
+                                    <t t-foreach="events[:5]" t-as="event">
+                                        <div class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                                <div>
+                                                    <span t-attf-class="badge bg-#{status_colors.get(event.event_type, 'secondary')} me-2">
+                                                        <i t-attf-class="fa #{status_icons.get(event.event_type, 'fa-info')} me-1"/>
+                                                        <t t-out="status_labels.get(event.event_type, event.event_type)"/>
+                                                    </span>
+                                                    <small class="text-muted" t-if="event.parcel_id">
+                                                        <t t-out="event.parcel_id.name"/>
+                                                    </small>
+                                                    <span t-if="event.location" class="text-muted small ms-2">
+                                                        <i class="fa fa-map-marker me-1"/>
+                                                        <t t-out="event.location"/>
+                                                    </span>
+                                                    <p t-if="event.description" class="mb-0 text-muted small mt-1">
+                                                        <t t-out="event.description"/>
+                                                    </p>
+                                                </div>
+                                                <small class="text-muted text-nowrap ms-3">
+                                                    <t t-out="event.event_date" t-options="{'widget': 'datetime', 'format': 'dd/MM/yyyy HH:mm'}"/>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
                         </div>
                     </div>
 
@@ -248,6 +236,9 @@
                         <div class="col-12 text-center text-muted">
                             <small>
                                 Ce lien a été consulté <t t-out="link.access_count"/> fois.
+                                <br/>
+                                <i class="fa fa-shield me-1"/>
+                                Lien sécurisé - Ne le partagez qu'avec des personnes de confiance.
                             </small>
                         </div>
                     </div>

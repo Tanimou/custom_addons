@@ -8,7 +8,7 @@
         <field name="name">shipment.request.view.tree</field>
         <field name="model">shipment.request</field>
         <field name="arch" type="xml">
-            <list string="Demandes d'expédition" decoration-info="state == 'registered'" decoration-warning="state == 'grouping'" decoration-success="state == 'delivered'">
+            <list string="Demandes d'expédition" create="false" decoration-info="state == 'registered'" decoration-warning="state == 'grouping'" decoration-success="state == 'delivered'">
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="destination_country_id"/>
@@ -258,15 +258,16 @@
         <field name="name">shipment.request.view.kanban</field>
         <field name="model">shipment.request</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" class="o_kanban_small_column" sample="1">
+            <kanban default_group_by="state" class="o_kanban_small_column" sample="1" create="false" group_create="0" on_create="quick_create">
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="destination_country_id"/>
                 <field name="destination_city"/>
                 <field name="transport_mode"/>
-                <field name="state"/>
+                <field name="state" options="{'group_by_tooltip': {'selection': 'state'}}" groups_draggable="1"/>
                 <field name="planned_date"/>
                 <field name="parcel_count"/>
+                <field name="parcel_references"/>
                 <field name="tracking_url"/>
                 <progressbar field="state" colors='{"registered": "info", "grouping": "warning", "in_transit": "warning", "arrived": "success", "delivered": "success"}'/>
                 <templates>
@@ -299,6 +300,11 @@
                                         <i class="fa fa-ship me-1"/>Maritime
                                     </span>
                                 </t>
+                            </div>
+                            <!-- Parcel references -->
+                            <div class="mb-1" t-if="record.parcel_references.raw_value">
+                                <i class="fa fa-cubes me-1" title="Références colis"/>
+                                <span class="text-muted small"><field name="parcel_references"/></span>
                             </div>
                         </div>
                         <footer class="pt-2">

@@ -56,6 +56,7 @@ Ce module personnalisé pour Odoo 19 Enterprise offre une solution complète pou
         'calendar',
         'web',
         'board',
+        'documents_fleet',
     ],
     'data': [
         # Sécurité - doit être chargé en premier

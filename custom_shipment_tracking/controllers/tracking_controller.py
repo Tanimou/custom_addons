@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Public tracking page controller.
-Allows clients to view parcel status without authentication.
+Allows clients to view their shipment parcels status without authentication.
 """
 
 import logging
@@ -24,7 +24,7 @@ class TrackingController(http.Controller):
     )
     def tracking_page(self, token, **kwargs):
         """
-        Public tracking page for a parcel.
+        Public tracking page for a shipment's parcels.
 
         Args:
             token: The tracking link token (UUID)
@@ -50,21 +50,37 @@ class TrackingController(http.Controller):
         # Record access
         link.record_access()
 
-        # Get parcel and related data
-        parcel = link.parcel_id
-        shipment = parcel.shipment_request_id
+        # Get shipment and its parcels
+        shipment = link.shipment_request_id
+        partner = shipment.partner_id
+        parcels = link.get_shipment_parcels()
 
-        # Get public tracking events, ordered by date desc
+        # Get events for all parcels in this shipment
         events = request.env['shipment.tracking.event'].sudo().search([
-            ('parcel_id', '=', parcel.id),
+            ('parcel_id', 'in', parcels.ids),
             ('is_public', '=', True),
-        ], order='event_date desc')
+        ], order='event_date desc', limit=10)
+
+        shipment_data = {
+            'shipment': shipment,
+            'parcels': parcels,
+            'events': events,
+        }
+
+        # Calculate overall stats
+        total_parcels = len(parcels)
+        delivered_count = len(parcels.filtered(lambda p: p.state == 'delivered'))
+        in_transit_count = len(parcels.filtered(lambda p: p.state == 'in_transit'))
+        arrived_count = len(parcels.filtered(lambda p: p.state == 'arrived'))
 
         values = {
-            'parcel': parcel,
-            'shipment': shipment,
+            'partner': partner,
             'link': link,
-            'events': events,
+            'shipment_data': shipment_data,
+            'total_parcels': total_parcels,
+            'delivered_count': delivered_count,
+            'in_transit_count': in_transit_count,
+            'arrived_count': arrived_count,
             'status_labels': {
                 'registered': 'Enregistré',
                 'grouping': 'En groupage',

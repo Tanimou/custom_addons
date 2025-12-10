@@ -3,69 +3,8 @@
     <!-- Supplier Approval Dashboard -->
     <!-- Note: Using kanban view with dashboard styling instead of deprecated 'dashboard' view type -->
 
-    <!-- Dashboard Action -->
-    <record id="action_supplier_approval_dashboard" model="ir.actions.act_window">
-        <field name="name">Tableau de Bord</field>
-        <field name="res_model">supplier.approval.request</field>
-        <field name="view_mode">kanban,list,form</field>
-        <field name="view_id" ref="view_supplier_approval_request_kanban"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Bienvenue sur le tableau de bord des approbations fournisseurs
-            </p>
-            <p>
-                Le tableau de bord vous donne une vue d'ensemble rapide de :
-                <ul>
-                    <li>Les fournisseurs approuvés</li>
-                    <li>Les demandes en attente</li>
-                    <li>Le score de satisfaction moyen</li>
-                    <li>Les évaluations récentes</li>
-                </ul>
-            </p>
-        </field>
-    </record>
-
-    <!-- Add Dashboard to Main Menu (Top Level) -->
-    <record id="menu_supplier_approval_dashboard" model="ir.ui.menu">
-        <field name="name">Tableau de Bord</field>
-        <field name="parent_id" ref="menu_supplier_approval_root"/>
-        <field name="action" ref="action_supplier_approval_dashboard"/>
-        <field name="sequence">1</field>
-    </record>
-
-    <!-- Alternative: Cohort View for Supplier Performance Over Time -->
-    <record id="view_supplier_evaluation_cohort" model="ir.ui.view">
-        <field name="name">supplier.evaluation.cohort</field>
-        <field name="model">supplier.evaluation</field>
-        <field name="arch" type="xml">
-            <cohort string="Cohorte de Performance" 
-                    date_start="evaluation_date" 
-                    date_stop="evaluation_date" 
-                    interval="month" 
-                    measure="overall_score">
-                <field name="partner_id"/>
-            </cohort>
-        </field>
-    </record>
-
-    <!-- Cohort Action -->
-    <record id="action_supplier_evaluation_cohort" model="ir.actions.act_window">
-        <field name="name">Analyse de Cohorte</field>
-        <field name="res_model">supplier.evaluation</field>
-        <field name="view_mode">cohort,list,form</field>
-        <field name="view_id" ref="view_supplier_evaluation_cohort"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Aucune donnée de cohorte disponible
-            </p>
-            <p>
-                L'analyse de cohorte permet de suivre la performance des fournisseurs
-                sur plusieurs périodes consécutives.
-            </p>
-        </field>
-    </record>
-
     <!-- Enhanced Kanban Dashboard View for Approval Requests -->
+    <!-- MUST BE DEFINED BEFORE actions that reference it -->
     <record id="view_supplier_approval_request_kanban" model="ir.ui.view">
         <field name="name">supplier.approval.request.kanban</field>
         <field name="model">supplier.approval.request</field>
@@ -125,6 +64,68 @@
                     </t>
                 </templates>
             </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_supplier_approval_dashboard" model="ir.actions.act_window">
+        <field name="name">Tableau de Bord</field>
+        <field name="res_model">supplier.approval.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_id" ref="view_supplier_approval_request_kanban"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bienvenue sur le tableau de bord des approbations fournisseurs
+            </p>
+            <p>
+                Le tableau de bord vous donne une vue d'ensemble rapide de :
+                <ul>
+                    <li>Les fournisseurs approuvés</li>
+                    <li>Les demandes en attente</li>
+                    <li>Le score de satisfaction moyen</li>
+                    <li>Les évaluations récentes</li>
+                </ul>
+            </p>
+        </field>
+    </record>
+
+    <!-- Add Dashboard to Main Menu (Top Level) -->
+    <record id="menu_supplier_approval_dashboard" model="ir.ui.menu">
+        <field name="name">Tableau de Bord</field>
+        <field name="parent_id" ref="menu_supplier_approval_root"/>
+        <field name="action" ref="action_supplier_approval_dashboard"/>
+        <field name="sequence">1</field>
+    </record>
+
+    <!-- Alternative: Cohort View for Supplier Performance Over Time -->
+    <record id="view_supplier_evaluation_cohort" model="ir.ui.view">
+        <field name="name">supplier.evaluation.cohort</field>
+        <field name="model">supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <cohort string="Cohorte de Performance" 
+                    date_start="evaluation_date" 
+                    date_stop="evaluation_date" 
+                    interval="month" 
+                    measure="overall_score">
+                <field name="partner_id"/>
+            </cohort>
+        </field>
+    </record>
+
+    <!-- Cohort Action -->
+    <record id="action_supplier_evaluation_cohort" model="ir.actions.act_window">
+        <field name="name">Analyse de Cohorte</field>
+        <field name="res_model">supplier.evaluation</field>
+        <field name="view_mode">cohort,list,form</field>
+        <field name="view_id" ref="view_supplier_evaluation_cohort"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune donnée de cohorte disponible
+            </p>
+            <p>
+                L'analyse de cohorte permet de suivre la performance des fournisseurs
+                sur plusieurs périodes consécutives.
+            </p>
         </field>
     </record>
 

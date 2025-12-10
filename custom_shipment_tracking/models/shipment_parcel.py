@@ -114,11 +114,8 @@ class ShipmentParcel(models.Model):
         store=True,
         readonly=True,
     )
-    tracking_link_ids = fields.One2many(
-        comodel_name='shipment.tracking.link',
-        inverse_name='parcel_id',
-        string='Liens de suivi',
-    )
+    # Tracking links are now per-partner (client), not per-parcel
+    # Access via partner_id.tracking_link_ids or through shipment_request_id
     tracking_event_ids = fields.One2many(
         comodel_name='shipment.tracking.event',
         inverse_name='parcel_id',
@@ -287,21 +284,25 @@ class ShipmentParcel(models.Model):
         self.action_set_state('delivered')
 
     def action_generate_tracking_link(self):
-        """Generate a tracking link for this parcel."""
+        """Generate a tracking link for this parcel's partner."""
         self.ensure_one()
+        if not self.partner_id:
+            from odoo.exceptions import UserError
+            raise UserError('Aucun client associé à ce colis.')
+
         TrackingLink = self.env['shipment.tracking.link']
 
-        # Check for existing active link
+        # Check for existing active link for this partner
         existing = TrackingLink.search([
-            ('parcel_id', '=', self.id),
+            ('partner_id', '=', self.partner_id.id),
             ('is_active', '=', True),
         ], limit=1)
 
         if existing:
             link = existing
         else:
-            link = TrackingLink.create({'parcel_id': self.id})
-            _logger.info('Generated tracking link %s for parcel %s', link.token, self.name)
+            link = TrackingLink.create({'partner_id': self.partner_id.id})
+            _logger.info('Generated tracking link %s for partner %s', link.token, self.partner_id.name)
 
         return {
             'type': 'ir.actions.act_window',

@@ -81,6 +81,7 @@ class ShipmentRequest(models.Model):
         required=True,
         tracking=True,
         index=True,
+        group_expand='_expand_states',  # Show all states in Kanban view
     )
     company_id = fields.Many2one(
         comodel_name='res.company',
@@ -104,13 +105,18 @@ class ShipmentRequest(models.Model):
         compute='_compute_parcel_count',
         store=True,
     )
+    parcel_references = fields.Char(
+        string='Références colis',
+        compute='_compute_parcel_references',
+        help='Liste des références de colis (ex: AB0001-1, AB0001-2)',
+    )
     tracking_link_id = fields.Many2one(
         comodel_name='shipment.tracking.link',
         string='Lien de suivi',
         readonly=True,
         copy=False,
         compute='_compute_tracking_link_id',
-        store=True,
+        store=False,  # Don't store - always recompute to catch new links
     )
     main_parcel_number = fields.Char(
         string='Numéro principal',
@@ -275,12 +281,26 @@ class ShipmentRequest(models.Model):
         for record in self:
             record.parcel_count = len(record.parcel_ids)
 
-    @api.depends('parcel_ids.tracking_link_ids')
+    @api.depends('parcel_ids.name')
+    def _compute_parcel_references(self):
+        """Compute comma-separated list of parcel references."""
+        for record in self:
+            refs = record.parcel_ids.mapped('name')
+            record.parcel_references = ', '.join(filter(None, refs)) if refs else ''
+
+    @api.model
+    def _expand_states(self, states, domain):
+        """Expand all states in Kanban view regardless of records.
+        
+        This ensures all columns are visible for drag-and-drop.
+        """
+        return [key for key, _ in self._fields['state'].selection]
+
     def _compute_tracking_link_id(self):
-        """Get the first active tracking link from parcels."""
+        """Get the active tracking link for this shipment."""
         for record in self:
             link = self.env['shipment.tracking.link'].search([
-                ('parcel_id', 'in', record.parcel_ids.ids),
+                ('shipment_request_id', '=', record.id),
                 ('is_active', '=', True),
             ], limit=1)
             record.tracking_link_id = link.id if link else False
@@ -440,50 +460,52 @@ class ShipmentRequest(models.Model):
         self._set_state_with_parcels('delivered')
 
     def action_generate_tracking_link(self):
-        """Generate tracking links for all parcels of this shipment."""
+        """Generate a tracking link for this shipment."""
         self.ensure_one()
         if not self.parcel_ids:
             from odoo.exceptions import UserError
             raise UserError('Aucun colis associé à cette expédition. Créez d\'abord des colis.')
 
         TrackingLink = self.env['shipment.tracking.link']
-        created_links = self.env['shipment.tracking.link']
 
-        for parcel in self.parcel_ids:
-            # Check if parcel already has an active tracking link
-            existing = TrackingLink.search([
-                ('parcel_id', '=', parcel.id),
-                ('is_active', '=', True),
-            ], limit=1)
-            if not existing:
-                link = TrackingLink.create({'parcel_id': parcel.id})
-                created_links |= link
-                _logger.info(
-                    'Generated tracking link %s for parcel %s',
-                    link.token,
-                    parcel.name,
-                )
+        # Check if shipment already has an active tracking link
+        existing = TrackingLink.search([
+            ('shipment_request_id', '=', self.id),
+            ('is_active', '=', True),
+        ], limit=1)
 
-        if created_links:
-            return {
-                'type': 'ir.actions.act_window',
-                'res_model': 'shipment.tracking.link',
-                'view_mode': 'list,form',
-                'domain': [('id', 'in', created_links.ids)],
-                'name': 'Liens de suivi générés',
-                'target': 'new',
-            }
-        else:
+        if existing:
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': 'Information',
-                    'message': 'Tous les colis ont déjà un lien de suivi actif.',
+                    'message': f'Cette expédition {self.name} a déjà un lien de suivi actif.',
                     'type': 'info',
                     'sticky': False,
+                    'links': [{
+                        'label': 'Voir le lien',
+                        'url': f'/web#id={existing.id}&model=shipment.tracking.link&view_type=form',
+                    }],
                 }
             }
+
+        # Create link for this shipment
+        link = TrackingLink.create({'shipment_request_id': self.id})
+        _logger.info(
+            'Generated tracking link %s for shipment %s',
+            link.token,
+            self.name,
+        )
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'shipment.tracking.link',
+            'view_mode': 'form',
+            'res_id': link.id,
+            'name': 'Lien de suivi généré',
+            'target': 'new',
+        }
 
     # region Proforma / Invoice Methods
     def _get_transport_product(self):
@@ -807,6 +829,65 @@ class ShipmentRequest(models.Model):
                 message_type='notification',
             )
     # endregion
+
+    # region CRUD Overrides
+    def write(self, vals):
+        """Override write to handle Kanban drag-drop state changes.
+        
+        When state changes via Kanban drag-drop:
+        - Validates transition from grouping to in_transit (docs + invoice)
+        - Syncs parcel status with shipment status
+        """
+        # Check if state is being changed
+        if 'state' in vals:
+            new_state = vals['state']
+            for shipment in self:
+                old_state = shipment.state
+                
+                # Validate transition from grouping to in_transit
+                if old_state == 'grouping' and new_state == 'in_transit':
+                    # Check invoice is confirmed
+                    if shipment.proforma_state != 'confirmed':
+                        raise UserError(
+                            "⚠️ Impossible de passer en transit !\n\n"
+                            "La facture doit être confirmée avant de pouvoir envoyer l'expédition.\n"
+                            "Créez d'abord un proforma puis confirmez-le."
+                        )
+                    
+                    # Check all documents are validated
+                    if not shipment.all_docs_validated:
+                        missing_docs = shipment.document_ids.filtered(lambda d: d.state != 'validated')
+                        if missing_docs:
+                            doc_names = ', '.join(missing_docs.mapped('name'))
+                            raise UserError(
+                                "⚠️ Impossible de passer en transit !\n\n"
+                                f"Tous les documents doivent être validés avant l'envoi.\n\n"
+                                f"Documents non validés:\n{doc_names}"
+                            )
+                        else:
+                            raise UserError(
+                                "⚠️ Impossible de passer en transit !\n\n"
+                                "Aucun document n'a été généré pour cette expédition.\n"
+                                "Cliquez sur 'Générer Documents' pour créer les documents requis."
+                            )
+        
+        # Perform the write
+        result = super().write(vals)
+        
+        # If state changed, sync parcels
+        if 'state' in vals:
+            new_state = vals['state']
+            # Cascade state to all parcels
+            parcels = self.mapped('parcel_ids')
+            if parcels:
+                parcels.write({'state': new_state})
+                # Create tracking events for each parcel
+                TrackingEvent = self.env['shipment.tracking.event']
+                for parcel in parcels:
+                    TrackingEvent.create_status_event(parcel, new_state)
+        
+        return result
+    # endregion
     # endregion
     # endregion
 
@@ -937,75 +1018,47 @@ class SaleOrderShipmentExtension(models.Model):
 
 
 class CrmLeadShipmentExtension(models.Model):
-    """Extend CRM Lead to auto-create quotations on stage change."""
+    """Extend CRM Lead to warn when moving to Proposition without quotation."""
 
     _inherit = 'crm.lead'
 
     def write(self, vals):
-        """Override to create quotation when moving to Proposition stage."""
+        """Override to warn when moving to Proposition stage without quotation."""
         res = super().write(vals)
         
-        # Check if stage is being changed
+        # Check if stage is being changed to Proposition
         if 'stage_id' in vals:
             proposition_stage = self.env.ref('crm.stage_lead3', raise_if_not_found=False)
             if proposition_stage and vals.get('stage_id') == proposition_stage.id:
                 for lead in self:
-                    lead._create_quotation_if_none()
+                    # Check if any quotation exists for this opportunity
+                    existing_orders = self.env['sale.order'].search([
+                        ('opportunity_id', '=', lead.id),
+                    ], limit=1)
+                    
+                    if not existing_orders:
+                        # Send warning notification via bus
+                        lead._notify_no_quotation_warning()
         
         return res
 
-    def _create_quotation_if_none(self):
-        """Create a draft quotation for this opportunity if none exists."""
+    def _notify_no_quotation_warning(self):
+        """Send warning notification when no quotation attached."""
         self.ensure_one()
         
-        # Check if any quotation already exists for this opportunity
-        existing_orders = self.env['sale.order'].search([
-            ('opportunity_id', '=', self.id),
-        ], limit=1)
+        # Post a notification to the user via bus
+        self.env['bus.bus']._sendone(
+            self.env.user.partner_id,
+            'simple_notification',
+            {
+                'title': "⚠️ Attention",
+                'message': f"L'opportunité '{self.name}' passe en étape Proposition sans devis attaché.",
+                'type': 'warning',
+                'sticky': True,
+            }
+        )
         
-        if existing_orders:
-            _logger.info(
-                'Opportunity %s already has quotation(s), skipping auto-creation',
-                self.name,
-            )
-            return False
-        
-        # Need partner to create quotation
-        if not self.partner_id:
-            _logger.warning(
-                'Cannot auto-create quotation for opportunity %s: no partner set',
-                self.name,
-            )
-            return False
-        
-        # Create draft quotation
-        SaleOrder = self.env['sale.order']
-        vals = {
-            'partner_id': self.partner_id.id,
-            'opportunity_id': self.id,
-            'origin': self.name,
-            'company_id': self.company_id.id if self.company_id else self.env.company.id,
-        }
-        
-        # Add team if available
-        if self.team_id:
-            vals['team_id'] = self.team_id.id
-        
-        # Add user if available
-        if self.user_id:
-            vals['user_id'] = self.user_id.id
-        
-        order = SaleOrder.create(vals)
-        _logger.info(
-            'Auto-created draft quotation %s from opportunity %s (Proposition stage)',
-            order.name,
+        _logger.warning(
+            'Opportunity %s moved to Proposition without quotation',
             self.name,
         )
-        
-        # Post message on opportunity
-        self.message_post(
-            body=f"📋 Devis {order.name} créé automatiquement lors du passage en Proposition.",
-            message_type='notification',
-        )
-        
-        return order
