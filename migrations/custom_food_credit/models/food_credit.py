@@ -7,12 +7,12 @@
 #    Author: Adama KONE
 #
 #############################################################################
-from odoo import api, fields, models, _
-from odoo.exceptions import UserError
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-
 import logging
+from datetime import datetime
+
+from dateutil.relativedelta import relativedelta
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
