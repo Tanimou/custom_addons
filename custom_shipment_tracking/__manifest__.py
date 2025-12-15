@@ -45,6 +45,7 @@ Fonctionnalités principales:
         'data/sequences.xml',
         'data/transport_products.xml',
         # Views
+        'views/res_partner_views.xml',
         'views/shipment_request_views.xml',
         'views/shipment_parcel_views.xml',
         'views/shipment_document_views.xml',

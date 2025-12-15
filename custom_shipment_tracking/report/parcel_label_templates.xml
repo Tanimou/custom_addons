@@ -50,32 +50,70 @@
                              alt="Barcode"/>
                     </div>
 
-                    <!-- Recipient Information -->
-                    <div class="label-recipient" style="border-top: 1px dashed #999; padding-top: 15px; margin-top: 15px;">
-                        <div style="font-size: 10pt; color: #666; text-transform: uppercase; margin-bottom: 5px;">
-                            Destinataire
-                        </div>
-                        <div style="font-size: 14pt; font-weight: bold;">
-                            <t t-out="parcel.partner_id.name"/>
-                        </div>
-                        <div t-if="parcel.partner_id.street" style="font-size: 11pt;">
-                            <t t-out="parcel.partner_id.street"/>
-                        </div>
-                        <div t-if="parcel.partner_id.street2" style="font-size: 11pt;">
-                            <t t-out="parcel.partner_id.street2"/>
-                        </div>
-                        <div style="font-size: 11pt;">
-                            <t t-if="parcel.partner_id.zip">
-                                <t t-out="parcel.partner_id.zip"/>
-                            </t>
-                            <t t-if="parcel.partner_id.city">
-                                <t t-out="parcel.partner_id.city"/>
-                            </t>
-                        </div>
-                        <div style="font-size: 11pt; font-weight: bold;">
-                            <t t-out="parcel.effective_destination_country_id.name or parcel.partner_id.country_id.name"/>
-                        </div>
-                    </div>
+                    <!-- Sender and Recipient Information - Two Columns Table Layout -->
+                    <table style="width: 100%; border-top: 1px dashed #999; padding-top: 15px; margin-top: 15px; border-collapse: collapse;">
+                        <tr>
+                            <!-- Sender (Expéditeur) - Left Column -->
+                            <td style="width: 50%; vertical-align: top; border-right: 1px dashed #ccc; padding-right: 10px;">
+                                <div style="font-size: 10pt; color: #666; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;">
+                                    Expéditeur
+                                </div>
+                                <div style="font-size: 12pt; font-weight: bold;">
+                                    <t t-out="parcel.company_id.name"/>
+                                </div>
+                                <div t-if="parcel.company_id.street" style="font-size: 10pt;">
+                                    <t t-out="parcel.company_id.street"/>
+                                </div>
+                                <div t-if="parcel.company_id.street2" style="font-size: 10pt;">
+                                    <t t-out="parcel.company_id.street2"/>
+                                </div>
+                                <div style="font-size: 10pt;">
+                                    <t t-if="parcel.company_id.zip">
+                                        <t t-out="parcel.company_id.zip"/>
+                                    </t>
+                                    <t t-if="parcel.company_id.city">
+                                        <t t-out="' ' + parcel.company_id.city"/>
+                                    </t>
+                                </div>
+                                <div style="font-size: 10pt; font-weight: bold;">
+                                    <t t-out="parcel.company_id.country_id.name or ''"/>
+                                </div>
+                                <div t-if="parcel.company_id.phone" style="font-size: 9pt; color: #666; margin-top: 3px;">
+                                    Tél: <t t-out="parcel.company_id.phone"/>
+                                </div>
+                            </td>
+
+                            <!-- Recipient (Destinataire) - Right Column -->
+                            <td style="width: 50%; vertical-align: top; padding-left: 10px;">
+                                <div style="font-size: 10pt; color: #666; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;">
+                                    Destinataire
+                                </div>
+                                <div style="font-size: 12pt; font-weight: bold;">
+                                    <t t-out="parcel.partner_id.name"/>
+                                </div>
+                                <div t-if="parcel.partner_id.street" style="font-size: 10pt;">
+                                    <t t-out="parcel.partner_id.street"/>
+                                </div>
+                                <div t-if="parcel.partner_id.street2" style="font-size: 10pt;">
+                                    <t t-out="parcel.partner_id.street2"/>
+                                </div>
+                                <div style="font-size: 10pt;">
+                                    <t t-if="parcel.partner_id.zip">
+                                        <t t-out="parcel.partner_id.zip"/>
+                                    </t>
+                                    <t t-if="parcel.partner_id.city">
+                                        <t t-out="' ' + parcel.partner_id.city"/>
+                                    </t>
+                                </div>
+                                <div style="font-size: 10pt; font-weight: bold;">
+                                    <t t-out="parcel.effective_destination_country_id.name or parcel.partner_id.country_id.name"/>
+                                </div>
+                                <div t-if="parcel.partner_id.phone" style="font-size: 9pt; color: #666; margin-top: 3px;">
+                                    Tél: <t t-out="parcel.partner_id.phone"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- Destination City (if specific) -->
                     <div t-if="parcel.destination_city" class="label-destination-city" style="background: #f5f5f5; padding: 10px; margin: 15px 0; text-align: center;">
@@ -177,20 +215,35 @@
                             <div class="barcode" style="text-align: center;">
                                 <img t-att-src="'/report/barcode/Code128/%s?width=200&amp;height=40' % parcel.name"/>
                             </div>
-                            <div style="margin-top: 5px;">
-                                <strong><t t-out="parcel.partner_id.name"/></strong>
-                            </div>
-                            <div>
-                                <t t-out="parcel.effective_destination_country_id.name or '-'"/>
-                                <t t-if="parcel.destination_city">
-                                    - <t t-out="parcel.destination_city"/>
-                                </t>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 8pt; color: #666;">
+                            <!-- Two-column sender/receiver layout using table -->
+                            <table style="width: 100%; margin-top: 5px; font-size: 8pt; border-collapse: collapse;">
+                                <tr>
+                                    <!-- Expéditeur (left) -->
+                                    <td style="width: 50%; vertical-align: top; border-right: 1px dashed #ccc; padding-right: 5px;">
+                                        <div style="font-weight: bold; color: #666; text-transform: uppercase; font-size: 7pt;">Expéditeur</div>
+                                        <div style="font-weight: bold;"><t t-out="parcel.company_id.name"/></div>
+                                        <div t-if="parcel.company_id.city"><t t-out="parcel.company_id.city"/></div>
+                                        <div><t t-out="parcel.company_id.country_id.name or ''"/></div>
+                                    </td>
+                                    <!-- Destinataire (right) -->
+                                    <td style="width: 50%; vertical-align: top; padding-left: 5px;">
+                                        <div style="font-weight: bold; color: #666; text-transform: uppercase; font-size: 7pt;">Destinataire</div>
+                                        <div style="font-weight: bold;"><t t-out="parcel.partner_id.name"/></div>
+                                        <div t-if="parcel.partner_id.city"><t t-out="parcel.partner_id.city"/></div>
+                                        <div>
+                                            <t t-out="parcel.effective_destination_country_id.name or '-'"/>
+                                            <t t-if="parcel.destination_city">
+                                                - <t t-out="parcel.destination_city"/>
+                                            </t>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 8pt; color: #666; border-top: 1px dashed #ccc; padding-top: 3px;">
                                 <span><t t-out="parcel.weight"/> kg</span>
                                 <span>
-                                    <t t-if="parcel.effective_transport_mode == 'air'">✈</t>
-                                    <t t-elif="parcel.effective_transport_mode == 'sea'">🚢</t>
+                                    <t t-if="parcel.effective_transport_mode == 'air'">✈ Aérien</t>
+                                    <t t-elif="parcel.effective_transport_mode == 'sea'">🚢 Maritime</t>
                                 </span>
                             </div>
                         </div>

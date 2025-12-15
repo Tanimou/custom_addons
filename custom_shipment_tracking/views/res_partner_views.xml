@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- 
+            Extension de la vue formulaire res.partner pour rendre les champs d'adresse obligatoires
+            Nécessaire pour la création des demandes d'expédition
+        -->
+        <record id="view_partner_form_shipment_required" model="ir.ui.view">
+            <field name="name">res.partner.form.shipment.required</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <!-- Rendre les champs d'adresse obligatoires pour les contacts de type 'contact' -->
+                <xpath expr="//div[hasclass('o_address_format')]/field[@name='street']" position="attributes">
+                    <attribute name="required">type == 'contact'</attribute>
+                </xpath>
+                <xpath expr="//div[hasclass('o_address_format')]/field[@name='city']" position="attributes">
+                    <attribute name="required">type == 'contact'</attribute>
+                </xpath>
+                <xpath expr="//div[hasclass('o_address_format')]/field[@name='zip']" position="attributes">
+                    <attribute name="required">type == 'contact'</attribute>
+                </xpath>
+                <xpath expr="//div[hasclass('o_address_format')]/field[@name='country_id']" position="attributes">
+                    <attribute name="required">type == 'contact'</attribute>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

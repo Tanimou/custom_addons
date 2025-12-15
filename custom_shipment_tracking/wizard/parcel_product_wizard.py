@@ -169,6 +169,17 @@ class ParcelProductWizard(models.TransientModel):
             # In readonly mode, just close the wizard
             return {'type': 'ir.actions.act_window_close'}
         
+        # Check for selected products with missing quantity
+        selected_without_qty = self.available_line_ids.filtered(
+            lambda l: l.is_selected and l.selected_qty <= 0
+        )
+        if selected_without_qty:
+            product_names = ', '.join(selected_without_qty.mapped('product_id.name'))
+            raise UserError(_(
+                "Vous avez oublié de renseigner la 'Qté à mettre' pour les produits suivants:\n\n%s\n\n"
+                "Veuillez indiquer la quantité souhaitée pour chaque produit sélectionné."
+            ) % product_names)
+        
         ParcelLine = self.env['shipment.parcel.line']
         
         # Get existing parcel lines for this parcel
@@ -395,10 +406,16 @@ class ParcelProductWizardLine(models.TransientModel):
     # region Onchange
     @api.onchange('is_selected')
     def _onchange_is_selected(self):
-        """When selection changes, set default quantity."""
+        """When selection changes, set default quantity.
+        
+        Uses order_qty (related field) instead of remaining_qty (computed field)
+        because computed fields requiring database queries may not be available
+        during onchange context.
+        """
         if self.is_selected:
-            # Default to remaining qty (what's available for this parcel)
-            self.selected_qty = self.remaining_qty
+            # Default to ordered qty from sale order line
+            # Use order_qty which is a related field (always available)
+            self.selected_qty = self.order_qty or 0.0
         else:
             self.selected_qty = 0.0
 

@@ -15,19 +15,6 @@
         <field name="binding_type">report</field>
     </record>
 
-    <!-- ========================================== -->
-    <!-- REPORT ACTION - Multiple Labels (4-up)    -->
-    <!-- ========================================== -->
-    <record id="action_report_parcel_labels_4up" model="ir.actions.report">
-        <field name="name">Étiquettes colis (4 par page)</field>
-        <field name="model">shipment.parcel</field>
-        <field name="report_type">qweb-pdf</field>
-        <field name="report_name">custom_shipment_tracking.report_parcel_labels_4up</field>
-        <field name="report_file">custom_shipment_tracking.report_parcel_labels_4up</field>
-        <field name="print_report_name">'Etiquettes_Colis_%s' % (datetime.date.today().strftime('%Y%m%d'))</field>
-        <field name="binding_model_id" ref="model_shipment_parcel"/>
-        <field name="binding_type">report</field>
-    </record>
 
     <!-- ========================================== -->
     <!-- REPORT PAPERFORMAT - A6 Label Format      -->

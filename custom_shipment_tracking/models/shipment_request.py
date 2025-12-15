@@ -2,7 +2,7 @@
 
 import logging
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -178,7 +178,8 @@ class ShipmentRequest(models.Model):
     invoice_id = fields.Many2one(
         comodel_name='account.move',
         string='Facture',
-        readonly=True,
+        compute='_compute_invoice_from_proforma',
+        store=True,
         copy=False,
         domain=[('move_type', '=', 'out_invoice')],
         help='Facture finale confirmée pour cette expédition',
@@ -190,8 +191,8 @@ class ShipmentRequest(models.Model):
             ('confirmed', 'Facturé'),
         ],
         string='État Proforma',
-        default='none',
-        readonly=True,
+        compute='_compute_invoice_from_proforma',
+        store=True,
         copy=False,
         tracking=True,
     )
@@ -304,6 +305,24 @@ class ShipmentRequest(models.Model):
                 ('is_active', '=', True),
             ], limit=1)
             record.tracking_link_id = link.id if link else False
+
+    @api.depends('proforma_invoice_id', 'proforma_invoice_id.state')
+    def _compute_invoice_from_proforma(self):
+        """Compute invoice_id and proforma_state based on proforma invoice state.
+        
+        This allows the user to validate the proforma via native Odoo invoice workflow
+        and automatically updates the shipment fields.
+        """
+        for record in self:
+            if not record.proforma_invoice_id:
+                record.invoice_id = False
+                record.proforma_state = 'none'
+            elif record.proforma_invoice_id.state == 'posted':
+                record.invoice_id = record.proforma_invoice_id.id
+                record.proforma_state = 'confirmed'
+            else:
+                record.invoice_id = False
+                record.proforma_state = 'draft'
 
     def _compute_invoice_count(self):
         """Compute the number of invoices linked to this shipment."""
@@ -632,10 +651,9 @@ class ShipmentRequest(models.Model):
         # Create the invoice
         invoice = self.env['account.move'].create(invoice_vals)
         
-        # Link invoice to shipment
+        # Link invoice to shipment (proforma_state will be computed automatically)
         self.write({
             'proforma_invoice_id': invoice.id,
-            'proforma_state': 'draft',
         })
 
         _logger.info(
@@ -654,35 +672,27 @@ class ShipmentRequest(models.Model):
         }
 
     def action_confirm_and_invoice(self):
-        """Confirm the proforma and convert it to a final invoice."""
+        """Confirm the proforma and convert it to a final invoice.
+        
+        Note: This method is kept for backwards compatibility but the button
+        has been removed from the UI. Users should validate the invoice via
+        the native Odoo invoice workflow (Factures smart button).
+        """
         self.ensure_one()
 
         if not self.proforma_invoice_id:
             raise UserError("Aucun proforma n'existe pour cette expédition. Créez d'abord un proforma.")
 
-        # If invoice is already posted, just update state and return
+        # If invoice is already posted, just return
         if self.proforma_invoice_id.state == 'posted':
-            if self.proforma_state != 'confirmed':
-                self.write({
-                    'invoice_id': self.proforma_invoice_id.id,
-                    'proforma_state': 'confirmed',
-                })
-            raise UserError("La facture a déjà été confirmée.")
-
-        if self.proforma_state == 'confirmed':
             raise UserError("La facture a déjà été confirmée.")
 
         if self.proforma_invoice_id.state != 'draft':
             raise UserError("Le proforma doit être à l'état brouillon pour être confirmé.")
 
         # Post the invoice to confirm it
+        # The computed fields (invoice_id, proforma_state) will update automatically
         self.proforma_invoice_id.action_post()
-
-        # Update shipment
-        self.write({
-            'invoice_id': self.proforma_invoice_id.id,
-            'proforma_state': 'confirmed',
-        })
 
         _logger.info(
             'Confirmed invoice %s for shipment %s',
@@ -918,7 +928,13 @@ class SaleOrderShipmentExtension(models.Model):
         """Override to create shipment request on CRM-originated order confirmation.
         
         Also sets the CRM opportunity to 'Won' stage when order is confirmed.
+        Validates that the customer has complete address information for shipment creation.
         """
+        # Validate address completeness for shipment creation
+        for order in self:
+            if order.opportunity_id:
+                order._validate_partner_address_for_shipment()
+        
         res = super().action_confirm()
         for order in self:
             # Check if order originates from CRM (has opportunity_id)
@@ -930,6 +946,41 @@ class SaleOrderShipmentExtension(models.Model):
                 # Set opportunity to Won stage
                 order._set_opportunity_won()
         return res
+
+    def _validate_partner_address_for_shipment(self):
+        """Validate that partner has complete address for shipment creation.
+        
+        Raises UserError if address is incomplete.
+        """
+        self.ensure_one()
+        # Use shipping address if available, otherwise billing address
+        partner = self.partner_shipping_id or self.partner_id
+        if not partner:
+            return
+        
+        missing_fields = []
+        field_labels = {
+            'street': 'Adresse (Rue)',
+            'city': 'Ville',
+            'zip': 'Code postal',
+            'country_id': 'Pays',
+        }
+        
+        for field_name, label in field_labels.items():
+            if not getattr(partner, field_name):
+                missing_fields.append(label)
+        
+        if missing_fields:
+            raise UserError(_(
+                "Impossible de valider la commande. "
+                "Les informations d'adresse du client sont incomplètes pour créer une demande d'expédition.\n\n"
+                "Client: %(partner_name)s\n"
+                "Champs manquants:\n%(missing)s\n\n"
+                "Veuillez compléter les informations d'adresse du client avant de confirmer la commande."
+            ) % {
+                'partner_name': partner.display_name,
+                'missing': '\n'.join(f'  • {f}' for f in missing_fields),
+            })
 
     def _set_opportunity_won(self):
         """Set the linked CRM opportunity to 'Won' stage."""

@@ -28,7 +28,7 @@
                 <!-- Read-only notice -->
                 <div invisible="not is_readonly" class="alert alert-info" role="alert">
                     <i class="fa fa-info-circle"/> 
-                    Mode consultation : la demande n'est pas au statut "Enregistré".
+                    Mode consultation : la demande n'est pas au statut "Enregistré" ou "Groupage".
                     Les modifications ne sont pas autorisées.
                 </div>
                 

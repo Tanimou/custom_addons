@@ -42,7 +42,7 @@ class ShipmentParcel(models.Model):
     weight = fields.Float(
         string='Poids (kg)',
         required=True,
-        default=0.0,
+        default=1.0,
     )
     length = fields.Float(
         string='Longueur (cm)',
@@ -229,6 +229,29 @@ class ShipmentParcel(models.Model):
     # endregion
 
     # region Onchange
+    @api.onchange('shipment_request_id')
+    def _onchange_shipment_request_id(self):
+        """Auto-fill main_number and sequence when shipment_request_id is set.
+        
+        This provides a preview of the parcel reference before saving.
+        The actual values are confirmed in create() to avoid sequence conflicts.
+        """
+        if not self.shipment_request_id:
+            return
+        
+        shipment = self.shipment_request_id
+        
+        # Get or create main parcel number for this shipment
+        main_number = shipment._get_or_create_main_parcel_number()
+        self.main_number = main_number
+        
+        # Calculate next sequence number based on existing parcels
+        existing_parcels = self.search([
+            ('shipment_request_id', '=', shipment.id),
+            ('id', '!=', self._origin.id if self._origin else False),
+        ], order='sequence desc', limit=1)
+        self.sequence = (existing_parcels.sequence + 1) if existing_parcels else 1
+
     @api.onchange('length', 'width', 'height')
     def _onchange_dimensions(self):
         """Warn if all dimensions are zero."""
@@ -328,13 +351,12 @@ class ShipmentParcel(models.Model):
     def action_open_product_wizard(self):
         """Open wizard to add/view products in parcel.
         
-        When shipment is in 'registered' state, allows editing.
+        When shipment is in 'registered' or 'grouping' state, allows editing.
         In other states, opens in read-only mode.
         """
         self.ensure_one()
         shipment_state = self.shipment_request_id.state
-        is_readonly = shipment_state != 'registered'
-        
+        is_readonly = shipment_state not in ('registered', 'grouping')        
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'parcel.product.wizard',
