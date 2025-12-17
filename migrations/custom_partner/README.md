@@ -24,20 +24,24 @@ Dans **Contacts → Contacts → (ouvrir un client)** :
 1) Le champ **Étiquettes** est renommé en **Catégorie client**.
 
 2) De nouveaux champs d’identification apparaissent près des informations légales :
+
 - **ID client** (lecture seule) : identifiant automatiquement synchronisé avec le code de la carte de fidélité.
 - **Code famille** (lecture seule)
 
 3) Dans **Ventes & Achats** :
+
 - **Responsable principal** (lecture seule)
 - **Responsable secondaire** (lecture seule)
 
 4) Un nouvel onglet **Remises & Taxes** :
+
 - **Éligible à la remise**
 - **Pourcentage de remise** (visible seulement si éligible)
 - **Période** (Date début / Date fin, visible seulement si éligible)
 - **Éligible à l’AIRSI** (affichage)
 
 5) Un nouvel onglet **Cartes de fidélité** :
+
 - liste des cartes rattachées au client (Code, Points, Date d’expiration, Programme)
 
 ---
@@ -47,6 +51,7 @@ Dans **Contacts → Contacts → (ouvrir un client)** :
 Avec ce module, la **création automatique** de cartes de fidélité depuis certaines actions (POS / Ventes) est **bloquée**.
 
 ✅ Conséquence pour les équipes :
+
 - si vous voulez utiliser une carte au POS / en vente, il faut **créer la carte à l’avance** (ou s’assurer qu’elle existe déjà).
 
 ---
@@ -62,10 +67,12 @@ Avec ce module, la **création automatique** de cartes de fidélité depuis cert
 5. Enregistrer
 
 ✅ Résultat attendu :
+
 - le code de la carte est accepté si unique
 - le champ **ID client** de la fiche Contact du client est automatiquement mis à jour avec ce même code
 
 Erreurs fréquentes :
+
 - **Code déjà utilisé** : le système refuse si le code n’est pas unique.
 
 ### B. Vérifier côté Contact
@@ -86,9 +93,11 @@ Erreurs fréquentes :
 5. Vérifier / ajuster la **Date de début** et la **Date de fin**
 
 ✅ Résultat attendu :
+
 - dès que “Éligible à la remise” est coché, la **Date de début** se remplit automatiquement avec la date du jour.
 
 Bonnes pratiques :
+
 - toujours définir une période claire (ex: remise promotionnelle)
 - si la remise est permanente, convenir d’une règle interne (ex: date de fin très éloignée) ou laisser le champ fin géré selon vos procédures.
 
@@ -100,6 +109,7 @@ Bonnes pratiques :
 2. Onglet **Cartes de fidélité**
 
 ✅ Résultat attendu :
+
 - vous voyez toutes les cartes rattachées au client, avec le code, les points, la date d’expiration et le programme.
 
 ---
@@ -111,6 +121,7 @@ Bonnes pratiques :
 3. Vérifier **Éligible à l’AIRSI**
 
 ✅ Résultat attendu :
+
 - le statut est visible dans l’onglet.
 
 > Note : l’impact exact sur la facturation/taxes dépend des autres modules de votre base (ex: modules qui ajoutent/retirent une taxe AIRSI selon ce statut).
@@ -120,22 +131,26 @@ Bonnes pratiques :
 ## 8) Check-list de test rapide (10 minutes)
 
 1) Ouvrir un client → vérifier :
+
 - “Catégorie client” (au lieu d’Étiquettes)
 - “ID client” et “Code famille” visibles (lecture seule)
 - onglet “Remises & Taxes” visible
 - onglet “Cartes de fidélité” visible
 
 2) Créer/ouvrir une carte de fidélité :
+
 - modifier le **Code**
 - enregistrer
 - vérifier que le **Contact** du client a bien “ID client” = code
 
 3) Remise :
+
 - cocher “Éligible à la remise”
 - vérifier que la date de début se remplit automatiquement
 - saisir un pourcentage
 
 4) Contrôle anti-duplicat :
+
 - tenter d’attribuer le même code à 2 cartes → doit être refusé
 
 ---

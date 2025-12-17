@@ -78,10 +78,12 @@ Ces menus sont ajoutés dans : **Ventes → Configuration**
 Chemin : **Point de Vente → Configuration → Moyens de paiement**
 
 Sur chaque moyen de paiement concerné, vous verrez :
+
 - **Credit Alimentaire**
 - **En cours / Compte client**
 
 Recommandation pratique :
+
 - créer/nommer un moyen de paiement “Crédit Alimentaire” et cocher **Credit Alimentaire**
 - créer/nommer un moyen de paiement “Compte client” et cocher **En cours / Compte client**
 
@@ -98,6 +100,7 @@ Recommandation pratique :
 3. Confirmer
 
 ✅ Résultat attendu :
+
 - un crédit par entreprise éligible (si pas déjà créé pour le mois)
 - des lignes employé générées automatiquement
 - une notification “Génération des crédits terminée”
@@ -110,6 +113,7 @@ Recommandation pratique :
 4. Cliquer **Générer**
 
 ✅ Résultat attendu :
+
 - si “Écraser…” est désactivé : les crédits déjà existants ne sont pas modifiés
 - si “Écraser…” est activé : le crédit du mois peut être mis à jour et ses lignes régénérées
 
@@ -123,6 +127,7 @@ Dans un crédit (formulaire) :
 - **Clôturer** : passe l’état à **Terminé**
 
 ✅ Points importants :
+
 - sans lignes d’employés, la validation est refusée (“Vous devez d'abord créer les lignes des clients.”)
 - un crédit non brouillon ne peut pas être supprimé.
 
@@ -140,6 +145,7 @@ Dans un crédit (formulaire) :
 6. Valider le paiement
 
 ✅ Résultat attendu :
+
 - si le client n’est pas autorisé : message “Ce client n'a pas accès au crédit alimentaire.”
 - si aucun crédit valide : message “Aucun crédit alimentaire valide pour ce client.”
 - si solde insuffisant : message “Crédit insuffisant ! Disponible: … FCFA”
@@ -150,6 +156,7 @@ Dans un crédit (formulaire) :
 Même principe, mais avec le moyen de paiement coché **En cours / Compte client**.
 
 ✅ Résultat attendu :
+
 - si le client n’est pas autorisé : “Ce client n'a pas accès au Compte client.”
 - si solde insuffisant : “Crédit insuffisant ! Disponible: … FCFA”
 - une opération est créée dans l’historique de la limite.
@@ -173,6 +180,7 @@ Sur une commande client :
 4. Confirmer
 
 ✅ Résultat attendu :
+
 - si pas de crédit : message d’erreur bloquant
 - si solde insuffisant : message d’erreur bloquant
 - sinon : le consommé augmente, et un détail “GROS/(1/2 GROS): …” est enregistré
@@ -182,6 +190,7 @@ Sur une commande client :
 Idem mais avec **Mode de payment = Compte client**.
 
 ✅ Résultat attendu :
+
 - consommation de la limite + création d’une opération “Gros & 1/2 Gros - …”
 
 ### C. Annulation d’une commande
@@ -207,6 +216,7 @@ Ce workflow sert à facturer l’entreprise cliente selon les consommations (mon
 6. Cliquer **Générer les Factures**
 
 ✅ Résultat attendu :
+
 - une facture par entreprise (si non déjà facturée)
 - des lignes par employé consommateur (montant > 0)
 - sur l’impression facture : une colonne **Details Consommations** peut apparaître avec les détails POS / commandes
@@ -218,11 +228,13 @@ Ce workflow sert à facturer l’entreprise cliente selon les consommations (mon
 Chemin : **Ventes → Configuration → Limite credit**
 
 Vous verrez :
+
 - **Limite** (plafond)
 - **Consommée**
 - **Solde disponible**
 
 Boutons utiles :
+
 - **Voir les details** : ouvre la fiche et l’onglet “Liste des Operations”
 - **Mettre à jour le crédit** : ouvre un wizard de mise à jour
 

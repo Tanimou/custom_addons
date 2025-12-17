@@ -1,8 +1,9 @@
-from odoo import fields, models, api, _
-from odoo.exceptions import ValidationError
-from datetime import timedelta, datetime, time
-import re
 import logging
+import re
+from datetime import datetime, time, timedelta
+
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 

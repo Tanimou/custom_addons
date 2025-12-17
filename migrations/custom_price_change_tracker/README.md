@@ -3,6 +3,7 @@
 Ce guide décrit **ce que voit et fait l’utilisateur** dans Odoo après installation du module **Suivi des modifications de prix**.
 
 > Objectif :
+>
 > - enregistrer automatiquement un **historique** à chaque changement de prix,
 > - recevoir une **notification quotidienne** des changements,
 > - **imprimer des étiquettes** (avec date d’impression),
@@ -34,7 +35,9 @@ Dans l’application **Inventaire / Stock** (selon votre base), vous verrez un n
 ## 3) Ce qui se passe automatiquement (important)
 
 ### A. L’historique se crée tout seul
+
 Dès qu’un utilisateur modifie le **prix de vente** d’un produit, Odoo enregistre automatiquement une ligne dans **Historique des prix** avec :
+
 - le produit,
 - l’ancien prix et le nouveau prix,
 - la date/heure,
@@ -43,6 +46,7 @@ Dès qu’un utilisateur modifie le **prix de vente** d’un produit, Odoo enreg
 ✅ Vous n’avez **rien** à créer manuellement pour l’historique.
 
 ### B. Notifications quotidiennes (si activées)
+
 Si l’option est activée, Odoo envoie chaque jour une notification dans un canal **Discussion** (chat), avec la liste des changements de prix détectés.
 
 ---
@@ -56,9 +60,11 @@ Si l’option est activée, Odoo envoie chaque jour une notification dans un can
 5) **Enregistrer**
 
 ✅ Résultat attendu :
+
 - chaque jour (horaire système), les utilisateurs choisis reçoivent un message dans Discussion.
 
 Bonnes pratiques :
+
 - sélectionner au moins **1 responsable** (ex: Chef magasin)
 - éviter de notifier trop de monde (sinon “bruit”)
 
@@ -74,9 +80,11 @@ Bonnes pratiques :
    - **Aujourd’hui / Hier / Semaine passée / Mois passé**
 
 ✅ Résultat attendu :
+
 - chaque ligne affiche l’ancien prix, le nouveau prix, la différence, le % de variation et l’utilisateur.
 
 Astuce lecture rapide :
+
 - les hausses peuvent apparaître en style “positif”, les baisses en “négatif” (selon affichage).
 
 ---
@@ -89,6 +97,7 @@ Dans **Historique des prix**, ouvrir une ligne.
 - Bouton **Mettre en attente** : remet la ligne au statut “En attente”.
 
 ✅ Résultat attendu :
+
 - le statut permet de distinguer ce qui a été traité / communiqué.
 
 ---
@@ -100,12 +109,14 @@ Quand il y a eu des changements de prix, un message est posté dans **Discussion
 - **Notifications sur le changement de prix**
 
 Le message contient :
+
 - les produits concernés,
 - ancien prix → nouveau prix,
 - différence et %,
 - un lien “**Voir la liste des produits pour impression d’étiquettes**”.
 
 ✅ Résultat attendu :
+
 - en cliquant le lien, vous ouvrez directement la liste filtrée des changements concernés.
 
 ---
@@ -118,6 +129,7 @@ Le message contient :
 2) Si la ligne est au statut **Notifié**, cliquer **Imprimer étiquette**
 
 ✅ Résultat attendu :
+
 - Odoo génère un PDF d’étiquettes pour le(s) produit(s).
 - La ligne passe au statut **Imprimé** (statut impression).
 
@@ -128,6 +140,7 @@ Le message contient :
 3) Lancer l’action **Imprimer Étiquettes** (menu Actions)
 
 ✅ Résultat attendu :
+
 - impression en lot des étiquettes.
 
 Note : les étiquettes peuvent afficher “**imprimé le …**” (date/heure) sur l’étiquette.
@@ -143,6 +156,7 @@ Note : les étiquettes peuvent afficher “**imprimé le …**” (date/heure) s
 5) Cliquer **Imprimer**
 
 ✅ Résultat attendu :
+
 - un PDF est généré avec la liste des changements sur la période.
 
 ---
@@ -158,6 +172,7 @@ Note : les étiquettes peuvent afficher “**imprimé le …**” (date/heure) s
 5) Cliquer **Imprimer le rapport**
 
 ✅ Résultat attendu :
+
 - un PDF “Analyse des Prix Produits” avec :
   - la liste des produits et le **nombre de changements**,
   - un **TOP 5** des produits les plus fréquents.
@@ -167,20 +182,25 @@ Note : les étiquettes peuvent afficher “**imprimé le …**” (date/heure) s
 ## 11) Problèmes fréquents (et solutions simples)
 
 ### A. Je ne vois pas le menu “Surveillance Prix”
+
 - Vérifier que vous avez un profil **Stock / Inventaire** (ex: Utilisateur Stock).
 - Vérifier que le module est bien installé.
 
 ### B. Les notifications ne partent pas
+
 À vérifier :
+
 - l’option **Notifications de prix** est cochée
 - au moins 1 utilisateur est sélectionné dans **Utilisateur à notifier**
 - il y a eu des changements de prix sur la période (sinon pas de message)
 
 ### C. Le bouton “Imprimer étiquette” n’apparaît pas
+
 - Sur une ligne d’historique, l’impression peut être liée au statut **Notifié**.
 - Solution : cliquer **Marquer comme notifié**, puis réessayer.
 
 ### D. Je veux imprimer des étiquettes “propres”
+
 - Filtrer d’abord l’historique (ex: “Aujourd’hui” + “Non notifiés”),
 - puis imprimer en masse.
 
@@ -189,27 +209,33 @@ Note : les étiquettes peuvent afficher “**imprimé le …**” (date/heure) s
 ## 12) Check-list de test rapide (10–15 minutes)
 
 1) **Activer la notification**
+
 - activer “Notifications de prix”
 - choisir 1 utilisateur
 
 2) **Provoquer un changement**
+
 - ouvrir un produit
 - modifier le **prix de vente**
 - enregistrer
 
 3) **Vérifier l’historique**
+
 - Surveillance Prix → Historique des prix
 - vérifier la nouvelle ligne (ancien/nouveau + utilisateur)
 
 4) **Tester le statut**
+
 - ouvrir la ligne
 - “Marquer comme notifié”, puis “Mettre en attente”
 
 5) **Imprimer une étiquette**
+
 - mettre la ligne “Notifié”
 - cliquer “Imprimer étiquette”
 
 6) **Rapports PDF**
+
 - Créer un Rapport → Imprimer
 - Analyse des Prix → Imprimer le rapport
 

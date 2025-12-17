@@ -3,6 +3,7 @@
 Ce guide explique **comment utiliser** la carte de fidélité dans Odoo (côté utilisateur final), et **comment tester** que tout fonctionne.
 
 > Important : ce module s’appuie sur les fonctionnalités Odoo de fidélité + POS. Il **personnalise** surtout :
+>
 > - les règles d’éligibilité des produits,
 > - le calcul des points (1 point / 200 F ou 1 point / 1000 F selon la catégorie),
 > - l’utilisation de la carte comme **moyen de paiement** (POS / ventes / comptabilité),
@@ -46,6 +47,7 @@ Ce guide explique **comment utiliser** la carte de fidélité dans Odoo (côté 
 Chemin recommandé : **Produits → Configuration → Catégories de produits**
 
 Dans la catégorie, renseigner **Famille Fidélité** :
+
 - **Pas de points de fidélité**
 - **1 point / 200 F**
 - **1 point / 1000 F**
@@ -57,6 +59,7 @@ Dans la catégorie, renseigner **Famille Fidélité** :
 Chemin : **Produits → Produits** (ouvrir une fiche produit)
 
 Dans la section **Fidélité** :
+
 - **Éligible aux points de fidélité** : coché = le produit peut générer des points
 - **Famille Fidélité** : affichée depuis la catégorie (lecture seule)
 
@@ -67,6 +70,7 @@ Dans la section **Fidélité** :
 Chemin : **Contacts → Contacts** (ouvrir le client)
 
 Dans l’onglet/section lié(e) au **Crédit** (page “crédit”), vous trouverez :
+
 - **A une carte de fidélité**
 
 Note : cette case se met automatiquement à jour selon si le client possède une carte de fidélité.
@@ -78,6 +82,7 @@ Note : cette case se met automatiquement à jour selon si le client possède une
 Chemin : **Point de Vente → Configuration → Moyens de paiement**
 
 Sur un moyen de paiement, vous trouverez :
+
 - **Carte de fidélité** (case)
 
 ✅ Résultat attendu : lorsque ce moyen est utilisé dans le POS, Odoo vérifie le solde avant d’accepter le paiement.
@@ -87,6 +92,7 @@ Sur un moyen de paiement, vous trouverez :
 Chemin : **Comptabilité → Configuration → Journaux**
 
 Sur un journal, vous trouverez :
+
 - **Carte de fidélité** (case)
 
 ✅ Résultat attendu : lors de l’enregistrement d’un paiement sur facture via ce journal, Odoo contrôle le solde et déduit les points.
@@ -106,10 +112,12 @@ Sur un journal, vous trouverez :
 7. Valider (“Mettre à jours les points”)
 
 ✅ Résultat attendu :
+
 - le solde de la carte augmente
 - une ligne d’historique est créée avec un libellé du type “Rendu monnaie: XX FCFA”
 
 Erreurs fréquentes :
+
 - **Aucun client** : “Veuillez sélectionner un client d’abord.”
 - **Pas de carte** : le système peut refuser la mise à jour si aucune carte n’existe.
 
@@ -122,6 +130,7 @@ Erreurs fréquentes :
 5. Valider
 
 ✅ Résultat attendu :
+
 - si le solde est suffisant : paiement accepté, solde diminue
 - si solde insuffisant : message “Crédit insuffisant …”
 
@@ -136,6 +145,7 @@ Erreurs fréquentes :
 3. Confirmer la commande
 
 ✅ Résultat attendu :
+
 - confirmation autorisée uniquement si le client a une carte et un solde suffisant
 - le solde est diminué du montant de la commande
 - un historique est créé
@@ -158,11 +168,13 @@ Sur une commande confirmée (état **Vente**), un bouton **Rendu monnaie** peut 
 Quand vous enregistrez un paiement sur une facture avec un **journal** coché “Carte de fidélité” :
 
 ✅ Le système :
+
 - vérifie que le client a une carte
 - vérifie que le solde couvre le montant
 - déduit automatiquement les points
 
 Erreurs fréquentes :
+
 - “Le client X n’a pas de carte de fidélité …”
 - “Le montant … dépasse les points … disponibles …”
 
@@ -171,6 +183,7 @@ Erreurs fréquentes :
 ## 8) Contrôler l’historique (preuve du test)
 
 Après un crédit ou une utilisation, aller dans la carte / historique de fidélité (Odoo standard) et vérifier :
+
 - l’opération (description)
 - le montant utilisé/crédité
 - éventuellement le champ **Nom du POS** (si affiché)

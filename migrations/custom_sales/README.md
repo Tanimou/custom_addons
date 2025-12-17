@@ -10,11 +10,13 @@ Ce module ajoute des fonctionnalités avancées pour la gestion des ventes, des 
 ## 1) Accès rapides (où cliquer)
 
 ### A. Listes de prix multi-sociétés
+
 - **Ventes → Produits → Listes de prix**
 - Ouvrir une liste de prix : champ **Sociétés** ("Sociétés autorisées") pour limiter la visibilité par société
 - Bouton **Ajouter produits (multiple)** pour ajouter plusieurs produits ou catégories à la liste de prix via un assistant
 
 ### B. Assistant d’ajout de produits à une liste de prix
+
 - Depuis une liste de prix, cliquer sur **Ajouter produits (multiple)**
 - L’assistant "Sélectionner des Produits" permet de :
   - Choisir d’appliquer la règle à des **produits** ou à des **catégories**
@@ -23,10 +25,12 @@ Ce module ajoute des fonctionnalités avancées pour la gestion des ventes, des 
   - Valider pour créer les lignes de prix correspondantes
 
 ### C. Produits multi-sociétés
+
 - **Ventes → Produits** ou **Inventaire → Produits**
 - Dans la fiche produit : champ **Sociétés** ("Sociétés autorisées") pour restreindre la visibilité
 
 ### D. Factures clients (accès rapide)
+
 - **Ventes → Factures** (menu ajouté)
 - Affiche directement la liste des factures clients
 
@@ -35,11 +39,13 @@ Ce module ajoute des fonctionnalités avancées pour la gestion des ventes, des 
 ## 2) Fonctionnalités principales
 
 ### 2.1 Visibilité multi-sociétés
+
 - Les produits, variantes et listes de prix comportent un champ **Sociétés**
 - Si votre société n’est pas sélectionnée, vous ne verrez pas l’élément dans les listes
 - Pour toute absence, demandez à votre administrateur d’ajouter votre société à l’enregistrement
 
 ### 2.2 Remises automatiques sur les lignes de vente
+
 - Lors de l’ajout d’un produit à un devis/commande, une remise peut s’appliquer automatiquement si :
   - Le client est éligible à une remise (paramétré dans sa fiche)
   - Le produit autorise la remise sur ligne
@@ -47,6 +53,7 @@ Ce module ajoute des fonctionnalités avancées pour la gestion des ventes, des 
 - Si la remise attendue n’apparaît pas, vérifiez les paramètres du client ou contactez l’administrateur
 
 ### 2.3 Assistant d’ajout de produits à une liste de prix
+
 - Permet d’ajouter en masse des produits ou catégories à une liste de prix
 - Saisie du prix, quantité minimale, période de validité
 - Gain de temps pour la gestion des promotions ou tarifs spécifiques
@@ -56,6 +63,7 @@ Ce module ajoute des fonctionnalités avancées pour la gestion des ventes, des 
 ## 3) Étapes d’utilisation courantes
 
 ### Ajouter plusieurs produits à une liste de prix
+
 1. Ouvrir **Ventes → Produits → Listes de prix**
 2. Sélectionner la liste de prix à modifier
 3. Cliquer sur **Ajouter produits (multiple)**
@@ -64,10 +72,12 @@ Ce module ajoute des fonctionnalités avancées pour la gestion des ventes, des 
 6. Valider pour créer les règles
 
 ### Vérifier la visibilité d’un produit ou d’une liste de prix
+
 - Si un produit ou une liste de prix n’apparaît pas, vérifier le champ **Sociétés**
 - Demander à l’administrateur d’ajouter votre société si besoin
 
 ### Accéder rapidement aux factures clients
+
 - Menu **Ventes → Factures** pour consulter ou créer des factures clients
 
 ---

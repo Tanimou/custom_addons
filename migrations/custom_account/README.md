@@ -124,4 +124,3 @@ Si vous souhaitez limiter à un groupe (ex : comptables), il faudra définir un 
 - Vues :
   - `views/budget_analytic_daily_view.xml` (form/list + menu)
   - `views/account_budget_inherit_views.xml` (extension budget Odoo)
-

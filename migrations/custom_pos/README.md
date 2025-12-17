@@ -17,17 +17,21 @@ Ce guide décrit **ce que voit et fait l’utilisateur** dans Odoo après instal
 ## 2) Ce qui change (visible dans le POS)
 
 ### A. Sécurité lors du paiement
+
 Au moment de cliquer **Paiement** :
 
 1) **Quantité nulle interdite**
+
 - Si une ligne a une quantité = 0, la commande ne peut pas être validée.
 
 2) **Double remise interdite**
+
 - Un même produit ne peut pas avoir **à la fois** :
   - une **remise sur la ligne** (ex: 10%),
   - et une **promotion / remise** déjà appliquée via une ligne spéciale (souvent une ligne à prix négatif ou “récompense/promo”).
 
 3) **Autorisation requise** en cas de :
+
 - **produit en rupture de stock** (stock ≤ 0), et/ou
 - **commande avec remise/promotion**
 
@@ -36,7 +40,9 @@ Dans ces cas, le POS peut demander un **code d’accès** (si configuré) avant 
 ---
 
 ### B. Fidélité : affichage du solde au paiement
+
 Sur l’écran de paiement, si :
+
 - un **client** est sélectionné,
 - et qu’il a des **points fidélité**,
 
@@ -45,14 +51,18 @@ alors un encart affiche le **solde des points**.
 ---
 
 ### C. Reçu : en-tête et pied de page
+
 Sur le ticket (reçu) :
+
 - le nom de la **caisse / point de vente** peut s’afficher dans l’en-tête,
 - la mention “Powered by Odoo” est supprimée du pied de page.
 
 ---
 
 ### D. Ouverture de session caisse
+
 Dans la fenêtre d’ouverture :
+
 - le libellé **Fond de caisse** est utilisé.
 
 > Selon votre configuration, un montant initial peut apparaître : si ce montant ne correspond pas à vos procédures, saisissez votre fond réel.
@@ -70,9 +80,11 @@ Dans la fenêtre d’ouverture :
 5. **Enregistrer**
 
 ✅ Résultat attendu :
+
 - quand une vente nécessite une autorisation, le POS peut demander ce code.
 
 Bonnes pratiques :
+
 - choisir un code connu uniquement des responsables
 - changer le code en cas de départ d’un responsable
 
@@ -81,6 +93,7 @@ Bonnes pratiques :
 ### B. Droits (qui peut contourner le contrôle)
 
 Le module ajoute des profils liés au POS (exemples) :
+
 - **Caissiere**
 - **Responsable des caisse**
 - **Responsable des Magasin**
@@ -95,6 +108,7 @@ En pratique, certains profils “responsables” peuvent passer plus facilement 
 5. **Enregistrer**
 
 ✅ Résultat attendu :
+
 - les caissières sont contrôlées,
 - les responsables peuvent autoriser au besoin.
 
@@ -109,10 +123,12 @@ En pratique, certains profils “responsables” peuvent passer plus facilement 
 3. Cliquer **Paiement**
 
 ✅ Résultat attendu :
+
 - un message indique que le produit est en rupture
 - si un **code d’accès** est configuré, le POS demande le code
 
 Cas possibles :
+
 - **Code correct** → vous pouvez continuer
 - **Code incorrect** → message “Code incorrect” et la vente est annulée
 - **Pas de code configuré** → la vente est bloquée avec un message d’information
@@ -122,6 +138,7 @@ Cas possibles :
 ### Workflow 2 — Vente avec remise (autorisation)
 
 Une remise peut être détectée par :
+
 - une **remise %** sur une ligne,
 - ou une **ligne promotionnelle** (ex: ligne à prix négatif / programme promo).
 
@@ -129,6 +146,7 @@ Une remise peut être détectée par :
 2. Cliquer **Paiement**
 
 ✅ Résultat attendu :
+
 - le POS demande une autorisation (code) pour continuer.
 
 ---
@@ -144,6 +162,7 @@ Symptôme : au moment de **Paiement**, message : **❌ Double remise interdite**
 3. Revenir à **Paiement**
 
 ✅ Résultat attendu :
+
 - la commande passe si une seule remise est appliquée par produit.
 
 ---
@@ -157,6 +176,7 @@ Symptôme : au moment de **Paiement**, message : “Quantité nulle non autoris�
 3. Revenir à **Paiement**
 
 ✅ Résultat attendu :
+
 - la commande peut être validée.
 
 ---
@@ -167,9 +187,11 @@ Symptôme : au moment de **Paiement**, message : “Quantité nulle non autoris�
 2. Aller sur l’écran **Paiement**
 
 ✅ Résultat attendu :
+
 - un encart affiche **Solde: Point de fidelite** avec le nombre de points.
 
 Si rien ne s’affiche :
+
 - vérifier qu’un client est bien sélectionné
 - vérifier que le client a une carte / des points dans le module Fidélité
 
@@ -181,6 +203,7 @@ Si rien ne s’affiche :
 2. Imprimer / afficher le ticket
 
 ✅ Résultat attendu :
+
 - le nom de la **caisse** apparaît dans l’en-tête (si configuré)
 - le pied “Powered by Odoo” n’apparaît pas
 
@@ -197,29 +220,36 @@ Le module contient une base technique pour une promo type **“3 achetés = 1 of
 ## 6) Check-list de test rapide (10–15 minutes)
 
 1) **Paramétrage**
+
 - vérifier qu’un code est saisi dans la configuration du POS
 
 2) **Rupture de stock**
+
 - tenter de vendre un produit en rupture
 - vérifier : blocage + demande de code (si code configuré)
 
 3) **Remise**
+
 - appliquer une remise
 - vérifier : demande de code
 
 4) **Double remise**
+
 - mettre une remise % + une promo sur le même produit
 - vérifier : message “Double remise interdite”
 
 5) **Quantité nulle**
+
 - créer une ligne à quantité 0
 - vérifier : blocage “Quantité nulle non autorisée”
 
 6) **Fidélité**
+
 - sélectionner un client avec points
 - vérifier : affichage du solde au paiement
 
 7) **Ticket**
+
 - vérifier : nom du POS sur le reçu + absence de “Powered by Odoo”
 
 ---
