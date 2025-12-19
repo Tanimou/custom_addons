@@ -5,6 +5,7 @@ from . import suplier_return_report_wizard
 from . import cumul_inventary_report_wizard
 from . import stock_adjustment_report_wizard
 from . import report_daily_sales_wizard
+from . import stock_casse_report_wizard
 
 
 
