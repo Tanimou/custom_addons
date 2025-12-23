@@ -20,7 +20,7 @@
                     <span class="label pe-2">Rendu monnaie</span>
                     <span class="amount align-self-end me-5 pe-5">
 
-                        <PriceFormatter t-esc="props.renduMonnaieText"/>
+                        <PriceFormatter price="props.renduMonnaieText"/>
                     </span>
                 </div>
             <!-- </t> -->
