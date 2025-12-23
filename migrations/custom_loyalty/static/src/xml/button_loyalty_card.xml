@@ -18,8 +18,10 @@
             <!-- <t t-if="props.renduMonnaie"> -->
                 <div class="payment-status-rendu d-flex justify-content-between flex-grow-1 text-success fw-bold">
                     <span class="label pe-2">Rendu monnaie</span>
-                    <span class="amount align-self-end me-5 pe-5" t-esc="props.renduMonnaie"/>
-                        <!-- <PriceFormatter t-esc="props.renduMonnaieText"/> -->
+                    <span class="amount align-self-end me-5 pe-5">
+
+                        <PriceFormatter t-esc="props.renduMonnaieText"/>
+                    </span>
                 </div>
             <!-- </t> -->
 

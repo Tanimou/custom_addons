@@ -105,19 +105,19 @@ patch(PaymentScreen.prototype, {
 
 
 });
-// patch(PaymentScreenStatus.prototype, {
-//     get paymentScreenProps() {
-//         const props = super.paymentScreenProps || {};
+patch(PaymentScreenStatus.prototype, {
+    get paymentScreenProps() {
+        const props = super.paymentScreenProps || {};
 
-//         // Add rendu monnaie props
+        // Add rendu monnaie props
 
-//         return {
-//             ...props,
-//             renduMonnaie: this.renduState.amount,
-//             renduMonnaieText: this.env.utils.formatCurrency(this.renduState.amount),
-//         };
-//     }
-// });
+        return {
+            ...props,
+            renduMonnaie: this.renduState.amount,
+            renduMonnaieText: this.env.utils.formatCurrency(this.renduState.amount),
+        };
+    }
+});
 
 // Register client action to handle wizard response
 registry.category("actions").add("pos_add_rendu_monnaie_payment", async function (env, action) {
