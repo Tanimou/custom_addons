@@ -1,12 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-    <t t-name="custom_loyalty.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
-        <!-- Add loyalty button inside the control-buttons modal div -->
-        <xpath expr="//t[@t-if='props.showRemainingButtons']/div[hasclass('control-buttons')]/NoteButton" position="after">
-             <button class="btn btn-secondary btn-lg py-5" t-on-click="() => this.onClickLoyalty()">
-                 <i class="fa fa-pencil-square me-1" role="img" aria-label="Custom Alert" title="Custom Alert"/>
-                    Rendu monnaie (FCFA)
-             </button>
+    <t t-name="custom_loyalty.PaymentScreenButton" t-inherit="point_of_sale.PaymentScreen" t-inherit-mode="extension">
+        <!-- Insert loyalty button after the back button (appears before validate) in PaymentScreen -->
+        <xpath expr="//div[hasclass('w-100 flex-shrink-0')]" position="after">
+            <button class="btn btn-secondary btn-lg py-3 lh-lg mx-1" t-on-click="() => this.onClickLoyalty()">
+                <i class="fa fa-pencil-square me-1" role="img" aria-label="Rendu monnaie" title="Rendu monnaie"/>
+                Rendu monnaie (FCFA)
+            </button>
         </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.PaymentScreenStatus" t-inherit-mode="extension">
+
+        <!-- <xpath expr="//div[hasclass('text-bg-light border text-center py-4 fs-4')]" position="before"> -->
+        <xpath expr="//div[hasclass('payment-status-container')]" position="inside">
+
+            <!-- <t t-if="props.renduMonnaie"> -->
+                <div class="payment-status-rendu d-flex justify-content-between flex-grow-1 text-success fw-bold">
+                    <span class="label pe-2">Rendu monnaie</span>
+                    <span class="amount align-self-end me-5 pe-5" t-esc="props.renduMonnaie"/>
+                        <!-- <PriceFormatter t-esc="props.renduMonnaieText"/> -->
+                </div>
+            <!-- </t> -->
+
+        </xpath>
+
     </t>
 </templates>

@@ -30,7 +30,8 @@
 
     "assets": {
         "point_of_sale._assets_pos": [
-            "/custom_loyalty/static/src/**/*",
+            "/custom_loyalty/static/src/js/*.js",
+            "/custom_loyalty/static/src/xml/*.xml",
         ],
     },
 

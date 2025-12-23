@@ -146,8 +146,16 @@ class UpdateLoyaltyCardWizard(models.TransientModel):
             existing_loyalty = self.loyalty_id
             self._process_loyalty_update(existing_loyalty)
             self.env.invalidate_all()
-            return {'type': 'ir.actions.act_window_close'}
-            
+            return {
+            'type': 'ir.actions.client',
+            'tag': 'pos_add_rendu_monnaie_payment',
+            'params': {
+                'amount': self.points,
+                'partner_id': self.partner_id.id,
+                'partner_name': self.partner_id.name,
+                'new_balance': existing_loyalty.points,
+            }
+        }            
         except Exception as e:
             _logger.error(f"Erreur lors de la mise à jour des points: {e}")
             raise UserError(f"Une erreur s'est produite: {str(e)}")
