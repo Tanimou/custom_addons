@@ -27,7 +27,7 @@
         'views/pos_order_inherit_views.xml',
         'views/pos_payment_method_inherit_views.xml',
         'views/res_partner_inherit_views.xml',
-        'views/sale_order_inherit_views.xml',
+        # 'views/sale_order_inherit_views.xml',
     ],
 
     "assets": {
