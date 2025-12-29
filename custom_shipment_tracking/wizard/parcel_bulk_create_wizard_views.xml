@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- PARCEL BULK CREATE WIZARD - Form View     -->
+    <!-- ========================================== -->
+    <record id="parcel_bulk_create_wizard_view_form" model="ir.ui.view">
+        <field name="name">parcel.bulk.create.wizard.view.form</field>
+        <field name="model">parcel.bulk.create.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Creation de colis en masse">
+                <group>
+                    <group string="Configuration">
+                        <field name="shipment_request_id" readonly="1"/>
+                        <field name="parcel_count"/>
+                        <field name="default_weight"/>
+                        <field name="default_declared_value"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="content_description" placeholder="Ex: Marchandises, Documents..."/>
+                    </group>
+                    <group string="Apercu">
+                        <field name="main_number_preview" readonly="1"/>
+                        <div class="text-muted" colspan="2">
+                            <field name="first_sequence_preview" readonly="1" class="oe_inline"/>
+                            <span> a </span>
+                            <field name="last_sequence_preview" readonly="1" class="oe_inline"/>
+                            <span> (sequences)</span>
+                        </div>
+                        <field name="total_weight_preview" readonly="1"/>
+                    </group>
+                </group>
+                <separator string="Les colis seront crees avec les references automatiques"/>
+                <div class="alert alert-info" role="alert">
+                    <strong>Exemple:</strong> Si le numero principal est <strong>AB0006</strong> et que vous creez <strong>3 colis</strong>,
+                    les references seront: <strong>AB0006-1</strong>, <strong>AB0006-2</strong>, <strong>AB0006-3</strong>
+                </div>
+                <footer>
+                    <button name="action_create_parcels" type="object" string="Creer les colis" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- WIZARD ACTION                             -->
+    <!-- ========================================== -->
+    <record id="action_parcel_bulk_create_wizard" model="ir.actions.act_window">
+        <field name="name">Creer colis en masse</field>
+        <field name="res_model">parcel.bulk.create.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

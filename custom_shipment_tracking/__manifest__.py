@@ -44,6 +44,10 @@ Fonctionnalités principales:
         # Data
         'data/sequences.xml',
         'data/transport_products.xml',
+        # Reports (must be loaded BEFORE views that reference them)
+        'report/parcel_label_templates.xml',
+        'report/proforma_invoice_templates.xml',
+        'report/report_actions.xml',
         # Views
         'views/res_partner_views.xml',
         'views/shipment_request_views.xml',
@@ -57,11 +61,13 @@ Fonctionnalités principales:
         # Wizards
         'wizard/parcel_product_wizard_views.xml',
         'wizard/shipment_regrouping_wizard_views.xml',
-        # Reports
-        'report/parcel_label_templates.xml',
-        'report/report_actions.xml',
+        'wizard/parcel_bulk_create_wizard_views.xml',
     ],
-    'assets': {},
+    'assets': {
+        'web.report_assets_common': [
+            'custom_shipment_tracking/static/pied_de_page.png',
+        ],
+    },
     'demo': [],
     'installable': True,
     'application': True,

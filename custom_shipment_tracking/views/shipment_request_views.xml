@@ -10,6 +10,7 @@
         <field name="arch" type="xml">
             <list string="Demandes d'expédition" create="false" decoration-info="state == 'registered'" decoration-warning="state == 'grouping'" decoration-success="state == 'delivered'">
                 <field name="name"/>
+                <field name="shipment_type" widget="badge" decoration-info="shipment_type == 'fret'" decoration-warning="shipment_type == 'groupage'"/>
                 <field name="partner_id"/>
                 <field name="destination_country_id"/>
                 <field name="destination_city" optional="show"/>
@@ -31,21 +32,36 @@
         <field name="arch" type="xml">
             <form string="Demande d'expédition">
                 <header>
-                    <button name="action_set_grouping" type="object" string="Passer en groupage" class="btn-primary" invisible="state != 'registered'"/>
+                    <!-- Groupage workflow: Passer en groupage (only for Groupage type) -->
+                    <button name="action_set_grouping" type="object" string="Passer en groupage" 
+                            class="btn-primary" 
+                            invisible="shipment_type != 'groupage' or state != 'registered'"/>
+                    
+                    <!-- Prêt pour envoi - Fret: from registered, requires documents -->
+                    <button name="action_ready_for_transit" type="object" string="Prêt pour envoi" 
+                            class="btn-success"
+                            invisible="shipment_type != 'fret' or state != 'registered' or not all_docs_validated or proforma_state != 'confirmed'"
+                            title="Fret: Passer en transit (documents requis)"/>
+                    
+                    <!-- Prêt pour envoi - Groupage: from grouping, NO documents required -->
+                    <button name="action_ready_for_transit" type="object" string="Prêt pour envoi" 
+                            class="btn-success"
+                            invisible="shipment_type != 'groupage' or state != 'grouping' or proforma_state != 'confirmed'"
+                            title="Groupage: Passer en transit (documents optionnels)"/>
+                    
                     <button name="action_set_arrived" type="object" string="Marquer arrivé" class="btn-primary" invisible="state != 'in_transit'"/>
                     <button name="action_set_delivered" type="object" string="Marquer livré" class="btn-primary" invisible="state != 'arrived'"/>
                     <button name="action_generate_tracking_link" type="object" string="Générer liens de suivi" class="btn-secondary" invisible="parcel_count == 0 or tracking_link_id"/>
-                    <!-- Proforma / Invoice buttons -->
+                     <!-- Proforma / Invoice buttons -->
                     <button name="action_create_proforma" type="object" string="Créer Proforma" class="btn-secondary" 
                             invisible="proforma_state != 'none' or parcel_count == 0"
                             title="Créer un proforma avec les détails des colis et frais de transport"/>
-                    <!-- Document buttons -->
+                    <!-- Document buttons - Important for Fret, optional for Groupage -->
                     <button name="action_generate_documents" type="object" string="Générer Documents" class="btn-secondary"
-                            invisible="document_count > 0 or state == 'registered'"
+                            invisible="document_count > 0 or shipment_type == 'groupage'"
                             title="Générer les documents requis (FDI, DCVI, Déclaration, LTA)"/>
-                    <button name="action_ready_for_transit" type="object" string="Prêt pour envoi" class="btn-success"
-                            invisible="state != 'grouping' or not all_docs_validated or proforma_state != 'confirmed'"
-                            title="Valider l'envoi (tous les documents doivent être validés et la facture confirmée)"/>
+                    
+                    <!-- Statusbar: Show all states, visual feedback handled by type -->
                     <field name="state" widget="statusbar" statusbar_visible="registered,grouping,in_transit,arrived,delivered"/>
                 </header>
                 <sheet>
@@ -66,6 +82,8 @@
                             <field name="invoice_count" widget="statinfo" string="Factures"/>
                         </button>
                     </div>
+                    <widget name="web_ribbon" title="Fret" bg_color="text-bg-info" invisible="shipment_type != 'fret'"/>
+                    <widget name="web_ribbon" title="Groupage" bg_color="text-bg-warning" invisible="shipment_type != 'groupage'"/>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
@@ -84,6 +102,7 @@
                     </group>
                     <group>
                         <group name="transport_info" string="Transport">
+                            <field name="shipment_type" widget="radio" readonly="state != 'registered'"/>
                             <field name="transport_mode" widget="radio"/>
                             <field name="main_parcel_number"/>
                             <field name="airline_name" placeholder="ex: Sky Mali"/>
@@ -102,6 +121,14 @@
 
                     <notebook>
                         <page string="Colis" name="parcels">
+                            <div class="mb-2" invisible="state not in ('registered', 'grouping')">
+                                <button name="action_open_bulk_create_wizard" 
+                                        type="object" 
+                                        string="Creer colis en masse" 
+                                        icon="fa-plus-circle"
+                                        class="btn-secondary"
+                                        title="Creer plusieurs colis en une seule fois"/>
+                            </div>
                             <field name="parcel_ids" nolabel="1"
                                    readonly="state not in ('registered', 'grouping')">
                                 <list string="Colis" editable="bottom"
@@ -172,7 +199,7 @@
                                     <field name="total_weight" readonly="1"/>
                                     <field name="total_declared_value" readonly="1"/>
                                     <field name="transport_fee_rate"/>
-                                    <field name="transport_fee" readonly="1"/>
+                                    <field name="transport_fee" readonly="0"/>
                                 </group>
                             </group>
                             <group>
@@ -184,6 +211,12 @@
                                     <field name="document_count" readonly="1"/>
                                     <field name="docs_validated_count" readonly="1"/>
                                     <field name="all_docs_validated" readonly="1"/>
+                                    <div colspan="2" class="alert alert-info" role="alert" invisible="shipment_type != 'fret'">
+                                        <i class="fa fa-info-circle"/> <strong>Type Fret:</strong> Documents requis avant transit.
+                                    </div>
+                                    <div colspan="2" class="alert alert-warning" role="alert" invisible="shipment_type != 'groupage'">
+                                        <i class="fa fa-info-circle"/> <strong>Type Groupage:</strong> Documents optionnels.
+                                    </div>
                                 </group>
                             </group>
                         </page>
@@ -225,6 +258,9 @@
                 <field name="destination_city"/>
                 <field name="main_parcel_number"/>
                 <separator/>
+                <filter string="Type Fret" name="filter_fret" domain="[('shipment_type', '=', 'fret')]"/>
+                <filter string="Type Groupage" name="filter_groupage" domain="[('shipment_type', '=', 'groupage')]"/>
+                <separator/>
                 <filter string="Enregistré" name="filter_registered" domain="[('state', '=', 'registered')]"/>
                 <filter string="Groupage" name="filter_grouping" domain="[('state', '=', 'grouping')]"/>
                 <filter string="En transit" name="filter_in_transit" domain="[('state', '=', 'in_transit')]"/>
@@ -235,8 +271,8 @@
                 <filter string="Transport maritime" name="filter_sea" domain="[('transport_mode', '=', 'sea')]"/>
                 <separator/>
                 <filter string="Ma société" name="filter_my_company" domain="[('company_id', '=', company_id)]" groups="base.group_multi_company"/>
-                <!-- <separator/>
-                <group expand="0" string="Grouper par">
+                <!-- <group expand="0" string="Grouper par">
+                    <filter string="Type" name="groupby_type" context="{'group_by': 'shipment_type'}"/>
                     <filter string="Statut" name="groupby_state" context="{'group_by': 'state'}"/>
                     <filter string="Mode de transport" name="groupby_transport_mode" context="{'group_by': 'transport_mode'}"/>
                     <filter string="Client" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
@@ -261,6 +297,7 @@
                 <field name="destination_country_id"/>
                 <field name="destination_city"/>
                 <field name="transport_mode"/>
+                <field name="shipment_type"/>
                 <field name="state" options="{'group_by_tooltip': {'selection': 'state'}}" groups_draggable="1"/>
                 <field name="planned_date"/>
                 <field name="parcel_count"/>
@@ -275,6 +312,19 @@
                             </div>
                         </div>
                         <div class="o_kanban_card_content">
+                            <!-- Shipment Type Badge -->
+                            <div class="mb-1">
+                                <t t-if="record.shipment_type.raw_value == 'fret'">
+                                    <span class="badge text-bg-info">
+                                        <i class="fa fa-truck me-1"/>Fret
+                                    </span>
+                                </t>
+                                <t t-if="record.shipment_type.raw_value == 'groupage'">
+                                    <span class="badge text-bg-warning">
+                                        <i class="fa fa-cubes me-1"/>Groupage
+                                    </span>
+                                </t>
+                            </div>
                             <div class="mb-1">
                                 <i class="fa fa-user me-1" title="Client"/>
                                 <field name="partner_id"/>
@@ -288,12 +338,12 @@
                             </div>
                             <div class="mb-1">
                                 <t t-if="record.transport_mode.raw_value == 'air'">
-                                    <span class="badge text-bg-info">
+                                    <span class="badge text-bg-secondary">
                                         <i class="fa fa-plane me-1"/>Aérien
                                     </span>
                                 </t>
                                 <t t-if="record.transport_mode.raw_value == 'sea'">
-                                    <span class="badge text-bg-primary">
+                                    <span class="badge text-bg-secondary">
                                         <i class="fa fa-ship me-1"/>Maritime
                                     </span>
                                 </t>

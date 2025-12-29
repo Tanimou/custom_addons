@@ -267,6 +267,9 @@ class ShipmentParcel(models.Model):
     # region CRUD
     @api.model_create_multi
     def create(self, vals_list):
+        # Track next sequence per shipment to handle bulk creation correctly
+        next_sequence_by_shipment = {}
+        
         for vals in vals_list:
             shipment_request_id = vals.get('shipment_request_id')
             if shipment_request_id:
@@ -274,12 +277,22 @@ class ShipmentParcel(models.Model):
                 # Get or create main parcel number
                 main_number = shipment._get_or_create_main_parcel_number()
                 vals['main_number'] = main_number
-                # Assign next sequence
-                existing_parcels = self.search([
-                    ('shipment_request_id', '=', shipment_request_id),
-                ], order='sequence desc', limit=1)
-                next_sequence = (existing_parcels.sequence + 1) if existing_parcels else 1
+                
+                # Get next sequence - use cached value if we already calculated for this shipment
+                if shipment_request_id not in next_sequence_by_shipment:
+                    # First time for this shipment - query database
+                    existing_parcels = self.search([
+                        ('shipment_request_id', '=', shipment_request_id),
+                    ], order='sequence desc', limit=1)
+                    next_sequence_by_shipment[shipment_request_id] = (
+                        (existing_parcels.sequence + 1) if existing_parcels else 1
+                    )
+                
+                # Assign and increment sequence
+                next_sequence = next_sequence_by_shipment[shipment_request_id]
                 vals['sequence'] = next_sequence
+                next_sequence_by_shipment[shipment_request_id] = next_sequence + 1
+                
                 _logger.info(
                     'Creating parcel %s-%d for shipment %s',
                     main_number,

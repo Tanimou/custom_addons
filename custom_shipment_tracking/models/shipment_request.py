@@ -64,6 +64,18 @@ class ShipmentRequest(models.Model):
         default='air',
         tracking=True,
     )
+    shipment_type = fields.Selection(
+        selection=[
+            ('fret', 'Fret'),
+            ('groupage', 'Groupage'),
+        ],
+        string="Type d'expédition",
+        required=True,
+        default='groupage',
+        tracking=True,
+        help="Fret: Expédition directe avec documents requis (pas d'étape groupage).\n"
+             "Groupage: Consolidation avec étape groupage, documents optionnels.",
+    )
     planned_date = fields.Date(
         string='Date prévue d\'expédition',
         tracking=True,
@@ -291,11 +303,29 @@ class ShipmentRequest(models.Model):
 
     @api.model
     def _expand_states(self, states, domain):
-        """Expand all states in Kanban view regardless of records.
+        """Expand states in Kanban view based on shipment type.
         
-        This ensures all columns are visible for drag-and-drop.
+        - Fret: No 'grouping' state (registered → in_transit → arrived → delivered)
+        - Groupage: All states including 'grouping'
+        
+        This ensures correct columns are visible for drag-and-drop.
         """
-        return [key for key, _ in self._fields['state'].selection]
+        # Check if we're filtering by a specific shipment_type
+        shipment_type = None
+        for condition in domain:
+            if isinstance(condition, (list, tuple)) and len(condition) >= 3:
+                if condition[0] == 'shipment_type' and condition[1] == '=':
+                    shipment_type = condition[2]
+                    break
+        
+        # Return states based on type
+        if shipment_type == 'fret':
+            return ['registered', 'in_transit', 'arrived', 'delivered']
+        elif shipment_type == 'groupage':
+            return ['registered', 'grouping', 'in_transit', 'arrived', 'delivered']
+        else:
+            # Default: show all states
+            return [key for key, _ in self._fields['state'].selection]
 
     def _compute_tracking_link_id(self):
         """Get the active tracking link for this shipment."""
@@ -419,7 +449,16 @@ class ShipmentRequest(models.Model):
             TrackingEvent.create_status_event(parcel, new_state)
 
     def action_set_grouping(self):
-        """Set status to Groupage (shipment + parcels)."""
+        """Set status to Groupage (shipment + parcels).
+        
+        Only available for Groupage type shipments.
+        """
+        for shipment in self:
+            if shipment.shipment_type == 'fret':
+                raise UserError(_(
+                    "Les expéditions de type Fret n'ont pas d'étape Groupage.\n"
+                    "Utilisez 'Prêt pour envoi' pour passer directement en transit."
+                ))
         self._set_state_with_parcels('grouping')
 
     def _check_all_products_packed(self):
@@ -568,7 +607,7 @@ class ShipmentRequest(models.Model):
         """Prepare invoice lines for the proforma.
         
         Returns a list of invoice line vals including:
-        - One line per parcel with its declared value
+        - One line per main_number (grouping all parcels with same main_number)
         - One line for transport fees
         - One line for customs fees (if any)
         - One line for service fees (if any)
@@ -576,23 +615,38 @@ class ShipmentRequest(models.Model):
         self.ensure_one()
         lines = []
 
-        # Add a line for each parcel with its products summary
+        # Group parcels by main_number
+        parcels_by_main_number = {}
         for parcel in self.parcel_ids:
-            # Build description from parcel products
-            product_details = []
-            for line in parcel.parcel_line_ids:
-                product_details.append(
-                    f"  - {line.product_id.display_name}: {line.quantity:.2f} x {line.unit_price:.2f}"
-                )
-            product_desc = '\n'.join(product_details) if product_details else 'Aucun produit'
-            
+            main_num = parcel.main_number or 'N/A'
+            if main_num not in parcels_by_main_number:
+                parcels_by_main_number[main_num] = {
+                    'parcels': self.env['shipment.parcel'],
+                    'total_weight': 0.0,
+                    'total_value': 0.0,
+                }
+            parcels_by_main_number[main_num]['parcels'] |= parcel
+            parcels_by_main_number[main_num]['total_weight'] += parcel.weight
             # Use declared value or total_value
             parcel_value = parcel.declared_value if parcel.declared_value else parcel.total_value
+            parcels_by_main_number[main_num]['total_value'] += parcel_value
+
+        # Create one line per main_number group
+        for main_num, data in parcels_by_main_number.items():
+            parcel_count = len(data['parcels'])
+            total_weight = data['total_weight']
+            total_value = data['total_value']
+            
+            # Build description with parcel count
+            if parcel_count == 1:
+                description = f"Colis {main_num} ({total_weight:.2f} kg)"
+            else:
+                description = f"Colis {main_num} - {parcel_count} colis ({total_weight:.2f} kg total)"
             
             lines.append({
-                'name': f"Colis {parcel.name} ({parcel.weight:.2f} kg)\n{product_desc}",
-                'quantity': 1,
-                'price_unit': parcel_value,
+                'name': description,
+                'quantity': parcel_count,
+                'price_unit': total_value / parcel_count if parcel_count > 0 else 0.0,
             })
 
         # Add transport fee line
@@ -610,7 +664,7 @@ class ShipmentRequest(models.Model):
         # Add customs fees line (if any)
         if self.customs_fees > 0:
             lines.append({
-                'name': 'Taxes douanières',
+                'name': 'Taxes douanieres',
                 'quantity': 1,
                 'price_unit': self.customs_fees,
             })
@@ -802,13 +856,34 @@ class ShipmentRequest(models.Model):
             'target': 'current',
         }
 
+    def action_open_bulk_create_wizard(self):
+        """Open wizard to bulk create parcels."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Creer colis en masse',
+            'res_model': 'parcel.bulk.create.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_shipment_request_id': self.id,
+            },
+        }
+
     def action_ready_for_transit(self):
         """Set shipment to in_transit after all validations pass.
         
-        This is the 'Prêt pour envoi' button that validates:
-        1. All products are packed
-        2. Invoice is confirmed
-        3. All documents are validated
+        This is the 'Prêt pour envoi' button that validates based on shipment type:
+        
+        Fret workflow (from 'registered'):
+        - All products must be packed
+        - Invoice must be confirmed
+        - All documents must be validated (REQUIRED)
+        
+        Groupage workflow (from 'grouping'):
+        - All products must be packed
+        - Invoice must be confirmed
+        - Documents NOT required
         """
         for shipment in self:
             # Check products are packed
@@ -816,28 +891,43 @@ class ShipmentRequest(models.Model):
             
             # Check invoice is confirmed
             if shipment.proforma_state != 'confirmed':
-                raise UserError(
+                raise UserError(_(
                     "La facture doit être confirmée avant de pouvoir envoyer l'expédition.\n"
                     "Créez d'abord un proforma puis confirmez-le."
-                )
+                ))
             
-            # Check all documents are validated
-            if not shipment.all_docs_validated:
-                missing_docs = shipment.document_ids.filtered(lambda d: d.state != 'validated')
-                doc_names = ', '.join(missing_docs.mapped('name'))
-                raise UserError(
-                    f"Tous les documents doivent être validés avant l'envoi.\n\n"
-                    f"Documents non validés:\n{doc_names}"
-                )
+            # Document validation depends on shipment type
+            if shipment.shipment_type == 'fret':
+                # Fret: Documents ARE required
+                if not shipment.all_docs_validated:
+                    missing_docs = shipment.document_ids.filtered(lambda d: d.state != 'validated')
+                    if missing_docs:
+                        doc_names = ', '.join(missing_docs.mapped('name'))
+                        raise UserError(_(
+                            "Type Fret: Tous les documents doivent être validés avant l'envoi.\n\n"
+                            "Documents non validés:\n%s"
+                        ) % doc_names)
+                    else:
+                        raise UserError(_(
+                            "Type Fret: Aucun document n'a été généré pour cette expédition.\n"
+                            "Cliquez sur 'Générer Documents' pour créer les documents requis."
+                        ))
+            # Groupage: Documents NOT required - skip validation
         
         # All checks passed, set to in_transit
         self._set_state_with_parcels('in_transit')
         
         for shipment in self:
-            shipment.message_post(
-                body="🚀 Expédition prête pour envoi - Tous les documents validés, facture confirmée.",
-                message_type='notification',
-            )
+            if shipment.shipment_type == 'fret':
+                shipment.message_post(
+                    body="🚀 Expédition Fret prête pour envoi - Documents validés, facture confirmée.",
+                    message_type='notification',
+                )
+            else:
+                shipment.message_post(
+                    body="🚀 Expédition Groupage prête pour envoi - Facture confirmée.",
+                    message_type='notification',
+                )
     # endregion
 
     # region CRUD Overrides
@@ -845,8 +935,11 @@ class ShipmentRequest(models.Model):
         """Override write to handle Kanban drag-drop state changes.
         
         When state changes via Kanban drag-drop:
-        - Validates transition from grouping to in_transit (docs + invoice)
+        - Validates transitions based on shipment type (Fret vs Groupage)
         - Syncs parcel status with shipment status
+        
+        Fret workflow: registered → in_transit (documents required)
+        Groupage workflow: grouping → in_transit (documents NOT required)
         """
         # Check if state is being changed
         if 'state' in vals:
@@ -854,32 +947,42 @@ class ShipmentRequest(models.Model):
             for shipment in self:
                 old_state = shipment.state
                 
-                # Validate transition from grouping to in_transit
-                if old_state == 'grouping' and new_state == 'in_transit':
-                    # Check invoice is confirmed
+                # Block invalid state transitions based on type
+                if shipment.shipment_type == 'fret' and new_state == 'grouping':
+                    raise UserError(_(
+                        "⚠️ Les expéditions de type Fret n'ont pas d'étape Groupage.\n"
+                        "Passez directement de 'Enregistré' à 'En transit'."
+                    ))
+                
+                # Validate transition TO in_transit
+                if new_state == 'in_transit':
+                    # Check invoice is confirmed (both types)
                     if shipment.proforma_state != 'confirmed':
-                        raise UserError(
+                        raise UserError(_(
                             "⚠️ Impossible de passer en transit !\n\n"
                             "La facture doit être confirmée avant de pouvoir envoyer l'expédition.\n"
                             "Créez d'abord un proforma puis confirmez-le."
-                        )
+                        ))
                     
-                    # Check all documents are validated
-                    if not shipment.all_docs_validated:
-                        missing_docs = shipment.document_ids.filtered(lambda d: d.state != 'validated')
-                        if missing_docs:
-                            doc_names = ', '.join(missing_docs.mapped('name'))
-                            raise UserError(
-                                "⚠️ Impossible de passer en transit !\n\n"
-                                f"Tous les documents doivent être validés avant l'envoi.\n\n"
-                                f"Documents non validés:\n{doc_names}"
-                            )
-                        else:
-                            raise UserError(
-                                "⚠️ Impossible de passer en transit !\n\n"
-                                "Aucun document n'a été généré pour cette expédition.\n"
-                                "Cliquez sur 'Générer Documents' pour créer les documents requis."
-                            )
+                    # Document validation depends on type
+                    if shipment.shipment_type == 'fret':
+                        # Fret: Documents ARE required
+                        if not shipment.all_docs_validated:
+                            missing_docs = shipment.document_ids.filtered(lambda d: d.state != 'validated')
+                            if missing_docs:
+                                doc_names = ', '.join(missing_docs.mapped('name'))
+                                raise UserError(_(
+                                    "⚠️ Impossible de passer en transit !\n\n"
+                                    "Type Fret: Tous les documents doivent être validés avant l'envoi.\n\n"
+                                    "Documents non validés:\n%s"
+                                ) % doc_names)
+                            else:
+                                raise UserError(_(
+                                    "⚠️ Impossible de passer en transit !\n\n"
+                                    "Type Fret: Aucun document n'a été généré pour cette expédition.\n"
+                                    "Cliquez sur 'Générer Documents' pour créer les documents requis."
+                                ))
+                    # Groupage: Documents NOT required - no validation
         
         # Perform the write
         result = super().write(vals)
@@ -947,12 +1050,22 @@ class SaleOrderShipmentExtension(models.Model):
                 order._set_opportunity_won()
         return res
 
-    def _validate_partner_address_for_shipment(self):
+    def _validate_partner_address_for_shipment(self, require_opportunity=True):
         """Validate that partner has complete address for shipment creation.
+        
+        Args:
+            require_opportunity: If True (default), only validates for CRM orders.
+                               If False, always validates (for manual creation).
         
         Raises UserError if address is incomplete.
         """
         self.ensure_one()
+        
+        # Skip validation if require_opportunity=True and no opportunity linked
+        # (backwards compatibility with CRM-only auto-creation)
+        if require_opportunity and not self.opportunity_id:
+            return
+        
         # Use shipping address if available, otherwise billing address
         partner = self.partner_shipping_id or self.partner_id
         if not partner:
@@ -972,11 +1085,11 @@ class SaleOrderShipmentExtension(models.Model):
         
         if missing_fields:
             raise UserError(_(
-                "Impossible de valider la commande. "
-                "Les informations d'adresse du client sont incomplètes pour créer une demande d'expédition.\n\n"
+                "Impossible de créer la demande d'expédition. "
+                "Les informations d'adresse du client sont incomplètes.\n\n"
                 "Client: %(partner_name)s\n"
                 "Champs manquants:\n%(missing)s\n\n"
-                "Veuillez compléter les informations d'adresse du client avant de confirmer la commande."
+                "Veuillez compléter les informations d'adresse du client."
             ) % {
                 'partner_name': partner.display_name,
                 'missing': '\n'.join(f'  • {f}' for f in missing_fields),
@@ -1042,6 +1155,128 @@ class SaleOrderShipmentExtension(models.Model):
         )
         return shipment
 
+    def _amount_to_text(self, amount):
+        """Convert amount to French text (ex: 493800 -> 'Quatre cent quatre-vingt-treize mille huit cent Francs CFA').
+        
+        This is a simplified French number to text converter for amounts.
+        Used by the proforma invoice PDF report.
+        """
+        if amount == 0:
+            return "Zero Francs CFA"
+        
+        # Get currency name from company
+        currency_name = self.company_id.currency_id.name or 'Francs CFA'
+        if currency_name in ('XOF', 'XAF'):
+            currency_name = 'Francs CFA'
+        elif currency_name == 'EUR':
+            currency_name = 'Euros'
+        elif currency_name == 'USD':
+            currency_name = 'Dollars US'
+        
+        # French number words
+        units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf',
+                 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept',
+                 'dix-huit', 'dix-neuf']
+        tens = ['', 'dix', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 
+                'soixante', 'quatre-vingt', 'quatre-vingt']
+        
+        def _convert_less_than_hundred(n):
+            """Convert number less than 100 to French text."""
+            if n < 20:
+                return units[n]
+            elif n < 70:
+                ten = n // 10
+                unit = n % 10
+                if unit == 0:
+                    return tens[ten]
+                elif unit == 1 and ten != 8:
+                    return f"{tens[ten]} et un"
+                else:
+                    return f"{tens[ten]}-{units[unit]}"
+            elif n < 80:
+                # 70-79: soixante-dix, soixante-onze, etc.
+                unit = n - 60
+                if unit == 11:
+                    return "soixante et onze"
+                return f"soixante-{units[unit]}"
+            else:
+                # 80-99: quatre-vingt, quatre-vingt-un, etc.
+                unit = n - 80
+                if unit == 0:
+                    return "quatre-vingts"
+                return f"quatre-vingt-{units[unit]}"
+        
+        def _convert_less_than_thousand(n):
+            """Convert number less than 1000 to French text."""
+            if n < 100:
+                return _convert_less_than_hundred(n)
+            else:
+                hundreds = n // 100
+                remainder = n % 100
+                if hundreds == 1:
+                    prefix = "cent"
+                else:
+                    prefix = f"{units[hundreds]} cent"
+                
+                if remainder == 0:
+                    if hundreds > 1:
+                        return f"{units[hundreds]} cents"
+                    return "cent"
+                else:
+                    return f"{prefix} {_convert_less_than_hundred(remainder)}"
+        
+        def _convert(n):
+            """Convert any positive integer to French text."""
+            if n < 1000:
+                return _convert_less_than_thousand(n)
+            elif n < 1000000:
+                thousands = n // 1000
+                remainder = n % 1000
+                if thousands == 1:
+                    prefix = "mille"
+                else:
+                    prefix = f"{_convert_less_than_thousand(thousands)} mille"
+                
+                if remainder == 0:
+                    return prefix
+                else:
+                    return f"{prefix} {_convert_less_than_thousand(remainder)}"
+            elif n < 1000000000:
+                millions = n // 1000000
+                remainder = n % 1000000
+                if millions == 1:
+                    prefix = "un million"
+                else:
+                    prefix = f"{_convert_less_than_thousand(millions)} millions"
+                
+                if remainder == 0:
+                    return prefix
+                else:
+                    return f"{prefix} {_convert(remainder)}"
+            else:
+                # Milliards (billions in French)
+                milliards = n // 1000000000
+                remainder = n % 1000000000
+                if milliards == 1:
+                    prefix = "un milliard"
+                else:
+                    prefix = f"{_convert_less_than_thousand(milliards)} milliards"
+                
+                if remainder == 0:
+                    return prefix
+                else:
+                    return f"{prefix} {_convert(remainder)}"
+        
+        # Convert amount (integer part only)
+        int_amount = int(round(amount))
+        text = _convert(int_amount)
+        
+        # Capitalize first letter and add currency
+        if text:
+            text = text[0].upper() + text[1:]
+        
+        return f"{text} {currency_name}"
+
     def action_view_shipment_requests(self):
         """Open shipment requests linked to this order."""
         self.ensure_one()
@@ -1066,6 +1301,51 @@ class SaleOrderShipmentExtension(models.Model):
                 'domain': [('id', 'in', self.shipment_request_ids.ids)],
                 'target': 'current',
             }
+
+    def action_create_shipment_request(self):
+        """Manually create a shipment request from this sale order.
+        
+        This action allows creating shipment requests directly from confirmed
+        sale orders WITHOUT requiring a CRM opportunity. This is useful for
+        orders created directly in the Sales module.
+        """
+        self.ensure_one()
+        
+        # Check order is confirmed
+        if self.state != 'sale':
+            raise UserError(_(
+                "Impossible de créer une expédition pour une commande non confirmée.\n"
+                "Veuillez d'abord confirmer la commande."
+            ))
+        
+        # Check no shipment exists already
+        if self.shipment_request_ids:
+            raise UserError(_(
+                "Une demande d'expédition existe déjà pour cette commande.\n"
+                "Utilisez le bouton 'Expéditions' pour la consulter."
+            ))
+        
+        # Validate partner address
+        self._validate_partner_address_for_shipment(require_opportunity=False)
+        
+        # Create shipment request
+        shipment = self._create_shipment_request_from_order()
+        
+        if not shipment:
+            raise UserError(_(
+                "Impossible de créer la demande d'expédition.\n"
+                "Vérifiez que le pays de destination est renseigné dans l'adresse du client."
+            ))
+        
+        # Return action to view the created shipment
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Demande d\'expédition créée'),
+            'res_model': 'shipment.request',
+            'view_mode': 'form',
+            'res_id': shipment.id,
+            'target': 'current',
+        }
 
 
 class CrmLeadShipmentExtension(models.Model):
