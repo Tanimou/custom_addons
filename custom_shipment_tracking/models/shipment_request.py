@@ -1277,6 +1277,36 @@ class SaleOrderShipmentExtension(models.Model):
         
         return f"{text} {currency_name}"
 
+    def _get_iata_badge_base64(self):
+        """Returns the IATA badge image as base64 for use in PDF reports.
+        
+        This method reads the static IATA image file and converts it to base64
+        so it can be rendered in wkhtmltopdf using image_data_uri().
+        """
+        import base64
+
+        from odoo.tools.misc import file_open
+        try:
+            with file_open('custom_shipment_tracking/static/iata-accredagent-rgb.jpg', 'rb') as f:
+                return base64.b64encode(f.read())
+        except Exception:
+            return False
+
+    def _get_footer_image_base64(self):
+        """Returns the footer image as base64 for use in PDF reports.
+        
+        This method reads the static footer image file and converts it to base64
+        so it can be rendered in wkhtmltopdf using image_data_uri().
+        """
+        import base64
+
+        from odoo.tools.misc import file_open
+        try:
+            with file_open('custom_shipment_tracking/static/pied_de_page.png', 'rb') as f:
+                return base64.b64encode(f.read())
+        except Exception:
+            return False
+
     def action_view_shipment_requests(self):
         """Open shipment requests linked to this order."""
         self.ensure_one()
