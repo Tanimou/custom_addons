@@ -17,6 +17,12 @@ class ProductNature(models.Model):
         translate=True,
         help="Nom de la nature (ex: Macaron, Eugenie)"
     )
+    unit_price = fields.Float(
+        string='Valeur unitaire',
+        default=0.0,
+        digits='Product Price',
+        help="Prix unitaire par nature (utilisé pour calculer la valeur monétaire)"
+    )
     active = fields.Boolean(default=True)
     
     _sql_constraints = [
