@@ -64,7 +64,7 @@ class ReportPosOrderNature(models.Model):
                 COALESCE(pn.unit_price, 0) AS nature_unit_price,
                 (l.qty * COALESCE(pt.nature_quantity, 0)) * COALESCE(pn.unit_price, 0) AS valeur_monetaire,
                 pt.list_price * l.qty AS price_total_ht,
-                CEIL(pt.list_price * (1 + COALESCE(tax_agg.total_tax_percent, 0) / 100) * l.qty / 1000) * 1000 AS price_total_ttc
+                ROUND(pt.list_price * (1 + COALESCE(tax_agg.total_tax_percent, 0) / 100) * l.qty)  AS price_total_ttc
         """
 
     def _from(self):
