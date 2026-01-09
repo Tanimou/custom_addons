@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <!-- Héritage du template pour changer le placeholder de street -->
+    <t t-inherit="pos_self_order.PresetInfoPopup" t-inherit-mode="extension">
+        <xpath expr="//input[@placeholder='Street and Number']" position="attributes">
+            <attribute name="placeholder">Lieu de résidence</attribute>
+        </xpath>
+    </t>
+    
+    <!-- Héritage du template ConfirmationPage pour changer le message -->
+    <t t-inherit="pos_self_order.ConfirmationPage" t-inherit-mode="extension">
+        <xpath expr="//h1[@class='mb-0']" position="replace">
+            <h1 class="mb-0">Nous préparons votre commande au comptoir de la durée palisades à ITC</h1>
+        </xpath>
+    </t>
+</templates>

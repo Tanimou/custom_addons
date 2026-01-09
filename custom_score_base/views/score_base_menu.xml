@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root Menu: SCORE Logistics -->
+    <menuitem
+        id="menu_score_root"
+        name="SCORE"
+        sequence="60"
+        web_icon="custom_score_base,static/description/icon.png"
+    />
+
+    <!-- Level 1: Operations -->
+    <menuitem
+        id="menu_score_operations"
+        name="Opérations"
+        parent="menu_score_root"
+        sequence="10"
+    />
+
+    <!-- Level 1: Fleet / Vehicles -->
+    <menuitem
+        id="menu_score_fleet"
+        name="Parc"
+        parent="menu_score_root"
+        sequence="20"
+    />
+
+    <!-- Level 1: Compliance -->
+    <menuitem
+        id="menu_score_compliance"
+        name="Conformité"
+        parent="menu_score_root"
+        sequence="30"
+    />
+
+    <!-- Level 1: Costs -->
+    <menuitem
+        id="menu_score_costs"
+        name="Coûts"
+        parent="menu_score_root"
+        sequence="40"
+    />
+
+    <!-- Level 1: Maintenance -->
+    <menuitem
+        id="menu_score_maintenance"
+        name="Maintenance"
+        parent="menu_score_root"
+        sequence="50"
+    />
+
+    <!-- Level 1: Fuel -->
+    <menuitem
+        id="menu_score_fuel"
+        name="Carburant"
+        parent="menu_score_root"
+        sequence="60"
+    />
+
+    <!-- Level 1: Reporting -->
+    <menuitem
+        id="menu_score_reporting"
+        name="Reporting"
+        parent="menu_score_root"
+        sequence="70"
+    />
+
+    <!-- Level 1: Configuration -->
+    <menuitem
+        id="menu_score_configuration"
+        name="Configuration"
+        parent="menu_score_root"
+        sequence="100"
+        groups="base.group_system"
+    />
+</odoo>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- ========== SCORE VEHICLE SEQUENCES ========== -->
+        
+        <!-- Vehicle Internal Identifier Sequence (FR-003) -->
+        <record id="sequence_vehicle_internal_id" model="ir.sequence">
+            <field name="name">Identifiant Interne Véhicule</field>
+            <field name="code">fleet.vehicle.internal.id</field>
+            <field name="prefix">VEH-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+        <!-- Registration Case Sequence -->
+        <record id="sequence_vehicle_registration_case" model="ir.sequence">
+            <field name="name">Dossier Immatriculation</field>
+            <field name="code">fleet.vehicle.registration.case</field>
+            <field name="prefix">REG-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+        <!-- Vehicle Transfer Sequence -->
+        <record id="sequence_vehicle_transfer" model="ir.sequence">
+            <field name="name">Transfert Véhicule</field>
+            <field name="code">fleet.vehicle.transfer</field>
+            <field name="prefix">TRF-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+        <!-- Vehicle Reception Expense Sequence (FR-009) -->
+        <record id="sequence_vehicle_reception_expense" model="ir.sequence">
+            <field name="name">Frais de Réception Véhicule</field>
+            <field name="code">fleet.vehicle.reception.expense</field>
+            <field name="prefix">REC-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+    </data>
+</odoo>

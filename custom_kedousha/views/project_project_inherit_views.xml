@@ -1,0 +1,43 @@
+<odoo>
+    <record id="project_project_form_inherit_view" model="ir.ui.view">
+        <field name="name">project.project.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="before">
+                <group name="info_chicken_group" string="Info Poulailler">
+                    <group>
+                        <field name="cycle_duration"/>
+                        <field name="lot_strip" />
+                        <field name="purchase_id" />
+                        <field name="Chicken_coop" domain="[('user_ids', 'in', user_id)]"/>
+                        <field name="date_chicks_received" />
+                    </group>
+                    <group>
+                        <field name="number_chicks_received"/>
+                        <field name="number_dead_chicks" readonly='1'/>
+                        <field name="number_live_chicks" />
+                        <field name="mortality_rate" />
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="collection_egg" string="Collecte des Oeufs">
+                    <field name="egg_collection_ids">
+                        <list delete="0">
+                            <field name="picking_id"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="t_quantity"/>
+                            <field name="broken_eggs"/>
+                            <field name="origin"/>
+                            <field name="date"/>
+                            <field name="state"/>
+                        </list>
+                    </field>   
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

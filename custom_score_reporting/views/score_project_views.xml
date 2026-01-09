@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        SCORE Project-Centric Views (FR-017)
+        Filter equipment dynamically by project/site
+    -->
+
+    <!-- ============================================================
+         PROJECT/ANALYTIC ACCOUNT BASED FILTERING
+         ============================================================ -->
+
+    <!-- Mission by Analytic Account Pivot -->
+    <record id="view_score_mission_by_analytic_pivot" model="ir.ui.view">
+        <field name="name">score.mission.by.analytic.pivot</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <pivot string="Missions par projet/département">
+                <field name="analytic_account_id" type="row"/>
+                <field name="vehicle_id" type="row"/>
+                <field name="date_start" interval="month" type="col"/>
+                <field name="total_expenses" type="measure"/>
+                <field name="distance_km" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Mission by Analytic Action -->
+    <record id="action_score_mission_by_analytic" model="ir.actions.act_window">
+        <field name="name">Missions par projet</field>
+        <field name="res_model">fleet.mission</field>
+        <field name="view_mode">pivot,tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_mission_by_analytic_pivot')})]"/>
+        <field name="domain">[('analytic_account_id', '!=', False)]</field>
+        <field name="context">{
+            'search_default_group_by_analytic': 1
+        }</field>
+    </record>
+
+    <!-- ============================================================
+         VEHICLE BY LOCATION/SITE VIEWS
+         ============================================================ -->
+
+    <!-- Vehicle by Location Pivot -->
+    <record id="view_score_vehicle_by_location_pivot" model="ir.ui.view">
+        <field name="name">score.vehicle.by.location.pivot</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <pivot string="Véhicules par site">
+                <field name="current_location_id" type="row"/>
+                <field name="category_id" type="row"/>
+                <field name="maintenance_state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Vehicle by Location Action -->
+    <record id="action_score_vehicle_by_location" model="ir.actions.act_window">
+        <field name="name">Véhicules par site</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">pivot,tree,kanban,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_vehicle_by_location_pivot')})]"/>
+        <field name="domain">[('active', '=', True)]</field>
+    </record>
+
+    <!-- ============================================================
+         TRANSFER BY SITE VIEWS
+         ============================================================ -->
+
+    <!-- Transfer by Site Pivot -->
+    <record id="view_score_transfer_by_site_pivot" model="ir.ui.view">
+        <field name="name">score.transfer.by.site.pivot</field>
+        <field name="model">fleet.vehicle.transfer</field>
+        <field name="arch" type="xml">
+            <pivot string="Transferts par site">
+                <field name="source_location_id" type="row"/>
+                <field name="destination_location_id" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Transfer by Site Action -->
+    <record id="action_score_transfer_by_site" model="ir.actions.act_window">
+        <field name="name">Transferts par site</field>
+        <field name="res_model">fleet.vehicle.transfer</field>
+        <field name="view_mode">pivot,tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_transfer_by_site_pivot')})]"/>
+    </record>
+
+    <!-- ============================================================
+         PROJECT/SITE MENU STRUCTURE
+         ============================================================ -->
+
+    <!-- Project Views Menu -->
+    <menuitem
+        id="menu_score_project_views"
+        name="Par projet/site"
+        parent="custom_score_base.menu_score_root"
+        sequence="80"/>
+
+    <menuitem
+        id="menu_score_mission_by_project"
+        name="Missions par projet"
+        parent="menu_score_project_views"
+        action="action_score_mission_by_analytic"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_score_vehicle_by_site"
+        name="Véhicules par site"
+        parent="menu_score_project_views"
+        action="action_score_vehicle_by_location"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_score_transfer_by_site"
+        name="Transferts par site"
+        parent="menu_score_project_views"
+        action="action_score_transfer_by_site"
+        sequence="30"/>
+
+</odoo>

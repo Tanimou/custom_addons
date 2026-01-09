@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T035: Transfer views (tree/form/search) -->
+<odoo>
+    <!-- ======================================================================
+         Vehicle Transfer - Form View
+         ====================================================================== -->
+    <record id="fleet_vehicle_transfer_view_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.transfer.view.form</field>
+        <field name="model">fleet.vehicle.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Transfert Véhicule">
+                <header>
+                    <button name="action_confirm" 
+                            string="Confirmer" 
+                            type="object"
+                            class="btn-primary"
+                            invisible="not can_confirm"/>
+                    <button name="action_validate" 
+                            string="Valider" 
+                            type="object"
+                            class="btn-primary"
+                            invisible="not can_validate"/>
+                    <button name="action_deliver" 
+                            string="Livrer" 
+                            type="object"
+                            class="btn-success"
+                            invisible="not can_deliver"/>
+                    <button name="action_cancel" 
+                            string="Annuler" 
+                            type="object"
+                            class="btn-secondary"
+                            invisible="not can_cancel"
+                            confirm="Êtes-vous sûr de vouloir annuler ce transfert ?"/>
+                    <button name="action_reset_to_draft" 
+                            string="Remettre en brouillon" 
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state != 'cancelled'"
+                            groups="custom_fleet_management.group_fleet_manager"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,confirmed,validated,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(fleet.fleet_vehicle_action)d" 
+                                type="action" 
+                                class="oe_stat_button" 
+                                icon="fa-car"
+                                context="{'search_default_id': vehicle_id}">
+                            <span class="o_stat_text">Véhicule</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Véhicule">
+                            <field name="vehicle_id" 
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                            <field name="responsible_id" 
+                                   readonly="state in ('delivered', 'cancelled')"/>
+                            <field name="company_id" 
+                                   groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Emplacements">
+                            <field name="location_src_id" 
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                            <field name="location_dest_id" 
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Dates">
+                            <field name="date_planned" 
+                                   readonly="state in ('delivered', 'cancelled')"/>
+                            <field name="date_confirmed" readonly="1" 
+                                   invisible="not date_confirmed"/>
+                            <field name="date_validated" readonly="1" 
+                                   invisible="not date_validated"/>
+                            <field name="date_delivered" readonly="1" 
+                                   invisible="not date_delivered"/>
+                        </group>
+                        <group string="Traçabilité" 
+                               invisible="state == 'draft'">
+                            <field name="confirmed_by_id" readonly="1" 
+                                   invisible="not confirmed_by_id"/>
+                            <field name="validated_by_id" readonly="1" 
+                                   invisible="not validated_by_id"/>
+                            <field name="delivered_by_id" readonly="1" 
+                                   invisible="not delivered_by_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Motif &amp; Notes" name="notes">
+                            <group>
+                                <field name="reason" 
+                                       placeholder="Motif ou justification du transfert..."
+                                       readonly="state in ('delivered', 'cancelled')"/>
+                            </group>
+                            <field name="notes" 
+                                   nolabel="1" 
+                                   placeholder="Notes et commentaires..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Vehicle Transfer - List View
+         ====================================================================== -->
+    <record id="fleet_vehicle_transfer_view_list" model="ir.ui.view">
+        <field name="name">fleet.vehicle.transfer.view.list</field>
+        <field name="model">fleet.vehicle.transfer</field>
+        <field name="arch" type="xml">
+            <list string="Transferts Véhicules" 
+                  decoration-muted="state == 'draft'"
+                  decoration-info="state == 'confirmed'"
+                  decoration-warning="state == 'validated'"
+                  decoration-success="state == 'delivered'"
+                  decoration-danger="state == 'cancelled'">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="location_src_id"/>
+                <field name="location_dest_id"/>
+                <field name="date_planned"/>
+                <field name="state" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-info="state == 'confirmed'"
+                       decoration-warning="state == 'validated'"
+                       decoration-success="state == 'delivered'"
+                       decoration-danger="state == 'cancelled'"/>
+                <field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Vehicle Transfer - Search View
+         ====================================================================== -->
+    <record id="fleet_vehicle_transfer_view_search" model="ir.ui.view">
+        <field name="name">fleet.vehicle.transfer.view.search</field>
+        <field name="model">fleet.vehicle.transfer</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Transferts">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="location_src_id"/>
+                <field name="location_dest_id"/>
+                <field name="responsible_id"/>
+                <separator/>
+                <filter string="Brouillon" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmé" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Validé" name="validated" domain="[('state', '=', 'validated')]"/>
+                <filter string="Livré" name="delivered" domain="[('state', '=', 'delivered')]"/>
+                <filter string="Annulé" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter string="En attente" name="pending" domain="[('state', 'in', ['draft', 'confirmed', 'validated'])]"/>
+                <separator/>
+                <filter string="Mes Transferts" name="my_transfers" domain="[('responsible_id', '=', uid)]"/>
+                <separator/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Source" name="group_src" context="{'group_by': 'location_src_id'}"/>
+                    <filter string="Destination" name="group_dest" context="{'group_by': 'location_dest_id'}"/>
+                    <filter string="Date prévue" name="group_date_planned" context="{'group_by': 'date_planned:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Vehicle Transfer - Action
+         ====================================================================== -->
+    <record id="action_fleet_vehicle_transfer" model="ir.actions.act_window">
+        <field name="name">Transferts Véhicules</field>
+        <field name="res_model">fleet.vehicle.transfer</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="fleet_vehicle_transfer_view_search"/>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer un nouveau transfert de véhicule
+            </p>
+            <p>
+                Suivez les mouvements de vos véhicules entre sites avec un workflow 
+                de validation complet (Confirmation → Validation → Livraison).
+            </p>
+        </field>
+    </record>
+</odoo>

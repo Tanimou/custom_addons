@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- ===================================================================
+         Default Document Types for SCORE Compliance (FR-007)
+         These types are marked as noupdate=1 to preserve user customizations
+         =================================================================== -->
+
+    <!-- CRITICAL DOCUMENT TYPES (block missions when expired) -->
+    
+    <record id="document_type_assurance" model="fleet.vehicle.document.type">
+        <field name="name">Assurance</field>
+        <field name="code">assurance</field>
+        <field name="is_critical">True</field>
+        <field name="sequence">10</field>
+        <field name="description">Certificat d'assurance du véhicule. Document obligatoire pour la circulation. L'expiration bloque toute mission du véhicule.</field>
+    </record>
+
+    <record id="document_type_visite_technique" model="fleet.vehicle.document.type">
+        <field name="name">Visite Technique</field>
+        <field name="code">visite_technique</field>
+        <field name="is_critical">True</field>
+        <field name="sequence">20</field>
+        <field name="description">Certificat de contrôle technique périodique. Document obligatoire pour la circulation. L'expiration bloque toute mission du véhicule.</field>
+    </record>
+
+    <record id="document_type_carte_grise" model="fleet.vehicle.document.type">
+        <field name="name">Carte Grise</field>
+        <field name="code">carte_grise</field>
+        <field name="is_critical">True</field>
+        <field name="sequence">5</field>
+        <field name="description">Certificat d'immatriculation du véhicule. Document obligatoire pour la circulation.</field>
+    </record>
+
+    <!-- NON-CRITICAL DOCUMENT TYPES (warning only, don't block missions) -->
+
+    <record id="document_type_vignette" model="fleet.vehicle.document.type">
+        <field name="name">Vignette</field>
+        <field name="code">vignette</field>
+        <field name="is_critical">False</field>
+        <field name="sequence">30</field>
+        <field name="description">Vignette fiscale annuelle. Recommandé mais ne bloque pas les missions.</field>
+    </record>
+
+    <record id="document_type_permis" model="fleet.vehicle.document.type">
+        <field name="name">Permis de Conduire</field>
+        <field name="code">permis</field>
+        <field name="is_critical">False</field>
+        <field name="sequence">40</field>
+        <field name="description">Copie du permis de conduire associé. Document de référence.</field>
+    </record>
+
+    <record id="document_type_controle_pollution" model="fleet.vehicle.document.type">
+        <field name="name">Contrôle Pollution</field>
+        <field name="code">controle_pollution</field>
+        <field name="is_critical">False</field>
+        <field name="sequence">50</field>
+        <field name="description">Certificat de contrôle des émissions polluantes. Souvent inclus dans la visite technique.</field>
+    </record>
+
+    <record id="document_type_pv" model="fleet.vehicle.document.type">
+        <field name="name">PV / Contravention</field>
+        <field name="code">pv</field>
+        <field name="is_critical">False</field>
+        <field name="sequence">60</field>
+        <field name="description">Procès-verbal ou contravention à archiver. Document de référence.</field>
+    </record>
+
+    <record id="document_type_maintenance" model="fleet.vehicle.document.type">
+        <field name="name">Maintenance</field>
+        <field name="code">maintenance</field>
+        <field name="is_critical">False</field>
+        <field name="sequence">70</field>
+        <field name="description">Document de maintenance (factures, rapports d'intervention). Document de référence.</field>
+    </record>
+
+    <record id="document_type_other" model="fleet.vehicle.document.type">
+        <field name="name">Autre</field>
+        <field name="code">other</field>
+        <field name="is_critical">False</field>
+        <field name="sequence">100</field>
+        <field name="description">Tout autre type de document véhicule non classé.</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,73 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * custom_score_base
+#
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French (http://www.transifex.com/odoo/odoo-19/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_root
+msgid "SCORE"
+msgstr "SCORE"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_operations
+msgid "Opérations"
+msgstr "Opérations"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_fleet
+msgid "Parc"
+msgstr "Parc"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_compliance
+msgid "Conformité"
+msgstr "Conformité"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_costs
+msgid "Coûts"
+msgstr "Coûts"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_maintenance
+msgid "Maintenance"
+msgstr "Maintenance"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_fuel
+msgid "Carburant"
+msgstr "Carburant"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_reporting
+msgid "Reporting"
+msgstr "Reporting"
+
+#. module: custom_score_base
+#: model:ir.ui.menu,name:custom_score_base.menu_score_configuration
+msgid "Configuration"
+msgstr "Configuration"
+
+#. module: custom_score_base
+#: model:ir.module.module,summary:custom_score_base.module_custom_score_base
+msgid "Base module for SCORE Logistics Suite - Root menus and cross-cutting elements"
+msgstr "Module socle pour la suite SCORE Logistique - Menus racine et éléments transverses"
+
+#. module: custom_score_base
+#: model:ir.module.module,name:custom_score_base.module_custom_score_base
+msgid "SCORE - Base"
+msgstr "SCORE - Base"

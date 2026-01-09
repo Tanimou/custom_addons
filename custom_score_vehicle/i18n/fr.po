@@ -1,0 +1,161 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * custom_score_vehicle
+#
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French (http://www.transifex.com/odoo/odoo-19/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_score_vehicle
+#: model:ir.module.module,name:custom_score_vehicle.module_custom_score_vehicle
+msgid "SCORE - Vehicle"
+msgstr "SCORE - Véhicule"
+
+#. module: custom_score_vehicle
+#: model:ir.module.module,summary:custom_score_vehicle.module_custom_score_vehicle
+msgid "Vehicle management delta: uniqueness, registration cases, transfers, operational status, reception expenses"
+msgstr "Delta gestion véhicule: unicité, dossiers immatriculation, transferts, statut opérationnel, frais réception"
+
+#. module: custom_score_vehicle
+#: model:ir.model,name:custom_score_vehicle.model_fleet_vehicle
+msgid "Vehicle"
+msgstr "Véhicule"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle__vehicle_code
+msgid "Internal Code"
+msgstr "Code interne"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle__provenance
+msgid "Provenance"
+msgstr "Provenance"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle__current_location_id
+msgid "Current Location"
+msgstr "Localisation actuelle"
+
+#. module: custom_score_vehicle
+#: model:ir.model,name:custom_score_vehicle.model_fleet_vehicle_registration_case
+msgid "Vehicle Registration Case"
+msgstr "Dossier d'immatriculation"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields.selection,name:custom_score_vehicle.selection__fleet_vehicle_registration_case__state__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields.selection,name:custom_score_vehicle.selection__fleet_vehicle_registration_case__state__in_progress
+msgid "In Progress"
+msgstr "En cours"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields.selection,name:custom_score_vehicle.selection__fleet_vehicle_registration_case__state__validated
+msgid "Validated"
+msgstr "Validé"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields.selection,name:custom_score_vehicle.selection__fleet_vehicle_registration_case__state__rejected
+msgid "Rejected"
+msgstr "Rejeté"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle_registration_case__rejection_reason
+msgid "Rejection Reason"
+msgstr "Motif de rejet"
+
+#. module: custom_score_vehicle
+#: model:ir.model,name:custom_score_vehicle.model_fleet_vehicle_transfer
+msgid "Vehicle Transfer"
+msgstr "Transfert de véhicule"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle_transfer__source_location_id
+msgid "Source Location"
+msgstr "Emplacement source"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle_transfer__destination_location_id
+msgid "Destination Location"
+msgstr "Emplacement destination"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle_transfer__transfer_date
+msgid "Transfer Date"
+msgstr "Date de transfert"
+
+#. module: custom_score_vehicle
+#: model:ir.model,name:custom_score_vehicle.model_fleet_vehicle_reception_expense
+msgid "Vehicle Reception Expense"
+msgstr "Frais de réception véhicule"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle_reception_expense__expense_type_id
+msgid "Expense Type"
+msgstr "Type de frais"
+
+#. module: custom_score_vehicle
+#: model:ir.model.fields,field_description:custom_score_vehicle.field_fleet_vehicle_reception_expense__amount
+msgid "Amount"
+msgstr "Montant"
+
+#. module: custom_score_vehicle
+#: model:ir.ui.menu,name:custom_score_vehicle.menu_score_vehicle_transfers
+msgid "Transfers"
+msgstr "Transferts"
+
+#. module: custom_score_vehicle
+#: model:ir.ui.menu,name:custom_score_vehicle.menu_score_vehicle_registration_cases
+msgid "Registration Cases"
+msgstr "Dossiers d'immatriculation"
+
+#. module: custom_score_vehicle
+#: model:ir.ui.menu,name:custom_score_vehicle.menu_score_vehicle_reception_expenses
+msgid "Reception Expenses"
+msgstr "Frais de réception"
+
+#. module: custom_score_vehicle
+#: model:ir.actions.act_window,name:custom_score_vehicle.action_fleet_vehicle_transfer
+msgid "Vehicle Transfers"
+msgstr "Transferts de véhicules"
+
+#. module: custom_score_vehicle
+#: model:ir.actions.act_window,name:custom_score_vehicle.action_fleet_vehicle_registration_case
+msgid "Registration Cases"
+msgstr "Dossiers d'immatriculation"
+
+#. module: custom_score_vehicle
+#: model:ir.actions.act_window,name:custom_score_vehicle.action_fleet_vehicle_reception_expense
+msgid "Reception Expenses"
+msgstr "Frais de réception"
+
+#. module: custom_score_vehicle
+#: code:addons/custom_score_vehicle/models/fleet_vehicle.py
+#, python-format
+msgid "VIN %s is already used by another vehicle."
+msgstr "Le VIN %s est déjà utilisé par un autre véhicule."
+
+#. module: custom_score_vehicle
+#: code:addons/custom_score_vehicle/models/fleet_vehicle.py
+#, python-format
+msgid "License plate %s is already used by another vehicle."
+msgstr "L'immatriculation %s est déjà utilisée par un autre véhicule."
+
+#. module: custom_score_vehicle
+#: code:addons/custom_score_vehicle/models/fleet_vehicle_registration_case.py
+#, python-format
+msgid "A rejection reason is required when rejecting a registration case."
+msgstr "Un motif de rejet est requis lors du rejet d'un dossier d'immatriculation."

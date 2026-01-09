@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ========== MAINTENANCE DOWNTIME REPORTING ========== -->
+    
+    <!-- Intervention Pivot View - Downtime Analysis -->
+    <record id="fleet_maintenance_intervention_view_pivot_downtime" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.view.pivot.downtime</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse Temps d'Arrêt" sample="1">
+                <field name="vehicle_id" type="row"/>
+                <field name="intervention_type" type="row"/>
+                <field name="downtime_hours" type="measure"/>
+                <field name="downtime_days" type="measure"/>
+                <field name="scheduled_start" interval="month" type="col"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Intervention Graph View - Downtime by Vehicle -->
+    <record id="fleet_maintenance_intervention_view_graph_downtime" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.view.graph.downtime</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="arch" type="xml">
+            <graph string="Temps d'Arrêt par Véhicule" type="bar" sample="1">
+                <field name="vehicle_id"/>
+                <field name="downtime_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Intervention Graph View - Downtime by Type -->
+    <record id="fleet_maintenance_intervention_view_graph_downtime_type" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.view.graph.downtime.type</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="arch" type="xml">
+            <graph string="Temps d'Arrêt par Type" type="pie" sample="1">
+                <field name="intervention_type"/>
+                <field name="downtime_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- ========== VEHICLE KPI VIEWS ========== -->
+    
+    <!-- Vehicle Pivot View - Maintenance KPIs -->
+    <record id="fleet_vehicle_view_pivot_maintenance_kpis" model="ir.ui.view">
+        <field name="name">fleet.vehicle.view.pivot.maintenance.kpis</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <pivot string="KPIs Maintenance Véhicules" sample="1">
+                <field name="name" type="row"/>
+                <field name="total_downtime_hours" type="measure"/>
+                <field name="mttr_hours" type="measure"/>
+                <field name="intervention_count_completed" type="measure"/>
+                <field name="intervention_count_curative" type="measure"/>
+                <field name="intervention_count_preventive" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Vehicle Graph View - MTTR -->
+    <record id="fleet_vehicle_view_graph_mttr" model="ir.ui.view">
+        <field name="name">fleet.vehicle.view.graph.mttr</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <graph string="MTTR par Véhicule" type="bar" sample="1">
+                <field name="name"/>
+                <field name="mttr_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- ========== DOWNTIME REPORTING ACTION ========== -->
+    
+    <record id="action_fleet_maintenance_downtime_report" model="ir.actions.act_window">
+        <field name="name">Rapport Temps d'Arrêt</field>
+        <field name="res_model">fleet.maintenance.intervention</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="search_view_id" ref="custom_fleet_maintenance.fleet_maintenance_intervention_view_search"/>
+        <field name="context">{'search_default_filter_done': 1}</field>
+        <field name="domain">[('downtime_hours', '>', 0)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune donnée de temps d'arrêt
+            </p>
+            <p>
+                Les temps d'arrêt sont calculés automatiquement à partir des dates d'intervention.
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_fleet_maintenance_downtime_report_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="fleet_maintenance_intervention_view_pivot_downtime"/>
+        <field name="act_window_id" ref="action_fleet_maintenance_downtime_report"/>
+    </record>
+    
+    <record id="action_fleet_maintenance_downtime_report_view_graph" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="fleet_maintenance_intervention_view_graph_downtime"/>
+        <field name="act_window_id" ref="action_fleet_maintenance_downtime_report"/>
+    </record>
+    
+    <!-- ========== VEHICLE KPI REPORTING ACTION ========== -->
+    
+    <record id="action_fleet_vehicle_maintenance_kpis" model="ir.actions.act_window">
+        <field name="name">KPIs Maintenance</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">pivot,graph,tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun véhicule trouvé
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_fleet_vehicle_maintenance_kpis_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="fleet_vehicle_view_pivot_maintenance_kpis"/>
+        <field name="act_window_id" ref="action_fleet_vehicle_maintenance_kpis"/>
+    </record>
+    
+    <record id="action_fleet_vehicle_maintenance_kpis_view_graph" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="fleet_vehicle_view_graph_mttr"/>
+        <field name="act_window_id" ref="action_fleet_vehicle_maintenance_kpis"/>
+    </record>
+    
+    <!-- ========== MENUS ========== -->
+    
+    <menuitem id="menu_fleet_maintenance_reports"
+              name="Rapports"
+              parent="custom_fleet_maintenance.menu_fleet_maintenance"
+              sequence="50"/>
+    
+    <menuitem id="menu_fleet_maintenance_downtime_report"
+              name="Temps d'Arrêt"
+              parent="menu_fleet_maintenance_reports"
+              action="action_fleet_maintenance_downtime_report"
+              sequence="10"/>
+    
+    <menuitem id="menu_fleet_vehicle_maintenance_kpis"
+              name="KPIs Véhicules"
+              parent="menu_fleet_maintenance_reports"
+              action="action_fleet_vehicle_maintenance_kpis"
+              sequence="20"/>
+
+</odoo>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Vue formulaire Code Inventaire -->
+        <record id="view_stock_scrap_loss_form" model="ir.ui.view">
+            <field name="name">stock.scrap.loss.form</field>
+            <field name="model">stock.scrap.loss</field>
+            <field name="arch" type="xml">
+                <form string="Gestion des pertes">
+                    <header>
+                        <button name="action_validate" type="object" string="Valider"
+                                class="btn btn-success" invisible="state != 'draft'" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,done,cancel"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name" placeholder="Nom" readonly="state == 'done'"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="user_id" readonly="1"/>
+                                <field name="company_id" readonly="1"/>
+                            </group>
+                            <group>
+                                <label for="start" string="Periode"/>
+                                <div>
+                                    <field name="start" class="oe_inline" readonly="state == 'done'"/>
+                                    <span> à </span>
+                                    <field name="end" class="oe_inline" readonly="state == 'done'"/>
+                                </div>
+                                <field name="currency_id" invisible='1'/>
+                                <field name="total_price"/>
+                            </group>
+                            
+                        </group> 
+                        <notebook>
+                            <page string="Description">
+                                <field name="note" placeholder="Ajouter une note"/>
+                            </page>
+                            <page string="Liste des articles perdus">
+                                <field name="loss_line_ids" readonly="state == 'done'">
+                                    <list editable="bottom">
+                                        <field name="loss_id" column_invisible="True"/>
+                                        <field name="date"/>
+                                        <field name="product_id"/>
+                                        <field name="qty"/>
+                                        <field name="product_uom_id" optional="hide"/>
+                                        <field name="price_unit" />
+                                        <field name="total_price" optional="hide"/>
+                                        <field name="currency_id" column_invisible="True"/>
+                                        <field name="scrap_reason_tag_ids" widget="many2many_tags" 
+                                                options="{'no_create_edit': True}" optional="hide"/>
+                                        <field name="location_id" optional="hide"/>
+
+                                    </list>
+                                </field>
+                            </page>
+                            
+                        </notebook>                      
+                    </sheet>
+                    <chatter reload_on_follower="True"/>
+                </form>
+            </field>
+        </record>
+
+        <!-- Vue liste perte -->
+        <record id="view_stock_scrap_loss_list" model="ir.ui.view">
+            <field name="name">stock.scrap.loss.list</field>
+            <field name="model">stock.scrap.loss</field>
+            <field name="arch" type="xml">
+                
+                <list string="Gestion des perte"
+                    decoration-success="state == 'done'"
+                    decoration-info="state == 'draft'"
+                    decoration-warning="state == 'cancel'">
+                    
+                    <field name="name" readonly='1'/>
+                    <field name="user_id"/>
+                    <field name="total_price"/>
+                    <field name="start"/>
+                    <field name="end"/>
+                    <field name="state"
+                       decoration-success="state == 'done'"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'cancel'"
+                       widget="badge"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_stock_scrap_loss" model="ir.actions.act_window">
+            <field name="name">Gestion des perte</field>
+            <field name="res_model">stock.scrap.loss</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Créer votre premiere perte
+                </p>
+            </field>
+        </record>
+
+
+        <!-- Menu principal -->
+
+        <menuitem id="menu_stock_scrap_loss"
+                  name="Perte"
+                  parent="stock.menu_stock_adjustments"
+                  action="action_stock_scrap_loss"
+                  sequence="98"/>
+
+    </data>
+
+</odoo>

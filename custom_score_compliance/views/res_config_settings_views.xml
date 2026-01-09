@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- ========== SCORE COMPLIANCE SETTINGS VIEW ========== -->
+        
+        <record id="res_config_settings_view_form_score_compliance" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.score.compliance</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="95"/>
+            <field name="inherit_id" ref="fleet.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <!-- Extend Fleet app with SCORE Compliance settings -->
+                <xpath expr="//app[@id='fleet']" position="inside">
+                    
+                    <!-- SCORE Compliance Block -->
+                    <block title="Conformité Documentaire SCORE" id="score_compliance_settings">
+                        
+                        <!-- Blocking Settings (FR-007a) -->
+                        <setting string="Blocage Mission - Documents Critiques Expirés" 
+                                 help="Configurer quand bloquer les missions si le véhicule a des documents critiques expirés.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <field name="custom_score_compliance_block_mission_on_submit" 
+                                           class="o_light_label"/>
+                                    <label for="custom_score_compliance_block_mission_on_submit"/>
+                                </div>
+                                <div class="row">
+                                    <field name="custom_score_compliance_block_mission_on_start" 
+                                           class="o_light_label"/>
+                                    <label for="custom_score_compliance_block_mission_on_start"/>
+                                </div>
+                                <div class="row">
+                                    <field name="custom_score_compliance_block_mission_on_create" 
+                                           class="o_light_label"/>
+                                    <label for="custom_score_compliance_block_mission_on_create"/>
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <!-- Warning Settings -->
+                        <setting string="Avertissements" 
+                                 help="Configurer les avertissements pour les documents expirés non-critiques.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <field name="custom_score_compliance_warn_on_vehicle_change" 
+                                           class="o_light_label"/>
+                                    <label for="custom_score_compliance_warn_on_vehicle_change"/>
+                                </div>
+                            </div>
+                        </setting>
+                        
+                        <!-- Alert Configuration (FR-007) -->
+                        <setting string="Alertes d'Échéance" 
+                                 help="Configurer les alertes pour les documents arrivant à échéance.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="custom_score_compliance_alert_days_before_expiry" 
+                                           string="Alerte J-"/>
+                                    <field name="custom_score_compliance_alert_days_before_expiry" 
+                                           class="text-center" style="width: 60px;"/>
+                                    <span> jours avant l'échéance</span>
+                                </div>
+                                <div class="row mt8">
+                                    <field name="custom_score_compliance_enable_weekly_reminders" 
+                                           class="o_light_label"/>
+                                    <label for="custom_score_compliance_enable_weekly_reminders"/>
+                                </div>
+                            </div>
+                        </setting>
+                        
+                    </block>
+                    
+                </xpath>
+            </field>
+        </record>
+        
+    </data>
+</odoo>

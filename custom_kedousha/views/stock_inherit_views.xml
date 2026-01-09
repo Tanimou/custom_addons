@@ -1,0 +1,84 @@
+<odoo>
+    <record id="stock_location_form_inherit_view" model="ir.ui.view">
+        <field name="name">stock.location.form</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='additional_info']" position="before">
+                <group name="info_users_group" string="Utilisateurs autorisés">
+                    <field name="user_ids" widget="many2many_tags" required='True'/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_scrap_form_inherit_view" model="ir.ui.view">
+        <field name="name">stock.scrap.form</field>
+        <field name="model">stock.scrap</field>
+        <field name="inherit_id" ref="stock.stock_scrap_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="before">
+                <field name="project_id" required='True' readonly="state == 'done' or tracking == 'serial'"/>
+            </xpath>
+
+            <field name="lot_id" position="attributes">
+                <attribute name="string">Lot/Bande Associé</attribute>
+            </field>
+        </field>
+    </record>
+
+
+    <record id="stock_picking_form_inherit_view" model="ir.ui.view">
+        <field name="name">stock.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']//button[@name='action_next_transfer']" position="after">
+                <button type="object" 
+                        name="open_project_form"
+                        class="oe_stat_button" 
+                        icon="fa-list">
+                        <div class="o_field_widget o_stat_info">
+                            <span class="o_stat_text">Projets</span>
+                        </div>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='picking_type_id']" position="after">
+                <field name="type_operation" />
+            </xpath>
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="egg_id" />
+            </xpath>
+            <xpath expr="//group[1]" position="after">
+                <group name="info_project_group" string="Info Projet" invisible="type_operation not in ('broiler','laying')">
+                    <group>
+                        <field name="is_project" readonly="state in ('done','cancel')"/>
+                        <field name="name_project" required='is_project' invisible='not is_project' readonly="state in ('done','cancel')"/>
+                        <field name="number_chicks_received" readonly='True'/>
+                    </group>
+                    <group>
+                        <button type="object" 
+                                string="Créer un nouveau projet"
+                                name="create_new_project"
+                                class="btn-primary" 
+                                icon="fa-folder-open"
+                                invisible='project_id'/>
+                        <field name="project_id" readonly="state in ('done','cancel')"/>
+                        <field name="purchase_id"/>
+                        
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="before">
+                <group>
+                    <button name="action_open_wizard"
+                        string="Ajouter produits (multiple)"
+                        type="object"
+                        class="btn btn-secondary"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+
+</odoo>

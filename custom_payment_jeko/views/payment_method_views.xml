@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Formulaire de configuration de la méthode de paiement Jeko -->
+    <record id="payment_method_form_jeko" model="ir.ui.view">
+        <field name="name">payment.method.form.jeko</field>
+        <field name="model">payment.method</field>
+        <field name="inherit_id" ref="payment.payment_method_form"/>
+        <field name="arch" type="xml">
+            <!-- Ajouter le champ de configuration du provider mobile money -->
+            <xpath expr="//page[@name='configuration']" position="inside">
+                <group name="jeko_config" 
+                       string="Configuration Jeko" 
+                       invisible="code != 'jeko'">
+                    <field name="jeko_payment_method" 
+                           widget="radio"
+                           options="{'horizontal': true}"/>
+                </group>
+                <div name="jeko_info" invisible="code != 'jeko'">
+                    <div class="alert alert-info" role="alert" style="width: 100%;">
+                        <i class="fa fa-info-circle"></i>
+                        <strong>Provider par défaut :</strong> Le provider sélectionné sera proposé par défaut aux clients.
+                        Ils pourront choisir un autre provider sur la page de paiement Jeko.
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

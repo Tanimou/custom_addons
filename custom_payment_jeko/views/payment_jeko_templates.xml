@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Template de redirection pour Jeko -->
+    <record id="redirect_form" model="ir.ui.view">
+        <field name="name">Jeko Redirect Form</field>
+        <field name="type">qweb</field>
+        <field name="arch" type="xml">
+            <!-- Formulaire vide pour Odoo, redirection immédiate en JavaScript -->
+            <form t-att-action="api_url" method="get" class="d-none">
+                <!-- Formulaire caché - La redirection se fait en JavaScript -->
+            </form>
+            <div class="text-center" style="padding: 40px;">
+                <i class="fa fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+                <h4>Redirection vers Jeko...</h4>
+                <p class="text-muted">Vous allez être redirigé vers la page de paiement sécurisée.</p>
+                <p class="text-muted mt-3">
+                    <small>Si la redirection ne fonctionne pas automatiquement, 
+                    <a t-att-href="api_url" class="btn btn-primary btn-sm">cliquez ici</a>
+                    </small>
+                </p>
+            </div>
+            <!-- Redirection automatique immédiate -->
+            <script type="text/javascript">
+                (function() {
+                    var redirectUrl = document.querySelector('form').getAttribute('action');
+                    if (redirectUrl) {
+                        // Redirection immédiate sans attendre le DOM
+                        window.location.replace(redirectUrl);
+                    }
+                })();
+            </script>
+        </field>
+    </record>
+
+    <!-- Page optionnelle pour afficher les informations avant la redirection -->
+    <template id="payment_form_info" name="Jeko Payment Information">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <img src="/custom_payment_jeko/static/description/icon.png" 
+                         alt="Jeko" 
+                         style="max-height: 60px;"/>
+                </div>
+                
+                <h5 class="card-title">Paiement Mobile Money</h5>
+                
+                <div class="alert alert-info" role="alert">
+                    <p class="mb-2">
+                        <i class="fa fa-info-circle"></i> 
+                        Vous allez être redirigé vers la page de paiement sécurisée Jeko.
+                    </p>
+                    <small class="text-muted d-block">
+                        <strong>Méthodes acceptées :</strong><br/>
+                        Wave • Orange Money • MTN • Moov • Djamo
+                    </small>
+                </div>
+
+                <div class="mt-3">
+                    <i class="fa fa-lock text-success"></i>
+                    <small class="text-muted">Paiement sécurisé SSL</small>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

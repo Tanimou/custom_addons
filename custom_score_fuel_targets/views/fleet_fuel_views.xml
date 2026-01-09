@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        Fleet Fuel Expense Views - Minor Extensions
+        These are minimal view extensions for fuel expense display
+    -->
+
+    <!-- TREE VIEW: Add optional columns for category -->
+    <record id="view_fleet_fuel_expense_tree_category" model="ir.ui.view">
+        <field name="name">fleet.fuel.expense.tree.category</field>
+        <field name="model">fleet.fuel.expense</field>
+        <field name="inherit_id" ref="custom_fleet_fuel_management.fleet_fuel_expense_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vehicle_id']" position="after">
+                <field name="vehicle_category_id" string="Famille" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- FORM VIEW: Add category info -->
+    <record id="view_fleet_fuel_expense_form_category" model="ir.ui.view">
+        <field name="name">fleet.fuel.expense.form.category</field>
+        <field name="model">fleet.fuel.expense</field>
+        <field name="inherit_id" ref="custom_fleet_fuel_management.fleet_fuel_expense_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vehicle_id']" position="after">
+                <field name="vehicle_category_id" readonly="1" 
+                       options="{'no_open': True}"
+                       string="Famille"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

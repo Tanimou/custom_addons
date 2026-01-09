@@ -1,0 +1,135 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * custom_score_compliance
+#
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French (http://www.transifex.com/odoo/odoo-19/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_score_compliance
+#: model:ir.module.module,name:custom_score_compliance.module_custom_score_compliance
+msgid "SCORE - Compliance"
+msgstr "SCORE - Conformité"
+
+#. module: custom_score_compliance
+#: model:ir.module.module,summary:custom_score_compliance.module_custom_score_compliance
+msgid "Document compliance delta: blocking rules, document types, expiry alerts"
+msgstr "Delta conformité documentaire: règles de blocage, types de documents, alertes expiration"
+
+#. module: custom_score_compliance
+#: model:ir.model,name:custom_score_compliance.model_fleet_vehicle_document_type
+msgid "Document Type"
+msgstr "Type de document"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle_document_type__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle_document_type__is_critical
+msgid "Is Critical"
+msgstr "Critique"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle_document_type__required_for_mission
+msgid "Required for Mission"
+msgstr "Requis pour mission"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle_document__document_type_id
+msgid "Document Type"
+msgstr "Type de document"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle_document__expiry_date
+msgid "Expiry Date"
+msgstr "Date d'expiration"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle_document__document_state
+msgid "Document State"
+msgstr "État du document"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields.selection,name:custom_score_compliance.selection__fleet_vehicle_document__document_state__valid
+msgid "Valid"
+msgstr "Valide"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields.selection,name:custom_score_compliance.selection__fleet_vehicle_document__document_state__expiring_soon
+msgid "Expiring Soon"
+msgstr "Expire bientôt"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields.selection,name:custom_score_compliance.selection__fleet_vehicle_document__document_state__expired
+msgid "Expired"
+msgstr "Expiré"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle__compliance_status
+msgid "Compliance Status"
+msgstr "Statut de conformité"
+
+#. module: custom_score_compliance
+#: model:ir.model.fields,field_description:custom_score_compliance.field_fleet_vehicle__critical_documents_expired
+msgid "Critical Documents Expired"
+msgstr "Documents critiques expirés"
+
+#. module: custom_score_compliance
+#: model:ir.ui.menu,name:custom_score_compliance.menu_score_document_types
+msgid "Document Types"
+msgstr "Types de documents"
+
+#. module: custom_score_compliance
+#: model:ir.ui.menu,name:custom_score_compliance.menu_score_documents
+msgid "Documents"
+msgstr "Documents"
+
+#. module: custom_score_compliance
+#: model:ir.actions.act_window,name:custom_score_compliance.action_fleet_vehicle_document_type
+msgid "Document Types"
+msgstr "Types de documents"
+
+#. module: custom_score_compliance
+#: model:ir.actions.act_window,name:custom_score_compliance.action_fleet_vehicle_document
+msgid "Vehicle Documents"
+msgstr "Documents véhicule"
+
+#. module: custom_score_compliance
+#: code:addons/custom_score_compliance/models/fleet_mission.py
+#, python-format
+msgid "Cannot submit mission: vehicle %s has expired critical documents."
+msgstr "Impossible de soumettre la mission: le véhicule %s a des documents critiques expirés."
+
+#. module: custom_score_compliance
+#: code:addons/custom_score_compliance/models/fleet_mission.py
+#, python-format
+msgid "Cannot start mission: vehicle %s has expired critical documents."
+msgstr "Impossible de démarrer la mission: le véhicule %s a des documents critiques expirés."
+
+#. module: custom_score_compliance
+#: model:res.config.settings,field_description:custom_score_compliance.field_res_config_settings__score_block_mission_submit_on_expired
+msgid "Block Mission Submit on Expired Documents"
+msgstr "Bloquer soumission mission si documents expirés"
+
+#. module: custom_score_compliance
+#: model:res.config.settings,field_description:custom_score_compliance.field_res_config_settings__score_block_mission_start_on_expired
+msgid "Block Mission Start on Expired Documents"
+msgstr "Bloquer démarrage mission si documents expirés"
+
+#. module: custom_score_compliance
+#: model:res.config.settings,field_description:custom_score_compliance.field_res_config_settings__score_warn_on_vehicle_change
+msgid "Warn on Vehicle Change"
+msgstr "Avertir lors du changement de véhicule"

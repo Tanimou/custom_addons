@@ -1,0 +1,123 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * custom_score_maintenance
+#
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French (http://www.transifex.com/odoo/odoo-19/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_score_maintenance
+#: model:ir.module.module,name:custom_score_maintenance.module_custom_score_maintenance
+msgid "SCORE - Maintenance"
+msgstr "SCORE - Maintenance"
+
+#. module: custom_score_maintenance
+#: model:ir.module.module,summary:custom_score_maintenance.module_custom_score_maintenance
+msgid "Maintenance KPIs delta: downtime tracking, MTTR, technician time logging"
+msgstr "Delta KPIs maintenance: suivi indisponibilité, MTTR, temps technicien"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_intervention__downtime_hours
+msgid "Downtime Hours"
+msgstr "Heures d'indisponibilité"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_intervention__downtime_days
+msgid "Downtime Days"
+msgstr "Jours d'indisponibilité"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_intervention__total_labor_hours
+msgid "Total Labor Hours"
+msgstr "Heures main d'œuvre totales"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_intervention__analytic_account_id
+msgid "Analytic Account"
+msgstr "Compte analytique"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_intervention__total_cost
+msgid "Total Cost"
+msgstr "Coût total"
+
+#. module: custom_score_maintenance
+#: model:ir.model,name:custom_score_maintenance.model_fleet_maintenance_technician_time
+msgid "Technician Time Entry"
+msgstr "Saisie temps technicien"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_technician_time__intervention_id
+msgid "Intervention"
+msgstr "Intervention"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_technician_time__technician_id
+msgid "Technician"
+msgstr "Technicien"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_technician_time__hours
+msgid "Hours"
+msgstr "Heures"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_technician_time__date
+msgid "Date"
+msgstr "Date"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_maintenance_technician_time__description
+msgid "Description"
+msgstr "Description"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_vehicle__total_downtime_hours
+msgid "Total Downtime Hours"
+msgstr "Heures d'indisponibilité totales"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_vehicle__mttr_hours
+msgid "MTTR (Hours)"
+msgstr "MTTR (Heures)"
+
+#. module: custom_score_maintenance
+#: model:ir.model.fields,field_description:custom_score_maintenance.field_fleet_vehicle__maintenance_intervention_count
+msgid "Intervention Count"
+msgstr "Nombre d'interventions"
+
+#. module: custom_score_maintenance
+#: model:ir.ui.menu,name:custom_score_maintenance.menu_score_maintenance_reporting
+msgid "Maintenance Reporting"
+msgstr "Reporting maintenance"
+
+#. module: custom_score_maintenance
+#: model:ir.actions.act_window,name:custom_score_maintenance.action_fleet_maintenance_intervention_analysis
+msgid "Maintenance Analysis"
+msgstr "Analyse maintenance"
+
+#. module: custom_score_maintenance
+#: model_terms:ir.ui.view,arch_db:custom_score_maintenance.fleet_vehicle_form_maintenance_kpi_inherit
+msgid "Maintenance KPIs"
+msgstr "KPIs maintenance"
+
+#. module: custom_score_maintenance
+#: model_terms:ir.ui.view,arch_db:custom_score_maintenance.fleet_maintenance_intervention_form_technician_time_inherit
+msgid "Technician Time"
+msgstr "Temps technicien"
+
+#. module: custom_score_maintenance
+#: model:ir.actions.act_window,name:custom_score_maintenance.action_fleet_maintenance_technician_time
+msgid "Technician Time Entries"
+msgstr "Saisies temps technicien"

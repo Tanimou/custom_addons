@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T033: KPI reporting views (pivot/graph/search) for driver/team -->
+<odoo>
+    <!-- ======================================================================
+         Note: Driver KPIs are computed from fleet.mission data.
+         These views extend mission views to provide KPI analysis by driver.
+         ====================================================================== -->
+    
+    <!-- ======================================================================
+         Mission Pivot View for Driver KPIs
+         ====================================================================== -->
+    <record id="fleet_mission_view_pivot_driver_kpi" model="ir.ui.view">
+        <field name="name">fleet.mission.view.pivot.driver.kpi</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <pivot string="KPIs Conducteurs" sample="1">
+                <field name="driver_id" type="row"/>
+                <field name="vehicle_id" type="row"/>
+                <field name="date_start" type="col" interval="month"/>
+                <field name="distance_km" type="measure"/>
+                <field name="duration_days" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Mission Graph View for Driver KPIs
+         ====================================================================== -->
+    <record id="fleet_mission_view_graph_driver_kpi" model="ir.ui.view">
+        <field name="name">fleet.mission.view.graph.driver.kpi</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <graph string="KPIs Conducteurs" type="bar" sample="1">
+                <field name="driver_id"/>
+                <field name="distance_km" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Mission Search View for Driver KPI Reporting
+         ====================================================================== -->
+    <record id="fleet_mission_view_search_driver_kpi" model="ir.ui.view">
+        <field name="name">fleet.mission.view.search.driver.kpi</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <search string="Recherche KPI Conducteurs">
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="date_start"/>
+                <separator/>
+                <filter string="Terminées" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Avec Kilométrage" name="with_km" domain="[('distance_km', '>', 0)]"/>
+                <separator/>
+                <filter string="Ce Mois" name="this_month" 
+                        domain="[('date_start', '>=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                 ('date_start', '&lt;', (context_today() + relativedelta(months=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Ce Trimestre" name="this_quarter"
+                        domain="[('date_start', '>=', (context_today() - relativedelta(day=1, month=((context_today().month - 1) // 3) * 3 + 1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Cette Année" name="this_year"
+                        domain="[('date_start', '>=', (context_today() - relativedelta(day=1, month=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="Mois" name="group_month" context="{'group_by': 'date_start:month'}"/>
+                    <filter string="Trimestre" name="group_quarter" context="{'group_by': 'date_start:quarter'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Action for Driver KPI Reporting
+         ====================================================================== -->
+    <record id="action_fleet_mission_driver_kpi_report" model="ir.actions.act_window">
+        <field name="name">KPIs Conducteurs</field>
+        <field name="res_model">fleet.mission</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="fleet_mission_view_search_driver_kpi"/>
+        <field name="domain">[('state', '=', 'done')]</field>
+        <field name="context">{
+            'search_default_this_year': 1,
+            'search_default_group_driver': 1,
+        }</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_view_pivot_driver_kpi')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_view_graph_driver_kpi')}),
+        ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune mission terminée à analyser
+            </p>
+            <p>
+                Ce rapport affiche les indicateurs clés de performance (KPI) par conducteur:
+                <ul>
+                    <li>Nombre de missions terminées</li>
+                    <li>Kilomètres parcourus</li>
+                    <li>Jours travaillés</li>
+                </ul>
+            </p>
+        </field>
+    </record>
+</odoo>

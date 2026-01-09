@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================
+         Fleet Vehicle Document Type Views (FR-007)
+         Master data for document types with criticality flag
+         =================================================================== -->
+
+    <!-- ===================================================================
+         TREE VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_document_type_view_tree" model="ir.ui.view">
+        <field name="name">fleet.vehicle.document.type.view.tree</field>
+        <field name="model">fleet.vehicle.document.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="is_critical" widget="boolean_toggle"/>
+                <field name="document_count"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         FORM VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_document_type_view_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.document.type.view.form</field>
+        <field name="model">fleet.vehicle.document.type</field>
+        <field name="arch" type="xml">
+            <form string="Type de Document">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(custom_fleet_management.action_fleet_document)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-file-text-o"
+                                context="{'search_default_document_type_id': active_id}">
+                            <field name="document_count" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archivé" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" string="Type de Document"/>
+                        <h1>
+                            <field name="name" placeholder="Nom du type (ex: Assurance)"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group name="main">
+                            <field name="code" placeholder="Code technique (ex: assurance)"/>
+                            <field name="is_critical" widget="boolean_toggle"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group name="status">
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Description">
+                        <field name="description" nolabel="1" 
+                               placeholder="Description détaillée du type de document et de son utilisation..."/>
+                    </group>
+                    
+                    <div class="alert alert-info" role="alert" invisible="not is_critical">
+                        <strong>Document Critique</strong><br/>
+                        Les documents de ce type bloquent les missions s'ils sont expirés.
+                        Le véhicule ne pourra pas être utilisé tant que le document n'est pas renouvelé.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         SEARCH VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_document_type_view_search" model="ir.ui.view">
+        <field name="name">fleet.vehicle.document.type.view.search</field>
+        <field name="model">fleet.vehicle.document.type</field>
+        <field name="arch" type="xml">
+            <search string="Types de Documents">
+                <field name="name"/>
+                <field name="code"/>
+                <separator/>
+                <filter name="critical" string="Critiques" domain="[('is_critical', '=', True)]"/>
+                <filter name="non_critical" string="Non Critiques" domain="[('is_critical', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archivés" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Grouper par">
+                    <filter name="group_critical" string="Criticité" context="{'group_by': 'is_critical'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         ACTION
+         =================================================================== -->
+    <record id="action_fleet_vehicle_document_type" model="ir.actions.act_window">
+        <field name="name">Types de Documents</field>
+        <field name="res_model">fleet.vehicle.document.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="fleet_vehicle_document_type_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer un nouveau type de document
+            </p>
+            <p>
+                Gérez les types de documents véhicules et définissez lesquels sont critiques.
+                Les documents critiques (Assurance, Visite Technique) bloquent les missions s'ils sont expirés.
+            </p>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         MENU (under Fleet Configuration)
+         =================================================================== -->
+    <menuitem id="menu_fleet_vehicle_document_type"
+              name="Types de Documents"
+              parent="fleet.fleet_configuration"
+              action="action_fleet_vehicle_document_type"
+              sequence="50"/>
+
+</odoo>

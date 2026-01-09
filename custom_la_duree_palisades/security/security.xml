@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.module.category" id="category_main_pos">
+        <field name="name">POS Vente</field>
+        <field name="description">Module de transfert inter-entreprise</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record model="res.groups.privilege" id="res_groups_privilege_sale_manager_pos">
+        <field name="name">POS Vente</field>
+        <field name="category_id" ref="custom_la_duree_palisades.category_main_pos"/>
+    </record>
+    
+    <!-- Groupe pour les utilisateurs des sous-entreprises -->
+    <record id="group_pos_cash_register" model="res.groups">
+        <field name="name">Caisse</field>
+        <field name="privilege_id" ref="res_groups_privilege_sale_manager_pos"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    
+    <!-- Groupe pour les utilisateurs de l'entreprise centrale -->
+    <record id="group_sale_manager_pos" model="res.groups">
+        <field name="name">Responsable du POS</field>
+        <field name="privilege_id" ref="res_groups_privilege_sale_manager_pos"/>
+        <field name="implied_ids" eval="[(4, ref('group_pos_cash_register'))]"/>
+    </record>
+</odoo>

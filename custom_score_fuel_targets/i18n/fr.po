@@ -1,0 +1,113 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * custom_score_fuel_targets
+#
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French (http://www.transifex.com/odoo/odoo-19/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_score_fuel_targets
+#: model:ir.module.module,name:custom_score_fuel_targets.module_custom_score_fuel_targets
+msgid "SCORE - Fuel Targets"
+msgstr "SCORE - Cibles carburant"
+
+#. module: custom_score_fuel_targets
+#: model:ir.module.module,summary:custom_score_fuel_targets.module_custom_score_fuel_targets
+msgid "Fuel target delta: consumption targets by vehicle family, efficiency KPIs, overconsumption alerts"
+msgstr "Delta cibles carburant: cibles consommation par famille, KPIs efficacité, alertes surconsommation"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields,field_description:custom_score_fuel_targets.field_fleet_vehicle_model_category__target_consumption_l100km
+msgid "Target Consumption (L/100km)"
+msgstr "Cible consommation (L/100km)"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields,field_description:custom_score_fuel_targets.field_fleet_fuel_monthly_summary__target_consumption_l100km
+msgid "Target (L/100km)"
+msgstr "Cible (L/100km)"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields,field_description:custom_score_fuel_targets.field_fleet_fuel_monthly_summary__target_variance_pct
+msgid "Variance (%)"
+msgstr "Écart (%)"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields,field_description:custom_score_fuel_targets.field_fleet_fuel_monthly_summary__consumption_alert_level
+msgid "Alert Level"
+msgstr "Niveau d'alerte"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields.selection,name:custom_score_fuel_targets.selection__fleet_fuel_monthly_summary__consumption_alert_level__normal
+msgid "Normal"
+msgstr "Normal"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields.selection,name:custom_score_fuel_targets.selection__fleet_fuel_monthly_summary__consumption_alert_level__warning
+msgid "Warning"
+msgstr "Attention"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields.selection,name:custom_score_fuel_targets.selection__fleet_fuel_monthly_summary__consumption_alert_level__overconsumption
+msgid "Overconsumption"
+msgstr "Surconsommation"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields.selection,name:custom_score_fuel_targets.selection__fleet_fuel_monthly_summary__consumption_alert_level__not_calculable
+msgid "Not Calculable"
+msgstr "Non calculable"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields,field_description:custom_score_fuel_targets.field_fleet_vehicle__avg_consumption_l100km
+msgid "Average Consumption (L/100km)"
+msgstr "Consommation moyenne (L/100km)"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields,field_description:custom_score_fuel_targets.field_fleet_vehicle__fuel_efficiency_pct
+msgid "Fuel Efficiency (%)"
+msgstr "Efficacité carburant (%)"
+
+#. module: custom_score_fuel_targets
+#: model:ir.model.fields,field_description:custom_score_fuel_targets.field_fleet_vehicle__fuel_expense_count
+msgid "Fuel Expense Count"
+msgstr "Nombre de pleins"
+
+#. module: custom_score_fuel_targets
+#: model:ir.ui.menu,name:custom_score_fuel_targets.menu_score_fuel_consumption_analysis
+msgid "Consumption Analysis"
+msgstr "Analyse consommation"
+
+#. module: custom_score_fuel_targets
+#: model:ir.ui.menu,name:custom_score_fuel_targets.menu_score_fuel_alerts
+msgid "Consumption Alerts"
+msgstr "Alertes consommation"
+
+#. module: custom_score_fuel_targets
+#: model:ir.actions.act_window,name:custom_score_fuel_targets.action_fuel_consumption_analysis
+msgid "Fuel Consumption Analysis"
+msgstr "Analyse consommation carburant"
+
+#. module: custom_score_fuel_targets
+#: model:ir.actions.act_window,name:custom_score_fuel_targets.action_fuel_overconsumption_alerts
+msgid "Overconsumption Alerts"
+msgstr "Alertes surconsommation"
+
+#. module: custom_score_fuel_targets
+#: model_terms:ir.ui.view,arch_db:custom_score_fuel_targets.fleet_vehicle_form_fuel_efficiency_inherit
+msgid "Fuel Efficiency"
+msgstr "Efficacité carburant"
+
+#. module: custom_score_fuel_targets
+#: model_terms:ir.ui.view,arch_db:custom_score_fuel_targets.fleet_vehicle_model_category_form_target_inherit
+msgid "Consumption Target"
+msgstr "Cible consommation"

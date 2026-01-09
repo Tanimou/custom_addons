@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- ========== SCORE COMPLIANCE RECORD RULES ========== -->
+        
+        <!-- Document Type: Global (master data, no company restriction) -->
+        <!-- No rule needed - document types are shared across companies -->
+        
+    </data>
+</odoo>

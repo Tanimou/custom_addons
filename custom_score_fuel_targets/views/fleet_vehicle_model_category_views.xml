@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        Fleet Vehicle Model Category Views - Fuel Target Extension (FR-024)
+        Adds target consumption L/100km to vehicle categories/families
+    -->
+
+    <!-- FORM VIEW: Inherit base category form to add target fields -->
+    <record id="view_fleet_vehicle_model_category_form_target" model="ir.ui.view">
+        <field name="name">fleet.vehicle.model.category.form.target</field>
+        <field name="model">fleet.vehicle.model.category</field>
+        <field name="inherit_id" ref="fleet.view_fleet_vehicle_model_category_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sequence']" position="after">
+                <separator string="Cible consommation carburant"/>
+                <group>
+                    <group>
+                        <field name="target_consumption_l100km" 
+                               widget="float"
+                               options="{'digits': [6, 2]}"/>
+                        <field name="vehicle_count" 
+                               readonly="1"
+                               widget="integer"/>
+                    </group>
+                    <group>
+                        <field name="summary_alert_count"
+                               readonly="1"
+                               widget="integer"
+                               class="text-danger"/>
+                    </group>
+                </group>
+                <field name="target_consumption_notes" 
+                       placeholder="Notes sur la cible (conditions, sources, etc.)"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- TREE VIEW: Inherit base category tree to add target column -->
+    <record id="view_fleet_vehicle_model_category_tree_target" model="ir.ui.view">
+        <field name="name">fleet.vehicle.model.category.tree.target</field>
+        <field name="model">fleet.vehicle.model.category</field>
+        <field name="inherit_id" ref="fleet.view_fleet_vehicle_model_category_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sequence']" position="after">
+                <field name="target_consumption_l100km" optional="show"/>
+                <field name="vehicle_count" optional="show"/>
+                <field name="summary_alert_count" 
+                       optional="show"
+                       decoration-danger="summary_alert_count > 0"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW: Add target filter -->
+    <record id="view_fleet_vehicle_model_category_search_target" model="ir.ui.view">
+        <field name="name">fleet.vehicle.model.category.search.target</field>
+        <field name="model">fleet.vehicle.model.category</field>
+        <field name="inherit_id" ref="fleet.view_fleet_vehicle_model_category_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="has_target" 
+                        string="Avec cible définie"
+                        domain="[('target_consumption_l100km', '>', 0)]"/>
+                <filter name="no_target" 
+                        string="Sans cible définie"
+                        domain="['|', ('target_consumption_l100km', '=', False), ('target_consumption_l100km', '=', 0)]"/>
+                <separator/>
+                <filter name="has_alerts"
+                        string="Avec alertes"
+                        domain="[('summary_alert_count', '>', 0)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

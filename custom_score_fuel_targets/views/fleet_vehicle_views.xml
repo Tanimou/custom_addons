@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        Fleet Vehicle Views - Fuel History Extension (FR-023)
+        Adds fuel expense history smart button and stats
+    -->
+
+    <!-- FORM VIEW: Add fuel smart buttons -->
+    <record id="view_fleet_vehicle_form_fuel_history" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.fuel.history</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Add fuel smart buttons in button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <!-- Smart Button: Fuel Expenses -->
+                <button name="action_view_fuel_expenses" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="fa-tint"
+                        groups="base.group_user">
+                    <field name="fuel_expense_count" widget="statinfo" string="Pleins"/>
+                </button>
+                
+                <!-- Smart Button: Fuel Summaries -->
+                <button name="action_view_fuel_summaries"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-bar-chart"
+                        groups="base.group_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Synthèses carburant</span>
+                    </div>
+                </button>
+            </xpath>
+            
+            <!-- Add consumption alert badge near vehicle info if present -->
+            <xpath expr="//field[@name='model_id']" position="after">
+                <field name="active_consumption_alert" widget="badge" readonly="1"
+                       decoration-danger="active_consumption_alert == 'critical'"
+                       decoration-warning="active_consumption_alert == 'warning'"
+                       decoration-success="active_consumption_alert == 'ok'"
+                       invisible="not active_consumption_alert"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- TREE VIEW: Add fuel stats columns -->
+    <record id="view_fleet_vehicle_tree_fuel_history" model="ir.ui.view">
+        <field name="name">fleet.vehicle.tree.fuel.history</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="fuel_expense_count" optional="hide"/>
+                <field name="total_fuel_liters" optional="hide"/>
+                <field name="total_fuel_amount" optional="hide" widget="monetary"/>
+                <field name="active_consumption_alert" widget="badge" optional="hide"
+                       decoration-danger="active_consumption_alert == 'critical'"
+                       decoration-warning="active_consumption_alert == 'warning'"
+                       decoration-success="active_consumption_alert == 'ok'"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

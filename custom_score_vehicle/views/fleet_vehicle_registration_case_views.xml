@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T034: Registration case views (tree/form/search) -->
+<odoo>
+    <!-- ======================================================================
+         Registration Case - Form View
+         ====================================================================== -->
+    <record id="fleet_vehicle_registration_case_view_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.registration.case.view.form</field>
+        <field name="model">fleet.vehicle.registration.case</field>
+        <field name="arch" type="xml">
+            <form string="Dossier Immatriculation">
+                <header>
+                    <button name="action_validate" 
+                            string="Valider" 
+                            type="object"
+                            class="btn-primary"
+                            invisible="not can_validate"/>
+                    <button name="action_reject" 
+                            string="Rejeter" 
+                            type="object"
+                            class="btn-secondary"
+                            invisible="not can_reject"
+                            confirm="Êtes-vous sûr de vouloir rejeter ce dossier ?"/>
+                    <button name="action_reset_to_in_progress" 
+                            string="Remettre en cours" 
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state == 'in_progress'"
+                            groups="custom_fleet_management.group_fleet_manager"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="in_progress,validated,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(fleet.fleet_vehicle_action)d" 
+                                type="action" 
+                                class="oe_stat_button" 
+                                icon="fa-car"
+                                context="{'search_default_id': vehicle_id}">
+                            <span class="o_stat_text">Véhicule</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Informations">
+                            <field name="vehicle_id" 
+                                   readonly="state != 'in_progress'"
+                                   options="{'no_create': True}"/>
+                            <field name="company_id" 
+                                   groups="base.group_multi_company"
+                                   readonly="state != 'in_progress'"/>
+                        </group>
+                        <group string="Immatriculation">
+                            <field name="requested_plate" 
+                                   readonly="state != 'in_progress'"/>
+                            <field name="assigned_plate" 
+                                   readonly="state == 'rejected'"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Rejection reason (visible only when rejected or rejecting) -->
+                    <group string="Motif de Rejet" 
+                           invisible="state == 'validated'">
+                        <field name="rejection_reason" 
+                               nolabel="1"
+                               placeholder="Saisissez le motif de rejet..."
+                               readonly="state == 'rejected'"/>
+                    </group>
+                    
+                    <!-- Validation/Rejection info -->
+                    <group invisible="state == 'in_progress'">
+                        <group string="Validation" invisible="state != 'validated'">
+                            <field name="validated_by_id" readonly="1"/>
+                            <field name="validation_date" readonly="1"/>
+                        </group>
+                        <group string="Rejet" invisible="state != 'rejected'">
+                            <field name="rejected_by_id" readonly="1"/>
+                            <field name="rejection_date" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Notes et commentaires..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Registration Case - List View
+         ====================================================================== -->
+    <record id="fleet_vehicle_registration_case_view_list" model="ir.ui.view">
+        <field name="name">fleet.vehicle.registration.case.view.list</field>
+        <field name="model">fleet.vehicle.registration.case</field>
+        <field name="arch" type="xml">
+            <list string="Dossiers Immatriculation" 
+                  decoration-info="state == 'in_progress'"
+                  decoration-success="state == 'validated'"
+                  decoration-danger="state == 'rejected'">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="requested_plate"/>
+                <field name="assigned_plate"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'in_progress'"
+                       decoration-success="state == 'validated'"
+                       decoration-danger="state == 'rejected'"/>
+                <field name="create_date"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Registration Case - Search View
+         ====================================================================== -->
+    <record id="fleet_vehicle_registration_case_view_search" model="ir.ui.view">
+        <field name="name">fleet.vehicle.registration.case.view.search</field>
+        <field name="model">fleet.vehicle.registration.case</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Dossiers">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="requested_plate"/>
+                <field name="assigned_plate"/>
+                <separator/>
+                <filter string="En cours" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Validés" name="validated" domain="[('state', '=', 'validated')]"/>
+                <filter string="Rejetés" name="rejected" domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Date création" name="group_create_date" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Registration Case - Action
+         ====================================================================== -->
+    <record id="action_fleet_vehicle_registration_case" model="ir.actions.act_window">
+        <field name="name">Dossiers Immatriculation</field>
+        <field name="res_model">fleet.vehicle.registration.case</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="fleet_vehicle_registration_case_view_search"/>
+        <field name="context">{'search_default_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer un nouveau dossier d'immatriculation
+            </p>
+            <p>
+                Gérez les processus d'immatriculation de vos véhicules avec un workflow 
+                de validation complet.
+            </p>
+        </field>
+    </record>
+</odoo>

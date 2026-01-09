@@ -1,0 +1,29 @@
+<odoo>
+    <data>
+        <record id="product_chick_broiler_chickens" model="product.template">
+            <field name="name">Poussin, Poulets de chair</field>
+            <field name="is_chick">True</field>
+            <field name="purchase_ok">True</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
+            <field name="tracking">lot</field>
+            <field name="lot_valuated">True</field>
+        </record>
+
+        <record id="product_chick_laying_chickens" model="product.template">
+            <field name="name">Poussin, Poulets pondeuse</field>
+            <field name="is_chick">True</field>
+            <field name="purchase_ok">True</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
+            <field name="tracking">lot</field>
+            <field name="lot_valuated">True</field>
+        </record>
+
+
+        <record id="product_egg_carton_chickens" model="product.product">
+            <field name="name">Carton d'oeuf</field>
+            <field name="type">consu</field>
+        </record>
+    </data>
+</odoo>

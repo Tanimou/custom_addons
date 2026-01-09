@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_picking_multi_product_wizard,access_stock_picking_multi_product_wizard,model_stock_picking_multi_product_wizard,,1,1,1,1
+access_employee_credit_limit,access_employee_credit_limit,model_employee_credit_limit,,1,1,1,1
+access_employee_credit_limit_line,access_employee_credit_limit_line,model_employee_credit_limit_line,,1,1,1,1
+
+access_stock_scrap_loss,access_stock_scrap_loss,model_stock_scrap_loss,,1,1,1,1
+access_stock_scrap_loss_line,access_stock_scrap_loss_line,model_stock_scrap_loss_line,,1,1,1,1
+access_stock_scrap_loss_report_wizard,access_stock_scrap_loss_report_wizard,model_stock_scrap_loss_report_wizard,,1,1,1,1

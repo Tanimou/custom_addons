@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ========== MISSION COST REPORTING VIEWS ========== -->
+    
+    <!-- ===== Expense Pivot Views ===== -->
+    
+    <!-- Pivot: Expenses by Mission and Type -->
+    <record id="fleet_mission_expense_pivot_by_mission" model="ir.ui.view">
+        <field name="name">fleet.mission.expense.pivot.by.mission</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Dépenses par Mission" sample="1">
+                <field name="mission_id" type="row"/>
+                <field name="expense_type" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Pivot: Expenses by Vehicle -->
+    <record id="fleet_mission_expense_pivot_by_vehicle" model="ir.ui.view">
+        <field name="name">fleet.mission.expense.pivot.by.vehicle</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Dépenses par Véhicule" sample="1">
+                <field name="vehicle_id" type="row"/>
+                <field name="expense_type" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Pivot: Expenses by Date/Month -->
+    <record id="fleet_mission_expense_pivot_by_date" model="ir.ui.view">
+        <field name="name">fleet.mission.expense.pivot.by.date</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Dépenses par Période" sample="1">
+                <field name="date" interval="month" type="col"/>
+                <field name="expense_type" type="row"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Pivot: Expenses by Analytic Account (Project/Department) -->
+    <record id="fleet_mission_expense_pivot_by_analytic" model="ir.ui.view">
+        <field name="name">fleet.mission.expense.pivot.by.analytic</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Dépenses par Projet/Département" sample="1">
+                <field name="analytic_account_id" type="row"/>
+                <field name="expense_type" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- ===== Expense Graph Views ===== -->
+    
+    <!-- Graph: Expenses by Type (Bar) -->
+    <record id="fleet_mission_expense_graph_by_type" model="ir.ui.view">
+        <field name="name">fleet.mission.expense.graph.by.type</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <graph string="Dépenses par Type" type="bar" sample="1">
+                <field name="expense_type"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Graph: Expenses Over Time (Line) -->
+    <record id="fleet_mission_expense_graph_by_date" model="ir.ui.view">
+        <field name="name">fleet.mission.expense.graph.by.date</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <graph string="Évolution des Dépenses" type="line" sample="1">
+                <field name="date" interval="month"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Graph: Expenses by Vehicle (Pie) -->
+    <record id="fleet_mission_expense_graph_by_vehicle" model="ir.ui.view">
+        <field name="name">fleet.mission.expense.graph.by.vehicle</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <graph string="Dépenses par Véhicule" type="pie" sample="1">
+                <field name="vehicle_id"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- ===== Mission Cost KPI Views ===== -->
+    
+    <!-- Pivot: Cost per Km by Vehicle -->
+    <record id="fleet_mission_pivot_cost_per_km" model="ir.ui.view">
+        <field name="name">fleet.mission.pivot.cost.per.km</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <pivot string="Coût par Km - Véhicule" sample="1">
+                <field name="vehicle_id" type="row"/>
+                <field name="state" type="col"/>
+                <field name="distance_km" type="measure"/>
+                <field name="total_expenses" type="measure"/>
+                <field name="cost_per_km" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Pivot: Expenses by Mission Type -->
+    <record id="fleet_mission_pivot_by_type" model="ir.ui.view">
+        <field name="name">fleet.mission.pivot.by.type</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <pivot string="Dépenses par Type de Mission" sample="1">
+                <field name="mission_type" type="row"/>
+                <field name="vehicle_id" type="row"/>
+                <field name="distance_km" type="measure"/>
+                <field name="total_expenses" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Graph: Cost per Km Trend -->
+    <record id="fleet_mission_graph_cost_per_km" model="ir.ui.view">
+        <field name="name">fleet.mission.graph.cost.per.km</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <graph string="Évolution Coût / Km" type="line" sample="1">
+                <field name="date_start" interval="month"/>
+                <field name="cost_per_km" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- ===== Reporting Actions ===== -->
+    
+    <!-- Action: Expense Analysis by Mission -->
+    <record id="action_expense_report_by_mission" model="ir.actions.act_window">
+        <field name="name">Dépenses par Mission</field>
+        <field name="res_model">fleet.mission.expense</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_expense_pivot_by_mission')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_expense_graph_by_type')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
+        <field name="context">{'search_default_filter_approved': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse des dépenses par mission
+            </p>
+        </field>
+    </record>
+    
+    <!-- Action: Expense Analysis by Vehicle -->
+    <record id="action_expense_report_by_vehicle" model="ir.actions.act_window">
+        <field name="name">Dépenses par Véhicule</field>
+        <field name="res_model">fleet.mission.expense</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_expense_pivot_by_vehicle')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_expense_graph_by_vehicle')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
+        <field name="context">{'search_default_group_vehicle': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse des dépenses par véhicule
+            </p>
+        </field>
+    </record>
+    
+    <!-- Action: Cost per Km Analysis -->
+    <record id="action_mission_cost_per_km_report" model="ir.actions.act_window">
+        <field name="name">Coût / Km par Mission</field>
+        <field name="res_model">fleet.mission</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_pivot_cost_per_km')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_graph_cost_per_km')})]"/>
+        <field name="domain">[('state', '=', 'done'), ('distance_km', '>', 0)]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse du coût par kilomètre
+            </p>
+            <p>
+                Ce rapport montre le coût par km pour les missions terminées ayant une distance calculée.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Action: Expense Analysis by Project/Department -->
+    <record id="action_expense_report_by_analytic" model="ir.actions.act_window">
+        <field name="name">Dépenses par Projet</field>
+        <field name="res_model">fleet.mission.expense</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_expense_pivot_by_analytic')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_expense_graph_by_type')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
+        <field name="domain">[('analytic_account_id', '!=', False)]</field>
+        <field name="context">{'search_default_group_analytic': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Analyse des dépenses par projet/département
+            </p>
+        </field>
+    </record>
+    
+    <!-- ===== Reporting Menu ===== -->
+    
+    <menuitem id="menu_mission_cost_reporting"
+              name="Coûts Mission"
+              parent="custom_score_base.menu_score_reporting"
+              sequence="20"/>
+    
+    <menuitem id="menu_expense_report_by_mission"
+              name="Par Mission"
+              parent="menu_mission_cost_reporting"
+              action="action_expense_report_by_mission"
+              sequence="10"/>
+    
+    <menuitem id="menu_expense_report_by_vehicle"
+              name="Par Véhicule"
+              parent="menu_mission_cost_reporting"
+              action="action_expense_report_by_vehicle"
+              sequence="20"/>
+    
+    <menuitem id="menu_mission_cost_per_km_report"
+              name="Coût / Km"
+              parent="menu_mission_cost_reporting"
+              action="action_mission_cost_per_km_report"
+              sequence="30"/>
+    
+    <menuitem id="menu_expense_report_by_analytic"
+              name="Par Projet"
+              parent="menu_mission_cost_reporting"
+              action="action_expense_report_by_analytic"
+              sequence="40"
+              groups="analytic.group_analytic_accounting"/>
+
+</odoo>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        Fleet Fuel Monthly Summary Views - Target Extension (FR-024/FR-025)
+        Adds target consumption comparison and alert fields
+    -->
+
+    <!-- TREE VIEW: Add target and alert columns -->
+    <record id="view_fleet_fuel_summary_tree_target" model="ir.ui.view">
+        <field name="name">fleet.fuel.monthly.summary.tree.target</field>
+        <field name="model">fleet.fuel.monthly.summary</field>
+        <field name="inherit_id" ref="custom_fleet_fuel_management.fleet_fuel_summary_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='avg_consumption_per_100km']" position="after">
+                <field name="target_consumption_l100km" optional="show"/>
+                <field name="target_variance_l100km" 
+                       optional="show"
+                       decoration-danger="target_variance_l100km > 0"
+                       decoration-success="target_variance_l100km &lt;= 0"/>
+                <field name="target_variance_pct" 
+                       optional="show"
+                       decoration-danger="target_variance_pct > 10"
+                       decoration-warning="target_variance_pct > 0 and target_variance_pct &lt;= 10"
+                       decoration-success="target_variance_pct &lt;= 0"/>
+                <field name="consumption_alert_level" 
+                       widget="badge"
+                       decoration-danger="consumption_alert_level == 'critical'"
+                       decoration-warning="consumption_alert_level == 'warning'"
+                       decoration-success="consumption_alert_level == 'ok'"
+                       decoration-muted="consumption_alert_level == 'non_calculable'"
+                       optional="show"/>
+            </xpath>
+            <!-- Add category_id for filtering -->
+            <xpath expr="//field[@name='vehicle_id']" position="after">
+                <field name="category_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- FORM VIEW: Add target comparison section -->
+    <record id="view_fleet_fuel_summary_form_target" model="ir.ui.view">
+        <field name="name">fleet.fuel.monthly.summary.form.target</field>
+        <field name="model">fleet.fuel.monthly.summary</field>
+        <field name="inherit_id" ref="custom_fleet_fuel_management.fleet_fuel_summary_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add category reference -->
+            <xpath expr="//field[@name='vehicle_id']" position="after">
+                <field name="category_id" readonly="1" options="{'no_open': True}"/>
+            </xpath>
+            <!-- Add target consumption section after budget group -->
+            <xpath expr="//group[@string='Budget &amp; Alertes']" position="after">
+                <group string="Cible consommation">
+                    <field name="target_consumption_l100km" readonly="1"/>
+                    <field name="target_variance_l100km" readonly="1"
+                           decoration-danger="target_variance_l100km > 0"
+                           decoration-success="target_variance_l100km &lt;= 0"/>
+                    <field name="target_variance_pct" readonly="1" widget="percentage"
+                           decoration-danger="target_variance_pct > 20"
+                           decoration-warning="target_variance_pct > 10 and target_variance_pct &lt;= 20"
+                           decoration-success="target_variance_pct &lt;= 0"/>
+                    <field name="consumption_alert_level" widget="badge" readonly="1"/>
+                    <field name="consumption_alert_message" readonly="1"
+                           invisible="not consumption_alert_message"/>
+                    <field name="is_over_target" invisible="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW: Add target/alert filters -->
+    <record id="view_fleet_fuel_summary_search_target" model="ir.ui.view">
+        <field name="name">fleet.fuel.monthly.summary.search.target</field>
+        <field name="model">fleet.fuel.monthly.summary</field>
+        <field name="arch" type="xml">
+            <search string="Synthèses carburant">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="card_id"/>
+                <field name="driver_id"/>
+                <field name="category_id"/>
+                <separator/>
+                <!-- State filters -->
+                <filter string="Brouillon" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmées" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Clôturées" name="filter_closed" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <!-- Budget alert filters -->
+                <filter string="Alerte budget" name="filter_budget_warning" 
+                        domain="[('alert_level', 'in', ['warning', 'critical'])]"/>
+                <separator/>
+                <!-- Consumption alert filters -->
+                <filter string="Alerte conso: OK" name="filter_conso_ok" 
+                        domain="[('consumption_alert_level', '=', 'ok')]"/>
+                <filter string="Alerte conso: Attention" name="filter_conso_warning" 
+                        domain="[('consumption_alert_level', '=', 'warning')]"/>
+                <filter string="Alerte conso: Critique" name="filter_conso_critical" 
+                        domain="[('consumption_alert_level', '=', 'critical')]"/>
+                <filter string="Alerte conso: Non calculable" name="filter_conso_nc" 
+                        domain="[('consumption_alert_level', '=', 'non_calculable')]"/>
+                <separator/>
+                <filter string="Dépasse cible" name="filter_over_target"
+                        domain="[('is_over_target', '=', True)]"/>
+                <filter string="Sous cible" name="filter_under_target"
+                        domain="[('is_over_target', '=', False), ('target_consumption_l100km', '>', 0)]"/>
+                <separator/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="Famille" name="group_category" context="{'group_by': 'category_id'}"/>
+                    <filter string="Carte" name="group_card" context="{'group_by': 'card_id'}"/>
+                    <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Statut" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Alerte budget" name="group_alert" context="{'group_by': 'alert_level'}"/>
+                    <filter string="Alerte conso" name="group_conso_alert" context="{'group_by': 'consumption_alert_level'}"/>
+                    <filter string="Société" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- PIVOT VIEW: Add target measures -->
+    <record id="view_fleet_fuel_summary_pivot_target" model="ir.ui.view">
+        <field name="name">fleet.fuel.monthly.summary.pivot.target</field>
+        <field name="model">fleet.fuel.monthly.summary</field>
+        <field name="inherit_id" ref="custom_fleet_fuel_management.fleet_fuel_summary_view_pivot"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='avg_consumption_per_100km']" position="after">
+                <field name="target_consumption_l100km" type="measure"/>
+                <field name="target_variance_l100km" type="measure"/>
+                <field name="target_variance_pct" type="measure"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

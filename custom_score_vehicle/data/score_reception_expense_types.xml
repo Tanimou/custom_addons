@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- ===================================================================
+         Default Reception Expense Types (FR-009)
+         These types are marked as noupdate=1 to preserve user customizations
+         =================================================================== -->
+
+    <record id="expense_type_registration" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Frais d'Immatriculation</field>
+        <field name="code">registration</field>
+        <field name="sequence">10</field>
+        <field name="description">Frais liés à l'obtention de la carte grise et de la plaque d'immatriculation.</field>
+    </record>
+
+    <record id="expense_type_insurance" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Assurance Initiale</field>
+        <field name="code">insurance</field>
+        <field name="sequence">20</field>
+        <field name="description">Première prime d'assurance lors de l'acquisition du véhicule.</field>
+    </record>
+
+    <record id="expense_type_inspection" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Visite Technique</field>
+        <field name="code">inspection</field>
+        <field name="sequence">30</field>
+        <field name="description">Contrôle technique initial ou de conformité à l'acquisition.</field>
+    </record>
+
+    <record id="expense_type_transport" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Transport / Livraison</field>
+        <field name="code">transport</field>
+        <field name="sequence">40</field>
+        <field name="description">Frais de transport ou livraison du véhicule depuis le lieu d'achat.</field>
+    </record>
+
+    <record id="expense_type_preparation" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Préparation Véhicule</field>
+        <field name="code">preparation</field>
+        <field name="sequence">50</field>
+        <field name="description">Préparation, nettoyage et mise en service du véhicule.</field>
+    </record>
+
+    <record id="expense_type_equipment" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Équipement Additionnel</field>
+        <field name="code">equipment</field>
+        <field name="sequence">60</field>
+        <field name="description">Équipements additionnels installés à la réception (GPS, matériel de sécurité, etc.).</field>
+    </record>
+
+    <record id="expense_type_admin" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Frais Administratifs</field>
+        <field name="code">admin</field>
+        <field name="sequence">70</field>
+        <field name="description">Autres frais administratifs liés à l'acquisition (notaire, honoraires, etc.).</field>
+    </record>
+
+    <record id="expense_type_tax" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Taxes et Droits</field>
+        <field name="code">tax</field>
+        <field name="sequence">80</field>
+        <field name="description">Taxes d'acquisition, droits de douane ou autres prélèvements obligatoires.</field>
+    </record>
+
+    <record id="expense_type_other" model="fleet.vehicle.reception.expense.type">
+        <field name="name">Autres Frais</field>
+        <field name="code">other</field>
+        <field name="sequence">100</field>
+        <field name="description">Tout autre frais non classé ci-dessus.</field>
+    </record>
+
+</odoo>

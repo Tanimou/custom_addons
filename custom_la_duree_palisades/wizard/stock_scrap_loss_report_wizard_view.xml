@@ -1,0 +1,52 @@
+<odoo>
+    <record id="view_stock_scrap_loss_report_wizard" model="ir.ui.view">
+        <field name="name">stock.scrap.loss.report.wizard.form</field>
+        <field name="model">stock.scrap.loss.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Rapport des pertes">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="state"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="scrap_loss_ids" nolabel="1">
+                        <list string="Lignes de Pertes">
+                            <field name="loss_id"/>
+                            <field name="date"/>
+                            <field name="product_id"/>
+                            <field name="qty"/>
+                        </list>
+                    </field>
+                </group>
+                <footer>
+                    <button name="action_print_report"
+                            type="object"
+                            string="Imprimer PDF"
+                            class="btn-primary"/>
+                    <button string="Annuler"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_scrap_loss_report_wizard"
+            model="ir.actions.act_window">
+        <field name="name">Rapport des pertes (PDF)</field>
+        <field name="res_model">stock.scrap.loss.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_stock_scrap_loss_report"
+              name="Rapport des pertes (PDF)"
+              parent="stock.menu_warehouse_report" 
+              sequence="7"
+              action="action_stock_scrap_loss_report_wizard"/>
+</odoo>

@@ -1,0 +1,163 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * custom_score_reporting
+#
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French (http://www.transifex.com/odoo/odoo-19/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_score_reporting
+#: model:ir.module.module,name:custom_score_reporting.module_custom_score_reporting
+msgid "SCORE - Reporting"
+msgstr "SCORE - Reporting"
+
+#. module: custom_score_reporting
+#: model:ir.module.module,summary:custom_score_reporting.module_custom_score_reporting
+msgid "Direction KPIs dashboard, pivot reports, project-centric views, analytic reporting"
+msgstr "Dashboard KPIs direction, rapports pivot, vues par projet, reporting analytique"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_dashboard
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_kpi
+msgid "Key Indicators"
+msgstr "Indicateurs clés"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_reports
+msgid "Reports"
+msgstr "Rapports"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_kpi_availability
+msgid "Fleet Availability"
+msgstr "Disponibilité flotte"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_kpi_on_mission
+msgid "Vehicles on Mission"
+msgstr "Véhicules en mission"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_kpi_available
+msgid "Available Vehicles"
+msgstr "Véhicules disponibles"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_kpi_in_maintenance
+msgid "Vehicles in Maintenance"
+msgstr "Véhicules en maintenance"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_kpi_compliance_critical
+msgid "Critical Compliance Alerts"
+msgstr "Alertes conformité critiques"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_kpi_overconsumption
+msgid "Overconsumption Alerts"
+msgstr "Alertes surconsommation"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_mission_cost_pivot
+msgid "Mission Cost Analysis"
+msgstr "Analyse coûts mission"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_fuel_consumption_pivot
+msgid "Fuel Consumption Analysis"
+msgstr "Analyse consommation carburant"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_fuel_alerts_pivot
+msgid "Fuel Alerts Analysis"
+msgstr "Analyse alertes carburant"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_maintenance_downtime_pivot
+msgid "Maintenance Downtime Analysis"
+msgstr "Analyse indisponibilité maintenance"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_fleet_overview_pivot
+msgid "Fleet Overview"
+msgstr "Vue consolidée flotte"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_compliance_pivot
+msgid "Compliance Analysis"
+msgstr "Analyse conformité"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_mission_cost_pivot
+msgid "Mission Costs"
+msgstr "Coûts mission"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_fuel_consumption_pivot
+msgid "Fuel Consumption"
+msgstr "Consommation carburant"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_maintenance_downtime_pivot
+msgid "Maintenance Downtime"
+msgstr "Indisponibilité maintenance"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_fleet_overview_pivot
+msgid "Fleet Overview"
+msgstr "Vue consolidée"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_project_reporting
+msgid "By Project/Site"
+msgstr "Par projet/site"
+
+#. module: custom_score_reporting
+#: model:ir.ui.menu,name:custom_score_reporting.menu_score_analytic_reporting
+msgid "By Department"
+msgstr "Par département"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_mission_by_analytic_pivot
+msgid "Missions by Analytic Account"
+msgstr "Missions par compte analytique"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_vehicle_by_location_pivot
+msgid "Vehicles by Location"
+msgstr "Véhicules par site"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_transfer_by_site_pivot
+msgid "Transfers by Site"
+msgstr "Transferts par site"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_mission_expense_by_analytic
+msgid "Mission Expenses by Project"
+msgstr "Dépenses mission par projet"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_fuel_by_analytic
+msgid "Fuel by Project"
+msgstr "Carburant par projet"
+
+#. module: custom_score_reporting
+#: model:ir.actions.act_window,name:custom_score_reporting.action_score_maintenance_by_analytic
+msgid "Maintenance by Project"
+msgstr "Maintenance par projet"

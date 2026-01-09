@@ -1,0 +1,33 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * custom_score_suite
+#
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French (http://www.transifex.com/odoo/odoo-19/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: custom_score_suite
+#: model:ir.module.module,name:custom_score_suite.module_custom_score_suite
+msgid "SCORE - Suite"
+msgstr "SCORE - Suite"
+
+#. module: custom_score_suite
+#: model:ir.module.module,summary:custom_score_suite.module_custom_score_suite
+msgid "Meta-module that installs the complete SCORE Logistics Suite"
+msgstr "Méta-module qui installe la suite SCORE Logistique complète"
+
+#. module: custom_score_suite
+#: model:ir.module.module,description:custom_score_suite.module_custom_score_suite
+msgid "This module installs all SCORE modules in the correct order."
+msgstr "Ce module installe tous les modules SCORE dans le bon ordre."

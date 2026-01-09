@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- ===================================================================
+         Scheduled Actions for Document Compliance (FR-007)
+         - J-30 daily alert for expiring documents
+         - Weekly reminder for expired documents
+         =================================================================== -->
+
+    <!-- ===================================================================
+         CRON: Daily check for documents expiring in 30 days (J-30 alert)
+         Runs daily at 7:00 AM to send notifications
+         =================================================================== -->
+    <record id="ir_cron_document_expiry_j30_alert" model="ir.cron">
+        <field name="name">Alerte J-30 Documents Véhicules</field>
+        <field name="model_id" ref="custom_fleet_management.model_fleet_vehicle_document"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_expiry_alerts(days_before=30)</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+    <!-- ===================================================================
+         CRON: Weekly reminder for already expired documents
+         Runs every Monday at 8:00 AM
+         =================================================================== -->
+    <record id="ir_cron_document_expired_weekly_reminder" model="ir.cron">
+        <field name="name">Rappel Hebdomadaire Documents Expirés</field>
+        <field name="model_id" ref="custom_fleet_management.model_fleet_vehicle_document"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_expired_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="active">True</field>
+    </record>
+
+    <!-- ===================================================================
+         CRON: Daily recompute of vehicle compliance status
+         Updates computed fields for dashboards and reports
+         =================================================================== -->
+    <record id="ir_cron_vehicle_compliance_recompute" model="ir.cron">
+        <field name="name">Recalcul Conformité Véhicules</field>
+        <field name="model_id" ref="fleet.model_fleet_vehicle"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_recompute_compliance_status()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

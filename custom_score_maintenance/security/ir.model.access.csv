@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fleet_maintenance_technician_time_user,fleet.maintenance.technician.time.user,model_fleet_maintenance_technician_time,custom_fleet_management.group_fleet_user,1,1,1,0
+access_fleet_maintenance_technician_time_manager,fleet.maintenance.technician.time.manager,model_fleet_maintenance_technician_time,custom_fleet_management.group_fleet_manager,1,1,1,1

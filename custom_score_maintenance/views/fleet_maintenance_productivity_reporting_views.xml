@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ========== PRODUCTIVITY REPORTING ========== -->
+    
+    <!-- Technician Time Pivot - Monthly Productivity -->
+    <record id="fleet_maintenance_technician_time_pivot_productivity" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.pivot.productivity</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <pivot string="Productivité Techniciens" sample="1">
+                <field name="technician_id" type="row"/>
+                <field name="work_type" type="row"/>
+                <field name="hours" type="measure"/>
+                <field name="date" interval="month" type="col"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Technician Time Graph - Hours by Work Type -->
+    <record id="fleet_maintenance_technician_time_graph_work_type" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.graph.work.type</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <graph string="Heures par Type de Travail" type="pie" sample="1">
+                <field name="work_type"/>
+                <field name="hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Technician Time Graph - Hours Trend -->
+    <record id="fleet_maintenance_technician_time_graph_trend" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.graph.trend</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <graph string="Tendance Heures" type="line" sample="1">
+                <field name="date" interval="week"/>
+                <field name="hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Intervention Productivity Pivot -->
+    <record id="fleet_maintenance_intervention_pivot_productivity" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.pivot.productivity</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="arch" type="xml">
+            <pivot string="Productivité Interventions" sample="1">
+                <field name="intervention_type" type="row"/>
+                <field name="state" type="row"/>
+                <field name="downtime_hours" type="measure"/>
+                <field name="total_technician_hours" type="measure"/>
+                <field name="technician_count" type="measure"/>
+                <field name="scheduled_start" interval="month" type="col"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- ========== PRODUCTIVITY ACTIONS ========== -->
+    
+    <record id="action_technician_productivity_report" model="ir.actions.act_window">
+        <field name="name">Productivité Techniciens</field>
+        <field name="res_model">fleet.maintenance.technician.time</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="search_view_id" ref="fleet_maintenance_technician_time_view_search"/>
+        <field name="context">{'search_default_filter_this_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune donnée de productivité
+            </p>
+            <p>
+                Enregistrez le temps des techniciens pour visualiser la productivité.
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_technician_productivity_report_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="fleet_maintenance_technician_time_pivot_productivity"/>
+        <field name="act_window_id" ref="action_technician_productivity_report"/>
+    </record>
+    
+    <record id="action_technician_productivity_report_view_graph" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="fleet_maintenance_technician_time_graph_work_type"/>
+        <field name="act_window_id" ref="action_technician_productivity_report"/>
+    </record>
+    
+    <record id="action_intervention_productivity_report" model="ir.actions.act_window">
+        <field name="name">Productivité Interventions</field>
+        <field name="res_model">fleet.maintenance.intervention</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="search_view_id" ref="custom_fleet_maintenance.fleet_maintenance_intervention_view_search"/>
+        <field name="context">{'search_default_filter_done': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune donnée de productivité
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_intervention_productivity_report_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="fleet_maintenance_intervention_pivot_productivity"/>
+        <field name="act_window_id" ref="action_intervention_productivity_report"/>
+    </record>
+    
+    <!-- ========== MENUS ========== -->
+    
+    <menuitem id="menu_technician_productivity_report"
+              name="Productivité Techniciens"
+              parent="menu_fleet_maintenance_reports"
+              action="action_technician_productivity_report"
+              sequence="30"/>
+    
+    <menuitem id="menu_intervention_productivity_report"
+              name="Productivité Interventions"
+              parent="menu_fleet_maintenance_reports"
+              action="action_intervention_productivity_report"
+              sequence="40"/>
+
+</odoo>

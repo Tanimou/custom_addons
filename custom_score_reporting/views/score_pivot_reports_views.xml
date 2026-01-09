@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        SCORE Pivot Reports (FR-028)
+        Multi-dimensional analysis views for fleet KPIs
+    -->
+
+    <!-- ============================================================
+         MISSION COST PIVOT/GRAPH (FR-015, FR-026)
+         ============================================================ -->
+    
+    <!-- Mission Cost Pivot View -->
+    <record id="view_score_mission_cost_pivot" model="ir.ui.view">
+        <field name="name">score.mission.cost.pivot</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse des coûts mission">
+                <field name="vehicle_id" type="row"/>
+                <field name="start_date" interval="month" type="col"/>
+                <field name="total_expenses" type="measure"/>
+                <field name="distance_km" type="measure"/>
+                <field name="cost_per_km" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Mission Cost Graph View -->
+    <record id="view_score_mission_cost_graph" model="ir.ui.view">
+        <field name="name">score.mission.cost.graph</field>
+        <field name="model">fleet.mission</field>
+        <field name="arch" type="xml">
+            <graph string="Évolution des coûts mission" type="line">
+                <field name="start_date" interval="month"/>
+                <field name="total_expenses" type="measure"/>
+                <field name="cost_per_km" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Mission Cost Action -->
+    <record id="action_score_mission_cost_analysis" model="ir.actions.act_window">
+        <field name="name">Analyse coûts mission</field>
+        <field name="res_model">fleet.mission</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_mission_cost_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_score_mission_cost_graph')})]"/>
+        <field name="domain">[('state', 'in', ['done', 'in_progress'])]</field>
+        <field name="context">{
+            'search_default_group_by_vehicle': 1,
+            'pivot_row_groupby': ['vehicle_id'],
+            'pivot_column_groupby': ['start_date:month'],
+            'pivot_measures': ['total_expenses', 'cost_per_km']
+        }</field>
+    </record>
+
+    <!-- ============================================================
+         FUEL CONSUMPTION PIVOT/GRAPH (FR-024, FR-025)
+         ============================================================ -->
+
+    <!-- Fuel Consumption Pivot View -->
+    <record id="view_score_fuel_consumption_pivot" model="ir.ui.view">
+        <field name="name">score.fuel.consumption.pivot</field>
+        <field name="model">fleet.fuel.monthly.summary</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse consommation carburant">
+                <field name="category_id" type="row"/>
+                <field name="vehicle_id" type="row"/>
+                <field name="period_start" interval="month" type="col"/>
+                <field name="avg_consumption_per_100km" type="measure"/>
+                <field name="target_consumption_l100km" type="measure"/>
+                <field name="target_variance_pct" type="measure"/>
+                <field name="total_liter" type="measure"/>
+                <field name="total_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Fuel Consumption Graph View -->
+    <record id="view_score_fuel_consumption_graph" model="ir.ui.view">
+        <field name="name">score.fuel.consumption.graph</field>
+        <field name="model">fleet.fuel.monthly.summary</field>
+        <field name="arch" type="xml">
+            <graph string="Consommation vs Cible" type="bar">
+                <field name="category_id"/>
+                <field name="avg_consumption_per_100km" type="measure"/>
+                <field name="target_consumption_l100km" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Fuel Alerts Pivot -->
+    <record id="view_score_fuel_alerts_pivot" model="ir.ui.view">
+        <field name="name">score.fuel.alerts.pivot</field>
+        <field name="model">fleet.fuel.monthly.summary</field>
+        <field name="arch" type="xml">
+            <pivot string="Alertes consommation">
+                <field name="consumption_alert_level" type="row"/>
+                <field name="category_id" type="row"/>
+                <field name="vehicle_id" type="row"/>
+                <field name="target_variance_pct" type="measure"/>
+                <field name="avg_consumption_per_100km" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Fuel Consumption Action -->
+    <record id="action_score_fuel_consumption_analysis" model="ir.actions.act_window">
+        <field name="name">Analyse consommation</field>
+        <field name="res_model">fleet.fuel.monthly.summary</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_fuel_consumption_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_score_fuel_consumption_graph')})]"/>
+        <field name="context">{
+            'search_default_filter_confirmed': 1,
+            'pivot_row_groupby': ['category_id', 'vehicle_id'],
+            'pivot_column_groupby': ['period_start:month']
+        }</field>
+    </record>
+
+    <!-- Fuel Alerts Action -->
+    <record id="action_score_fuel_alerts_analysis" model="ir.actions.act_window">
+        <field name="name">Alertes surconsommation</field>
+        <field name="res_model">fleet.fuel.monthly.summary</field>
+        <field name="view_mode">pivot,tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_fuel_alerts_pivot')})]"/>
+        <field name="domain">[('consumption_alert_level', 'in', ['warning', 'critical'])]</field>
+    </record>
+
+    <!-- ============================================================
+         MAINTENANCE KPI PIVOT/GRAPH (FR-019, FR-020, FR-021)
+         ============================================================ -->
+
+    <!-- Maintenance Downtime Pivot -->
+    <record id="view_score_maintenance_downtime_pivot" model="ir.ui.view">
+        <field name="name">score.maintenance.downtime.pivot</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse indisponibilité">
+                <field name="vehicle_id" type="row"/>
+                <field name="intervention_type" type="row"/>
+                <field name="scheduled_start" interval="month" type="col"/>
+                <field name="downtime_hours" type="measure"/>
+                <field name="downtime_days" type="measure"/>
+                <field name="total_technician_hours" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Maintenance Downtime Graph -->
+    <record id="view_score_maintenance_downtime_graph" model="ir.ui.view">
+        <field name="name">score.maintenance.downtime.graph</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="arch" type="xml">
+            <graph string="Indisponibilité par type" type="bar">
+                <field name="intervention_type"/>
+                <field name="downtime_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Maintenance Action -->
+    <record id="action_score_maintenance_analysis" model="ir.actions.act_window">
+        <field name="name">Analyse maintenance</field>
+        <field name="res_model">fleet.maintenance.intervention</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_maintenance_downtime_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_score_maintenance_downtime_graph')})]"/>
+        <field name="domain">[('state', '=', 'done')]</field>
+    </record>
+
+    <!-- ============================================================
+         VEHICLE FLEET OVERVIEW PIVOT (FR-030)
+         ============================================================ -->
+
+    <!-- Fleet Overview Pivot -->
+    <record id="view_score_fleet_overview_pivot" model="ir.ui.view">
+        <field name="name">score.fleet.overview.pivot</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="arch" type="xml">
+            <pivot string="Vue consolidée flotte">
+                <field name="category_id" type="row"/>
+                <field name="maintenance_state" type="col"/>
+                <field name="mission_count" type="measure"/>
+                <field name="total_downtime_hours" type="measure"/>
+                <field name="fuel_expense_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Fleet Overview Action -->
+    <record id="action_score_fleet_overview" model="ir.actions.act_window">
+        <field name="name">Vue consolidée flotte</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">pivot,kanban,tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_fleet_overview_pivot')})]"/>
+        <field name="domain">[('active', '=', True)]</field>
+    </record>
+
+    <!-- ============================================================
+         COMPLIANCE DOCUMENT PIVOT (FR-007)
+         ============================================================ -->
+
+    <!-- Document Compliance Pivot -->
+    <record id="view_score_document_compliance_pivot" model="ir.ui.view">
+        <field name="name">score.document.compliance.pivot</field>
+        <field name="model">fleet.vehicle.document</field>
+        <field name="arch" type="xml">
+            <pivot string="État des documents">
+                <field name="document_type_id" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Document Expiry Action -->
+    <record id="action_score_document_expiry" model="ir.actions.act_window">
+        <field name="name">Documents expirés/à expirer</field>
+        <field name="res_model">fleet.vehicle.document</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="domain">['|', ('state', '=', 'expired'), ('days_to_expiry', '&lt;=', 30)]</field>
+        <field name="context">{'search_default_filter_expired': 1}</field>
+    </record>
+
+    <!-- ============================================================
+         REPORTING MENU STRUCTURE
+         ============================================================ -->
+
+    <!-- Reporting Root Menu -->
+    <menuitem
+        id="menu_score_reporting"
+        name="Rapports"
+        parent="custom_score_base.menu_score_root"
+        sequence="90"/>
+
+    <!-- Cost Analysis Submenu -->
+    <menuitem
+        id="menu_score_cost_analysis"
+        name="Analyse coûts"
+        parent="menu_score_reporting"
+        action="action_score_mission_cost_analysis"
+        sequence="10"/>
+
+    <!-- Fuel Analysis Submenu -->
+    <menuitem
+        id="menu_score_fuel_analysis"
+        name="Analyse consommation"
+        parent="menu_score_reporting"
+        action="action_score_fuel_consumption_analysis"
+        sequence="20"/>
+
+    <!-- Fuel Alerts Submenu -->
+    <menuitem
+        id="menu_score_fuel_alerts"
+        name="Alertes surconsommation"
+        parent="menu_score_reporting"
+        action="action_score_fuel_alerts_analysis"
+        sequence="25"/>
+
+    <!-- Maintenance Analysis Submenu -->
+    <menuitem
+        id="menu_score_maintenance_analysis"
+        name="Analyse maintenance"
+        parent="menu_score_reporting"
+        action="action_score_maintenance_analysis"
+        sequence="30"/>
+
+    <!-- Fleet Overview Submenu -->
+    <menuitem
+        id="menu_score_fleet_overview"
+        name="Vue consolidée"
+        parent="menu_score_reporting"
+        action="action_score_fleet_overview"
+        sequence="40"/>
+
+    <!-- Document Expiry Submenu -->
+    <menuitem
+        id="menu_score_document_expiry"
+        name="Documents à renouveler"
+        parent="menu_score_reporting"
+        action="action_score_document_expiry"
+        sequence="50"/>
+
+</odoo>

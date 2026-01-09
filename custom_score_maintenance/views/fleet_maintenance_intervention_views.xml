@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ========== INTERVENTION FORM EXTENSION: DOWNTIME + TECHNICIAN TIME ========== -->
+    
+    <!-- Extend intervention form to show downtime KPIs -->
+    <record id="fleet_maintenance_intervention_view_form_downtime" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.view.form.downtime</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="inherit_id" ref="custom_fleet_maintenance.fleet_maintenance_intervention_view_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            
+            <!-- Add downtime smart button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" type="object" 
+                        name="action_view_technician_time"
+                        icon="fa-clock-o"
+                        invisible="technician_count == 0">
+                    <field name="total_technician_hours" widget="statinfo" string="Heures Tech."/>
+                </button>
+            </xpath>
+            
+            <!-- Add downtime fields in a dedicated group -->
+            <xpath expr="//group[@name='dates']" position="after">
+                <group name="downtime_kpis" string="KPIs Temps d'arrêt">
+                    <field name="downtime_hours" readonly="1" widget="float_time"/>
+                    <field name="downtime_days" readonly="1"/>
+                    <field name="total_technician_hours" readonly="1" widget="float_time"/>
+                    <field name="technician_count" readonly="1"/>
+                </group>
+            </xpath>
+            
+            <!-- Add technician time notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Temps Techniciens" name="technician_time">
+                    <field name="technician_time_ids" mode="tree,form">
+                        <tree string="Temps Techniciens" editable="bottom">
+                            <field name="date"/>
+                            <field name="technician_id"/>
+                            <field name="work_type"/>
+                            <field name="hours" sum="Total"/>
+                            <field name="description" optional="show"/>
+                        </tree>
+                        <form string="Temps Technicien">
+                            <group>
+                                <group>
+                                    <field name="date"/>
+                                    <field name="technician_id"/>
+                                    <field name="hours"/>
+                                </group>
+                                <group>
+                                    <field name="work_type"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="description"/>
+                            </group>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Extend intervention tree to show downtime -->
+    <record id="fleet_maintenance_intervention_view_tree_downtime" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.view.tree.downtime</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="inherit_id" ref="custom_fleet_maintenance.fleet_maintenance_intervention_view_tree"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            
+            <!-- Add downtime columns -->
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="downtime_hours" string="Arrêt (h)" optional="show" widget="float_time"/>
+                <field name="total_technician_hours" string="Tech. (h)" optional="hide" widget="float_time"/>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Extend intervention search to filter by downtime -->
+    <record id="fleet_maintenance_intervention_view_search_downtime" model="ir.ui.view">
+        <field name="name">fleet.maintenance.intervention.view.search.downtime</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="inherit_id" ref="custom_fleet_maintenance.fleet_maintenance_intervention_view_search"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            
+            <!-- Add typology filters -->
+            <xpath expr="//filter[@name='filter_done']" position="after">
+                <separator/>
+                <filter name="filter_curative" string="Curative" domain="[('intervention_type', '=', 'curative')]"/>
+                <filter name="filter_preventive" string="Préventive" domain="[('intervention_type', '=', 'preventive')]"/>
+            </xpath>
+            
+            <!-- Add group by options -->
+            <xpath expr="//group[@string='Regrouper par']" position="inside">
+                <filter name="group_typology" string="Typologie" context="{'group_by': 'intervention_type'}"/>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Add method to intervention for viewing technician time -->
+    
+</odoo>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        SCORE Main Dashboard (FR-027)
+        Direction KPIs and quick overview
+    -->
+
+    <!-- ============================================================
+         MAIN DASHBOARD ACTION
+         ============================================================ -->
+
+    <!-- Primary Dashboard - Fleet Overview with KPIs -->
+    <record id="action_score_dashboard" model="ir.actions.act_window">
+        <field name="name">Tableau de bord SCORE</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">kanban,tree,pivot,graph,form</field>
+        <field name="context">{
+            'search_default_active': 1,
+            'search_default_group_by_state': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bienvenue dans SCORE Logistics Suite
+            </p>
+            <p>
+                Gérez votre flotte, suivez les coûts et optimisez la disponibilité.
+            </p>
+        </field>
+    </record>
+
+    <!-- Dashboard Menu Item -->
+    <menuitem
+        id="menu_score_dashboard"
+        name="Tableau de bord"
+        parent="custom_score_base.menu_score_root"
+        action="action_score_dashboard"
+        sequence="1"/>
+
+    <!-- ============================================================
+         DIRECTION KPI ACTIONS (FR-027)
+         ============================================================ -->
+
+    <!-- KPI: Fleet Availability Rate -->
+    <record id="action_score_kpi_availability" model="ir.actions.act_window">
+        <field name="name">Taux de disponibilité</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="context">{
+            'pivot_row_groupby': ['category_id'],
+            'pivot_measures': ['__count']
+        }</field>
+    </record>
+
+    <!-- KPI: Vehicles on Mission -->
+    <record id="action_score_kpi_on_mission" model="ir.actions.act_window">
+        <field name="name">Véhicules en mission</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('is_on_mission', '=', True)]</field>
+    </record>
+
+    <!-- KPI: Vehicles Available -->
+    <record id="action_score_kpi_available" model="ir.actions.act_window">
+        <field name="name">Véhicules disponibles</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('is_available', '=', True)]</field>
+    </record>
+
+    <!-- KPI: Vehicles in Maintenance -->
+    <record id="action_score_kpi_maintenance" model="ir.actions.act_window">
+        <field name="name">En maintenance</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('maintenance_state', '=', 'maintenance')]</field>
+    </record>
+
+    <!-- KPI: Critical Compliance Issues -->
+    <record id="action_score_kpi_compliance_critical" model="ir.actions.act_window">
+        <field name="name">Documents critiques expirés</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('has_expired_critical_docs', '=', True)]</field>
+    </record>
+
+    <!-- KPI: Over-Consumption Alerts -->
+    <record id="action_score_kpi_overconsumption" model="ir.actions.act_window">
+        <field name="name">Alertes surconsommation</field>
+        <field name="res_model">fleet.fuel.monthly.summary</field>
+        <field name="view_mode">tree,pivot,form</field>
+        <field name="domain">[('consumption_alert_level', 'in', ['warning', 'critical'])]</field>
+    </record>
+
+    <!-- ============================================================
+         KPI MENU STRUCTURE
+         ============================================================ -->
+
+    <!-- KPI Submenu -->
+    <menuitem
+        id="menu_score_kpis"
+        name="Indicateurs clés"
+        parent="custom_score_base.menu_score_root"
+        sequence="5"/>
+
+    <menuitem
+        id="menu_score_kpi_availability"
+        name="Disponibilité flotte"
+        parent="menu_score_kpis"
+        action="action_score_kpi_availability"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_score_kpi_on_mission"
+        name="En mission"
+        parent="menu_score_kpis"
+        action="action_score_kpi_on_mission"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_score_kpi_available"
+        name="Disponibles"
+        parent="menu_score_kpis"
+        action="action_score_kpi_available"
+        sequence="30"/>
+
+    <menuitem
+        id="menu_score_kpi_maintenance"
+        name="En maintenance"
+        parent="menu_score_kpis"
+        action="action_score_kpi_maintenance"
+        sequence="40"/>
+
+    <menuitem
+        id="menu_score_kpi_compliance"
+        name="Alertes conformité"
+        parent="menu_score_kpis"
+        action="action_score_kpi_compliance_critical"
+        sequence="50"/>
+
+    <menuitem
+        id="menu_score_kpi_overconsumption"
+        name="Alertes carburant"
+        parent="menu_score_kpis"
+        action="action_score_kpi_overconsumption"
+        sequence="60"/>
+
+</odoo>

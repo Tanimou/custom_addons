@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ========== TECHNICIAN TIME VIEWS ========== -->
+    
+    <!-- Tree View -->
+    <record id="fleet_maintenance_technician_time_view_tree" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.view.tree</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <tree string="Temps Techniciens" default_order="date desc">
+                <field name="date"/>
+                <field name="intervention_id"/>
+                <field name="vehicle_id" optional="show"/>
+                <field name="technician_id"/>
+                <field name="work_type"/>
+                <field name="hours" sum="Total Heures" widget="float_time"/>
+                <field name="description" optional="show"/>
+                <field name="intervention_type" optional="hide"/>
+                <field name="intervention_state" widget="badge"
+                       decoration-info="intervention_state == 'draft'"
+                       decoration-warning="intervention_state == 'submitted'"
+                       decoration-primary="intervention_state == 'in_progress'"
+                       decoration-success="intervention_state == 'done'"
+                       decoration-danger="intervention_state == 'cancelled'"
+                       optional="show"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Form View -->
+    <record id="fleet_maintenance_technician_time_view_form" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.view.form</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <form string="Temps Technicien">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="main">
+                            <field name="intervention_id" options="{'no_create': True}"/>
+                            <field name="vehicle_id" readonly="1"/>
+                            <field name="technician_id"/>
+                            <field name="date"/>
+                        </group>
+                        <group name="time">
+                            <field name="hours" widget="float_time"/>
+                            <field name="work_type"/>
+                        </group>
+                    </group>
+                    <group name="description">
+                        <field name="description" placeholder="Description du travail effectué..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Search View -->
+    <record id="fleet_maintenance_technician_time_view_search" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.view.search</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <search string="Recherche Temps Techniciens">
+                <field name="intervention_id"/>
+                <field name="vehicle_id"/>
+                <field name="technician_id"/>
+                <field name="description"/>
+                <separator/>
+                <filter name="filter_my_time" string="Mes Temps" domain="[('technician_id', '=', uid)]"/>
+                <separator/>
+                <filter name="filter_this_week" string="Cette Semaine"
+                        domain="[('date', '>=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_this_month" string="Ce Mois"
+                        domain="[('date', '>=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="filter_curative" string="Curative" domain="[('intervention_type', '=', 'curative')]"/>
+                <filter name="filter_preventive" string="Préventive" domain="[('intervention_type', '=', 'preventive')]"/>
+                <separator/>
+                <group expand="0" string="Regrouper par">
+                    <filter name="group_technician" string="Technicien" context="{'group_by': 'technician_id'}"/>
+                    <filter name="group_intervention" string="Intervention" context="{'group_by': 'intervention_id'}"/>
+                    <filter name="group_vehicle" string="Véhicule" context="{'group_by': 'vehicle_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_work_type" string="Type de Travail" context="{'group_by': 'work_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Pivot View -->
+    <record id="fleet_maintenance_technician_time_view_pivot" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.view.pivot</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse Temps Techniciens" sample="1">
+                <field name="technician_id" type="row"/>
+                <field name="intervention_type" type="row"/>
+                <field name="hours" type="measure"/>
+                <field name="date" interval="month" type="col"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Graph View -->
+    <record id="fleet_maintenance_technician_time_view_graph" model="ir.ui.view">
+        <field name="name">fleet.maintenance.technician.time.view.graph</field>
+        <field name="model">fleet.maintenance.technician.time</field>
+        <field name="arch" type="xml">
+            <graph string="Heures par Technicien" type="bar" sample="1">
+                <field name="technician_id"/>
+                <field name="hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Action -->
+    <record id="action_fleet_maintenance_technician_time" model="ir.actions.act_window">
+        <field name="name">Temps Techniciens</field>
+        <field name="res_model">fleet.maintenance.technician.time</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="search_view_id" ref="fleet_maintenance_technician_time_view_search"/>
+        <field name="context">{'search_default_filter_this_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Enregistrer le temps passé par un technicien
+            </p>
+            <p>
+                Suivez le temps de travail des techniciens sur les interventions de maintenance.
+            </p>
+        </field>
+    </record>
+    
+    <!-- My Time Action -->
+    <record id="action_fleet_maintenance_technician_time_my" model="ir.actions.act_window">
+        <field name="name">Mon Temps</field>
+        <field name="res_model">fleet.maintenance.technician.time</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="search_view_id" ref="fleet_maintenance_technician_time_view_search"/>
+        <field name="context">{'search_default_filter_my_time': 1, 'search_default_filter_this_month': 1}</field>
+    </record>
+    
+    <!-- Menu under SCORE > Maintenance -->
+    <menuitem id="menu_fleet_maintenance_technician_time"
+              name="Temps Techniciens"
+              parent="custom_fleet_maintenance.menu_fleet_maintenance"
+              action="action_fleet_maintenance_technician_time"
+              sequence="30"/>
+
+</odoo>

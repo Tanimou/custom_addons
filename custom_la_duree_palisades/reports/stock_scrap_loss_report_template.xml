@@ -1,0 +1,65 @@
+<odoo>
+    <data>
+        <template id="report_scrap_loss_pdf">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <t t-foreach="docs" t-as="o">
+                        <div class="page">
+
+                            <div class="text-center">
+                                <h2>Rapport des pertes par article</h2>
+                                <p>Du <span t-esc="o.date_from.strftime('%d/%m/%Y')"/> au <span t-esc="o.date_to.strftime('%d/%m/%Y')"/></p>
+                                <p><strong>Édition faite le:</strong> <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/></p>
+                            </div>
+
+                            <t t-if="o.scrap_loss_ids">
+                                <table class="table table-sm table-bordered" style="width:100%; margin-top:10px;">
+                                    <thead style="background-color:#f0f0f0;">
+                                        <tr>
+                                            <th>Lot</th>
+                                            <th>Nom de l'article</th>
+                                            <th>Prix</th>
+                                            <th class="text-right">Quantité</th>
+                                            <th class="text-right">Valeur</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="o.scrap_loss_ids" t-as="scrap">
+                                            <tr>
+                                                <td><span t-esc="scrap.loss_id.name"/></td>
+                                                <td><span t-esc="scrap.product_id.name"/></td>
+                                                <td class="text-right"><span t-esc="'%.2f' % (scrap.price_unit or 0.0)"/></td>
+                                                <td class="text-right"><span t-esc="'%.2f' % scrap.qty"/></td>
+                                                <td class="text-right"><span t-esc="'%.2f' % (scrap.qty * (scrap.price_unit or 0.0))"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr style="background-color:#e9ecef; font-weight:bold;">
+                                            <td colspan="3">TOTAL</td>
+                                            <td class="text-right"><span t-esc="'%.2f' % sum([s.qty for s in o.scrap_loss_ids])"/></td>
+                                            <td class="text-right"><span t-esc="'%.2f' % sum([s.qty * (s.price_unit or 0.0) for s in o.scrap_loss_ids])"/></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <div class="alert alert-warning">Aucune donnée pour la période sélectionnée.</div>
+                            </t>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_report_scrap_loss" model="ir.actions.report">
+            <field name="name">Rapport des pertes</field>
+            <field name="model">stock.scrap.loss.report.wizard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">custom_la_duree_palisades.report_scrap_loss_pdf</field>
+            <field name="report_file">custom_la_duree_palisades.report_scrap_loss_pdf</field>
+            <field name="binding_model_id" eval="False"/>
+            <field name="binding_type">report</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- ========== SCORE VEHICLE RECORD RULES ========== -->
+        
+        <!-- Registration Case: Multi-company -->
+        <record id="rule_fleet_vehicle_registration_case_company" model="ir.rule">
+            <field name="name">Registration Case: Multi-company</field>
+            <field name="model_id" ref="model_fleet_vehicle_registration_case"/>
+            <field name="domain_force">[
+                '|',
+                ('company_id', '=', False),
+                ('company_id', 'in', company_ids)
+            ]</field>
+        </record>
+        
+        <!-- Vehicle Transfer: Multi-company -->
+        <record id="rule_fleet_vehicle_transfer_company" model="ir.rule">
+            <field name="name">Vehicle Transfer: Multi-company</field>
+            <field name="model_id" ref="model_fleet_vehicle_transfer"/>
+            <field name="domain_force">[
+                '|',
+                ('company_id', '=', False),
+                ('company_id', 'in', company_ids)
+            ]</field>
+        </record>
+        
+        <!-- Reception Expense: Multi-company -->
+        <record id="rule_fleet_vehicle_reception_expense_company" model="ir.rule">
+            <field name="name">Reception Expense: Multi-company</field>
+            <field name="model_id" ref="model_fleet_vehicle_reception_expense"/>
+            <field name="domain_force">[
+                '|',
+                ('company_id', '=', False),
+                ('company_id', 'in', company_ids)
+            ]</field>
+        </record>
+        
+        <!-- Operational Status History: Multi-company (via vehicle) -->
+        <record id="rule_fleet_vehicle_operational_status_history_company" model="ir.rule">
+            <field name="name">Operational Status History: Multi-company</field>
+            <field name="model_id" ref="model_fleet_vehicle_operational_status_history"/>
+            <field name="domain_force">[
+                '|',
+                ('vehicle_id.company_id', '=', False),
+                ('vehicle_id.company_id', 'in', company_ids)
+            ]</field>
+        </record>
+        
+    </data>
+</odoo>

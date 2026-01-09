@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Formulaire de configuration du provider Jeko -->
+    <record id="payment_provider_form_jeko" model="ir.ui.view">
+        <field name="name">payment.provider.form.jeko</field>
+        <field name="model">payment.provider</field>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
+        <field name="arch" type="xml">
+            <!-- Ajouter les champs de configuration Jeko -->
+            <xpath expr="//group[@name='provider_credentials']" position="after">
+                <group name="jeko_credentials" invisible="code != 'jeko'" string="Identifiants API Jeko">
+                    <group string="Clés API">
+                        <field name="jeko_api_key" 
+                               password="True" 
+                               required="code == 'jeko'"
+                               placeholder="Votre X-API-KEY"/>
+                        <field name="jeko_api_key_id" 
+                               password="True" 
+                               required="code == 'jeko'"
+                               placeholder="Votre X-API-KEY-ID"/>
+                    </group>
+                    <group string="Configuration Webhook">
+                        <field name="jeko_webhook_secret" 
+                               password="True"
+                               placeholder="Secret pour vérifier les webhooks"/>
+                        <field name="jeko_webhook_url" 
+                               readonly="1"
+                               widget="url"
+                               placeholder="URL générée automatiquement"/>
+                    </group>
+                    <group string="Configuration du Store Jeko">
+                        <field name="jeko_store_id" 
+                               required="code == 'jeko'"
+                               placeholder="UUID de votre store"/>
+                        <field name="jeko_store_name" 
+                               readonly="1"
+                               placeholder="Nom du store (après test de connexion)"/>
+                    </group>
+
+                    <group string="Actions de Test">
+                        <button name="action_jeko_test_connection" 
+                                string="Tester la Connexion" 
+                                type="object" 
+                                class="btn-primary"
+                                help="Teste la connexion à l'API Jeko et affiche les stores disponibles"/>
+                        <button name="action_jeko_get_balance" 
+                                string="Vérifier le Solde" 
+                                type="object"
+                                class="btn-secondary"
+                                help="Affiche le solde actuel du store configuré"
+                                invisible="not jeko_store_id"/>
+                    </group>
+                </group>
+                
+                <!-- Informations et instructions -->
+                <div name="jeko_info" invisible="code != 'jeko'">
+                    <div class="alert alert-info" role="alert" style="width: 100%;">
+                        <h5 class="alert-heading">
+                            <i class="fa fa-info-circle"></i> Configuration Jeko
+                        </h5>
+                        <hr/>
+                        <ol class="mb-0">
+                            <li class="mb-2">
+                                <strong>Obtenez vos identifiants API :</strong><br/>
+                                Connectez-vous à <a href="https://cockpit.jeko.africa/" target="_blank">
+                                    <i class="fa fa-external-link"></i> Jeko Cockpit
+                                </a> → Paramètres → API et webhooks
+                            </li>
+                            <li class="mb-2">
+                                <strong>Renseignez vos clés :</strong><br/>
+                                Copiez votre <code>X-API-KEY</code> et <code>X-API-KEY-ID</code> dans les champs ci-dessus
+                            </li>
+                            <li class="mb-2">
+                                <strong>Testez la connexion :</strong><br/>
+                                Cliquez sur "🔌 Tester la Connexion" pour voir vos stores disponibles
+                            </li>
+                            <li class="mb-2">
+                                <strong>Configurez votre Store ID :</strong><br/>
+                                Copiez l'UUID de votre store depuis la liste affichée
+                            </li>
+                            <li class="mb-2">
+                                <strong>Configurez le webhook :</strong><br/>
+                                Dans Jeko Cockpit, copiez l'URL affichée dans le champ "URL Webhook" ci-dessus
+                            </li>
+                            <li class="mb-2">
+                                <strong>Copiez le Webhook Secret :</strong><br/>
+                                Après avoir configuré l'URL webhook, copiez le secret généré dans le champ "Webhook Secret Jeko"
+                            </li>
+                        </ol>
+                        <hr/>
+                        <p class="mb-0">
+                            <strong><i class="fa fa-mobile"></i> Méthodes de paiement supportées :</strong><br/>
+                            <span class="badge badge-info">Wave</span>
+                            <span class="badge badge-info">Orange Money</span>
+                            <span class="badge badge-info">MTN</span>
+                            <span class="badge badge-info">Moov</span>
+                            <span class="badge badge-info">Djamo</span>
+                        </p>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

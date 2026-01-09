@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T037: Actions and menus for SCORE Vehicle module -->
+<odoo>
+    <!-- ======================================================================
+         IMPORTANT: Actions are defined BEFORE menus (Odoo 19 requirement)
+         Parent menu is defined in custom_score_base/views/score_base_menu.xml
+         ====================================================================== -->
+    
+    <!-- Actions are already defined in their respective view files:
+         - action_fleet_vehicle_registration_case (fleet_vehicle_registration_case_views.xml)
+         - action_fleet_vehicle_transfer (fleet_vehicle_transfer_views.xml)
+         - action_fleet_mission_driver_kpi_report (fleet_vehicle_kpi_reporting_views.xml)
+    -->
+    
+    <!-- ======================================================================
+         SCORE Vehicle Sub-Menu (under SCORE root menu)
+         ====================================================================== -->
+    <menuitem id="menu_score_vehicle_root"
+              name="Véhicules"
+              parent="custom_score_base.menu_score_root"
+              sequence="10"
+              groups="custom_fleet_management.group_fleet_user"/>
+    
+    <!-- ======================================================================
+         Registration Cases Menu
+         ====================================================================== -->
+    <menuitem id="menu_score_vehicle_registration_case"
+              name="Dossiers Immatriculation"
+              action="action_fleet_vehicle_registration_case"
+              parent="menu_score_vehicle_root"
+              sequence="10"/>
+    
+    <!-- ======================================================================
+         Transfers Menu
+         ====================================================================== -->
+    <menuitem id="menu_score_vehicle_transfer"
+              name="Transferts"
+              action="action_fleet_vehicle_transfer"
+              parent="menu_score_vehicle_root"
+              sequence="20"/>
+    
+    <!-- ======================================================================
+         KPI Reporting Menu
+         ====================================================================== -->
+    <menuitem id="menu_score_vehicle_kpi_reporting"
+              name="KPIs Conducteurs"
+              action="action_fleet_mission_driver_kpi_report"
+              parent="menu_score_vehicle_root"
+              sequence="30"
+              groups="custom_fleet_management.group_fleet_manager"/>
+</odoo>

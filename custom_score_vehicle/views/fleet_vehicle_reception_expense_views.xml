@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================
+         Vehicle Reception Expense Views (FR-009)
+         Tracks initial expenses during vehicle reception
+         =================================================================== -->
+
+    <!-- ===================================================================
+         EXPENSE TYPE: TREE VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_reception_expense_type_view_tree" model="ir.ui.view">
+        <field name="name">fleet.vehicle.reception.expense.type.view.tree</field>
+        <field name="model">fleet.vehicle.reception.expense.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="default_vendor_id"/>
+                <field name="expense_count"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE TYPE: FORM VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_reception_expense_type_view_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.reception.expense.type.view.form</field>
+        <field name="model">fleet.vehicle.reception.expense.type</field>
+        <field name="arch" type="xml">
+            <form string="Type de Frais de Réception">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivé" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" string="Type de Frais"/>
+                        <h1>
+                            <field name="name" placeholder="Nom du type de frais"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group name="main">
+                            <field name="code"/>
+                            <field name="sequence"/>
+                            <field name="default_vendor_id"/>
+                        </group>
+                        <group name="status">
+                            <field name="active"/>
+                            <field name="expense_count"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Description">
+                        <field name="description" nolabel="1" 
+                               placeholder="Description du type de frais..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE TYPE: ACTION
+         =================================================================== -->
+    <record id="action_fleet_vehicle_reception_expense_type" model="ir.actions.act_window">
+        <field name="name">Types de Frais de Réception</field>
+        <field name="res_model">fleet.vehicle.reception.expense.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créer un nouveau type de frais de réception
+            </p>
+            <p>
+                Définissez les catégories de frais encourus lors de la réception des véhicules
+                (immatriculation, assurance, transport, etc.)
+            </p>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE: TREE VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_reception_expense_view_tree" model="ir.ui.view">
+        <field name="name">fleet.vehicle.reception.expense.view.tree</field>
+        <field name="model">fleet.vehicle.reception.expense</field>
+        <field name="arch" type="xml">
+            <list string="Frais de Réception" 
+                  decoration-muted="state == 'cancelled'"
+                  decoration-info="state == 'draft'">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="expense_type_id"/>
+                <field name="date"/>
+                <field name="vendor_id" optional="show"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'confirmed'"
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'cancelled'"/>
+                <field name="attachment_count" string="📎"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE: FORM VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_reception_expense_view_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.reception.expense.view.form</field>
+        <field name="model">fleet.vehicle.reception.expense</field>
+        <field name="arch" type="xml">
+            <form string="Frais de Réception">
+                <header>
+                    <button name="action_confirm" string="Confirmer" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_cancel" string="Annuler" type="object"
+                            invisible="state == 'cancelled'"/>
+                    <button name="action_draft" string="Remettre en Brouillon" type="object"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_attachments" type="object"
+                                class="oe_stat_button" icon="fa-paperclip"
+                                invisible="attachment_count == 0">
+                            <field name="attachment_count" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <label for="name" string="Référence"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group name="main">
+                            <field name="vehicle_id" options="{'no_create': True}"/>
+                            <field name="expense_type_id" options="{'no_create': True}"/>
+                            <field name="date"/>
+                        </group>
+                        <group name="financial">
+                            <label for="amount"/>
+                            <div class="o_row">
+                                <field name="amount" class="oe_inline"/>
+                                <field name="currency_id" groups="base.group_multi_currency"/>
+                            </div>
+                            <field name="vendor_id"/>
+                            <field name="invoice_reference"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group name="accounting" string="Comptabilité" 
+                               groups="account.group_account_user">
+                            <field name="analytic_account_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page name="description" string="Description">
+                            <field name="description" 
+                                   placeholder="Description détaillée de la dépense..."/>
+                        </page>
+                        <page name="attachments" string="Pièces Jointes">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE: SEARCH VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_reception_expense_view_search" model="ir.ui.view">
+        <field name="name">fleet.vehicle.reception.expense.view.search</field>
+        <field name="model">fleet.vehicle.reception.expense</field>
+        <field name="arch" type="xml">
+            <search string="Frais de Réception">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="expense_type_id"/>
+                <field name="vendor_id"/>
+                <separator/>
+                <filter name="draft" string="Brouillons" domain="[('state', '=', 'draft')]"/>
+                <filter name="confirmed" string="Confirmés" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="cancelled" string="Annulés" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="this_month" string="Ce Mois" 
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="this_year" string="Cette Année"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Grouper par">
+                    <filter name="group_vehicle" string="Véhicule" context="{'group_by': 'vehicle_id'}"/>
+                    <filter name="group_type" string="Type de Frais" context="{'group_by': 'expense_type_id'}"/>
+                    <filter name="group_vendor" string="Fournisseur" context="{'group_by': 'vendor_id'}"/>
+                    <filter name="group_state" string="État" context="{'group_by': 'state'}"/>
+                    <filter name="group_month" string="Mois" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE: PIVOT VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_reception_expense_view_pivot" model="ir.ui.view">
+        <field name="name">fleet.vehicle.reception.expense.view.pivot</field>
+        <field name="model">fleet.vehicle.reception.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse Frais de Réception">
+                <field name="vehicle_id" type="row"/>
+                <field name="expense_type_id" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE: GRAPH VIEW
+         =================================================================== -->
+    <record id="fleet_vehicle_reception_expense_view_graph" model="ir.ui.view">
+        <field name="name">fleet.vehicle.reception.expense.view.graph</field>
+        <field name="model">fleet.vehicle.reception.expense</field>
+        <field name="arch" type="xml">
+            <graph string="Frais de Réception" type="bar">
+                <field name="expense_type_id"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         EXPENSE: ACTION
+         =================================================================== -->
+    <record id="action_fleet_vehicle_reception_expense" model="ir.actions.act_window">
+        <field name="name">Frais de Réception</field>
+        <field name="res_model">fleet.vehicle.reception.expense</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="search_view_id" ref="fleet_vehicle_reception_expense_view_search"/>
+        <field name="context">{'search_default_confirmed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Enregistrer un nouveau frais de réception
+            </p>
+            <p>
+                Suivez tous les frais initiaux liés à l'acquisition de vos véhicules:
+                immatriculation, assurance, transport, documentation, etc.
+            </p>
+        </field>
+    </record>
+
+    <!-- ===================================================================
+         MENUS
+         =================================================================== -->
+    
+    <!-- Main menu under Fleet -->
+    <menuitem id="menu_fleet_reception_expenses"
+              name="Frais de Réception"
+              parent="fleet.fleet_vehicles"
+              action="action_fleet_vehicle_reception_expense"
+              sequence="30"/>
+    
+    <!-- Configuration menu for expense types -->
+    <menuitem id="menu_fleet_reception_expense_type"
+              name="Types de Frais de Réception"
+              parent="fleet.fleet_configuration"
+              action="action_fleet_vehicle_reception_expense_type"
+              sequence="60"/>
+
+    <!-- ===================================================================
+         EXTEND VEHICLE FORM: Add reception expenses stat button
+         =================================================================== -->
+    <record id="fleet_vehicle_form_reception_expenses" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.reception.expenses</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button name="action_view_reception_expenses" type="object"
+                        class="oe_stat_button" icon="fa-money">
+                    <div class="o_stat_info">
+                        <field name="total_reception_expenses" widget="monetary"/>
+                        <span class="o_stat_text">Frais Réception</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

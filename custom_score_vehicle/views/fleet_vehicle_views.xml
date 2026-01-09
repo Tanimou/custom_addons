@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T023-T025: Vehicle views for SCORE extensions -->
+<odoo>
+    <!-- ======================================================================
+         Inherit vehicle form to add SCORE fields and smart buttons
+         ====================================================================== -->
+    <record id="fleet_vehicle_view_form_score" model="ir.ui.view">
+        <field name="name">fleet.vehicle.view.form.score</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <!-- Add smart buttons for registration cases and transfers -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_registration_cases" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="fa-file-text-o"
+                        invisible="registration_case_count == 0">
+                    <field name="registration_case_count" widget="statinfo" string="Dossiers Immat."/>
+                </button>
+                <button name="action_view_transfers" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="fa-exchange"
+                        invisible="transfer_count == 0">
+                    <field name="transfer_count" widget="statinfo" string="Transferts"/>
+                </button>
+                <button name="action_view_state_history" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="fa-history"
+                        groups="custom_fleet_management.group_fleet_manager">
+                    <span class="o_stat_text">Historique États</span>
+                </button>
+            </xpath>
+            
+            <!-- Add provenance field in main info section -->
+            <xpath expr="//field[@name='vin_sn']" position="after">
+                <field name="provenance"/>
+            </xpath>
+            
+            <!-- Add current location field -->
+            <xpath expr="//field[@name='location']" position="after">
+                <field name="current_location_id" 
+                       options="{'no_create': True}"
+                       groups="stock.group_stock_user"/>
+            </xpath>
+            
+            <!-- Add registration cases tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Dossiers Immatriculation" name="registration_cases">
+                    <field name="registration_case_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="state" widget="badge" 
+                                   decoration-info="state == 'in_progress'"
+                                   decoration-success="state == 'validated'"
+                                   decoration-danger="state == 'rejected'"/>
+                            <field name="requested_plate"/>
+                            <field name="assigned_plate"/>
+                            <field name="create_date"/>
+                        </list>
+                    </field>
+                    <group>
+                        <button name="action_view_registration_cases" 
+                                type="object" 
+                                string="Voir tous les dossiers" 
+                                class="btn-link"/>
+                    </group>
+                </page>
+                
+                <page string="Transferts" name="transfers">
+                    <field name="transfer_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="state" widget="badge"
+                                   decoration-muted="state == 'draft'"
+                                   decoration-info="state == 'confirmed'"
+                                   decoration-warning="state == 'validated'"
+                                   decoration-success="state == 'delivered'"
+                                   decoration-danger="state == 'cancelled'"/>
+                            <field name="location_src_id"/>
+                            <field name="location_dest_id"/>
+                            <field name="date_planned"/>
+                        </list>
+                    </field>
+                    <group>
+                        <button name="action_view_transfers" 
+                                type="object" 
+                                string="Voir tous les transferts" 
+                                class="btn-link"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Inherit vehicle list to show provenance and location
+         ====================================================================== -->
+    <record id="fleet_vehicle_view_list_score" model="ir.ui.view">
+        <field name="name">fleet.vehicle.view.list.score</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_tree"/>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='driver_id']" position="after">
+                <field name="provenance" optional="hide"/>
+                <field name="current_location_id" optional="hide" groups="stock.group_stock_user"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- ======================================================================
+         Inherit vehicle search to add provenance filter
+         ====================================================================== -->
+    <record id="fleet_vehicle_view_search_score" model="ir.ui.view">
+        <field name="name">fleet.vehicle.view.search.score</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_search"/>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='model_id']" position="after">
+                <filter string="Par Provenance" name="group_provenance" context="{'group_by': 'provenance'}"/>
+                <filter string="Par Emplacement" name="group_location" context="{'group_by': 'current_location_id'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ========== FLEET MISSION VIEWS EXTENSION FOR COST MODULE ========== -->
+    
+    <!-- Extend Mission Form: Add Expenses Tab and Cost Fields -->
+    <record id="fleet_mission_view_form_cost_inherit" model="ir.ui.view">
+        <field name="name">fleet.mission.view.form.cost.inherit</field>
+        <field name="model">fleet.mission</field>
+        <field name="inherit_id" ref="custom_fleet_management.fleet_mission_view_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add Expense Smart Button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_expenses" type="object"
+                        class="oe_stat_button" icon="fa-money"
+                        invisible="expense_count == 0">
+                    <field name="expense_count" widget="statinfo" string="Dépenses"/>
+                </button>
+            </xpath>
+            
+            <!-- Add Analytic Account Field in Main Group -->
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="analytic_account_id" 
+                       options="{'no_create': True}"
+                       groups="analytic.group_analytic_accounting"/>
+            </xpath>
+            
+            <!-- Add Expenses Tab in Notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Dépenses" name="expenses">
+                    <group>
+                        <group string="Récapitulatif Dépenses">
+                            <field name="total_expenses" widget="monetary"/>
+                            <field name="cost_per_km_display" string="Coût / km"/>
+                        </group>
+                        <group string="Par Type">
+                            <field name="total_toll" widget="monetary"/>
+                            <field name="total_fuel" widget="monetary"/>
+                            <field name="total_maintenance" widget="monetary"/>
+                            <field name="total_other" widget="monetary"/>
+                        </group>
+                    </group>
+                    <separator string="Liste des Dépenses"/>
+                    <field name="expense_ids" mode="tree,kanban">
+                        <tree string="Dépenses" editable="bottom"
+                              decoration-info="state == 'draft'"
+                              decoration-warning="state == 'submitted'"
+                              decoration-success="state == 'approved'">
+                            <field name="date"/>
+                            <field name="name" readonly="1"/>
+                            <field name="expense_type"/>
+                            <field name="description"/>
+                            <field name="vendor_id" optional="hide"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="state" widget="badge" readonly="1"/>
+                        </tree>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="total_expenses" widget="monetary" class="oe_subtotal_footer_separator"/>
+                    </group>
+                </page>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Extend Mission Tree: Add Cost Columns -->
+    <record id="fleet_mission_view_tree_cost_inherit" model="ir.ui.view">
+        <field name="name">fleet.mission.view.tree.cost.inherit</field>
+        <field name="model">fleet.mission</field>
+        <field name="inherit_id" ref="custom_fleet_management.fleet_mission_view_list"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add expense columns after distance_km -->
+            <xpath expr="//field[@name='distance_km']" position="after">
+                <field name="total_expenses" optional="show" sum="Total"/>
+                <field name="cost_per_km" optional="hide" string="Coût/km"/>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Extend Mission Search: Add Cost Filters (Standalone since base is commented) -->
+    <record id="fleet_mission_view_search_cost" model="ir.ui.view">
+        <field name="name">fleet.mission.view.search.cost</field>
+        <field name="model">fleet.mission</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Missions">
+                <field name="name" string="Référence" filter_domain="['|', ('name','ilike',self), ('order_number','ilike',self)]"/>
+                <field name="vehicle_id"/>
+                <field name="driver_id"/>
+                <field name="requester_id"/>
+                <field name="mission_type"/>
+                <separator/>
+                <filter string="Mes Missions" name="my_missions" domain="[('requester_id','=',uid)]"/>
+                <separator/>
+                <filter string="Brouillon" name="filter_draft" domain="[('state','=','draft')]"/>
+                <filter string="Soumis" name="filter_submitted" domain="[('state','=','submitted')]"/>
+                <filter string="Approuvé" name="filter_approved" domain="[('state','=','approved')]"/>
+                <filter string="En Cours" name="filter_in_progress" domain="[('state','=','in_progress')]"/>
+                <filter string="Terminé" name="filter_done" domain="[('state','=','done')]"/>
+                <filter string="Annulé" name="filter_cancelled" domain="[('state','=','cancelled')]"/>
+                <separator/>
+                <filter name="filter_with_expenses" string="Avec Dépenses" domain="[('expense_count', '>', 0)]"/>
+                <filter name="filter_no_expenses" string="Sans Dépenses" domain="[('expense_count', '=', 0)]"/>
+                <separator/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'mission_type'}"/>
+                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter name="group_analytic" string="Compte Analytique" context="{'group_by': 'analytic_account_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Extend Mission Kanban: Show Cost Badge -->
+    <record id="fleet_mission_view_kanban_cost_inherit" model="ir.ui.view">
+        <field name="name">fleet.mission.view.kanban.cost.inherit</field>
+        <field name="model">fleet.mission</field>
+        <field name="inherit_id" ref="custom_fleet_management.fleet_mission_view_kanban"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add total_expenses field declaration -->
+            <xpath expr="//kanban" position="inside">
+                <field name="total_expenses"/>
+                <field name="expense_count"/>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        SCORE Analytic Reporting (FR-026)
+        Cross-module reporting by project/department
+    -->
+
+    <!-- ============================================================
+         EXPENSE BY ANALYTIC ACCOUNT - CONSOLIDATED VIEW
+         ============================================================ -->
+
+    <!-- Mission Expense by Analytic Pivot -->
+    <record id="view_score_mission_expense_analytic_pivot" model="ir.ui.view">
+        <field name="name">score.mission.expense.analytic.pivot</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Dépenses mission par projet">
+                <field name="analytic_account_id" type="row"/>
+                <field name="expense_type" type="row"/>
+                <field name="expense_date" interval="month" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Mission Expense by Analytic Graph -->
+    <record id="view_score_mission_expense_analytic_graph" model="ir.ui.view">
+        <field name="name">score.mission.expense.analytic.graph</field>
+        <field name="model">fleet.mission.expense</field>
+        <field name="arch" type="xml">
+            <graph string="Évolution dépenses par projet" type="line">
+                <field name="expense_date" interval="month"/>
+                <field name="analytic_account_id"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Mission Expense by Analytic Action -->
+    <record id="action_score_mission_expense_by_analytic" model="ir.actions.act_window">
+        <field name="name">Dépenses mission par projet</field>
+        <field name="res_model">fleet.mission.expense</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_mission_expense_analytic_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_score_mission_expense_analytic_graph')})]"/>
+        <field name="domain">[('analytic_account_id', '!=', False), ('state', '=', 'approved')]</field>
+    </record>
+
+    <!-- ============================================================
+         FUEL BY ANALYTIC ACCOUNT
+         ============================================================ -->
+
+    <!-- Fuel Expense by Analytic Pivot -->
+    <record id="view_score_fuel_expense_analytic_pivot" model="ir.ui.view">
+        <field name="name">score.fuel.expense.analytic.pivot</field>
+        <field name="model">fleet.fuel.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Dépenses carburant par projet">
+                <field name="analytic_account_id" type="row"/>
+                <field name="vehicle_id" type="row"/>
+                <field name="expense_date" interval="month" type="col"/>
+                <field name="amount" type="measure"/>
+                <field name="liter_qty" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Fuel Expense by Analytic Action -->
+    <record id="action_score_fuel_expense_by_analytic" model="ir.actions.act_window">
+        <field name="name">Carburant par projet</field>
+        <field name="res_model">fleet.fuel.expense</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_fuel_expense_analytic_pivot')})]"/>
+        <field name="domain">[('analytic_account_id', '!=', False), ('state', '=', 'done')]</field>
+    </record>
+
+    <!-- ============================================================
+         MAINTENANCE BY ANALYTIC ACCOUNT
+         ============================================================ -->
+
+    <!-- Maintenance by Analytic Pivot -->
+    <record id="view_score_maintenance_analytic_pivot" model="ir.ui.view">
+        <field name="name">score.maintenance.analytic.pivot</field>
+        <field name="model">fleet.maintenance.intervention</field>
+        <field name="arch" type="xml">
+            <pivot string="Maintenance par projet">
+                <field name="analytic_account_id" type="row"/>
+                <field name="intervention_type" type="row"/>
+                <field name="scheduled_start" interval="month" type="col"/>
+                <field name="total_cost" type="measure"/>
+                <field name="downtime_hours" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Maintenance by Analytic Action -->
+    <record id="action_score_maintenance_by_analytic" model="ir.actions.act_window">
+        <field name="name">Maintenance par projet</field>
+        <field name="res_model">fleet.maintenance.intervention</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_maintenance_analytic_pivot')})]"/>
+        <field name="domain">[('analytic_account_id', '!=', False), ('state', '=', 'done')]</field>
+    </record>
+
+    <!-- ============================================================
+         RECEPTION EXPENSE BY ANALYTIC
+         ============================================================ -->
+
+    <!-- Reception Expense by Analytic Pivot -->
+    <record id="view_score_reception_expense_analytic_pivot" model="ir.ui.view">
+        <field name="name">score.reception.expense.analytic.pivot</field>
+        <field name="model">fleet.vehicle.reception.expense</field>
+        <field name="arch" type="xml">
+            <pivot string="Frais réception par projet">
+                <field name="analytic_account_id" type="row"/>
+                <field name="expense_type_id" type="row"/>
+                <field name="expense_date" interval="month" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Reception Expense by Analytic Action -->
+    <record id="action_score_reception_expense_by_analytic" model="ir.actions.act_window">
+        <field name="name">Frais réception par projet</field>
+        <field name="res_model">fleet.vehicle.reception.expense</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_score_reception_expense_analytic_pivot')})]"/>
+        <field name="domain">[('analytic_account_id', '!=', False)]</field>
+    </record>
+
+    <!-- ============================================================
+         CONSOLIDATED COST BY PROJECT
+         ============================================================ -->
+
+    <!-- Note: A true consolidated view would require a SQL view model.
+         For now, we provide separate pivot reports per cost type.
+         Future enhancement: Create report.score.project.cost SQL model -->
+
+    <!-- ============================================================
+         ANALYTIC REPORTING MENU STRUCTURE
+         ============================================================ -->
+
+    <!-- Analytic Reporting Menu -->
+    <menuitem
+        id="menu_score_analytic_reporting"
+        name="Par département"
+        parent="menu_score_reporting"
+        sequence="60"/>
+
+    <menuitem
+        id="menu_score_mission_expense_analytic"
+        name="Dépenses mission"
+        parent="menu_score_analytic_reporting"
+        action="action_score_mission_expense_by_analytic"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_score_fuel_expense_analytic"
+        name="Carburant"
+        parent="menu_score_analytic_reporting"
+        action="action_score_fuel_expense_by_analytic"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_score_maintenance_analytic"
+        name="Maintenance"
+        parent="menu_score_analytic_reporting"
+        action="action_score_maintenance_by_analytic"
+        sequence="30"/>
+
+    <menuitem
+        id="menu_score_reception_expense_analytic"
+        name="Frais réception"
+        parent="menu_score_analytic_reporting"
+        action="action_score_reception_expense_by_analytic"
+        sequence="40"/>
+
+</odoo>
