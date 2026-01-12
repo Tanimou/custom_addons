@@ -108,13 +108,13 @@ msgid "Vehicle Documents"
 msgstr "Documents véhicule"
 
 #. module: custom_score_compliance
-#: code:addons/custom_score_compliance/models/fleet_mission.py
+#: code:addons/custom_score_compliance/models/fleet_mission.py:0
 #, python-format
 msgid "Cannot submit mission: vehicle %s has expired critical documents."
 msgstr "Impossible de soumettre la mission: le véhicule %s a des documents critiques expirés."
 
 #. module: custom_score_compliance
-#: code:addons/custom_score_compliance/models/fleet_mission.py
+#: code:addons/custom_score_compliance/models/fleet_mission.py:0
 #, python-format
 msgid "Cannot start mission: vehicle %s has expired critical documents."
 msgstr "Impossible de démarrer la mission: le véhicule %s a des documents critiques expirés."

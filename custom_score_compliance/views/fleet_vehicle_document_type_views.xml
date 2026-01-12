@@ -37,7 +37,7 @@
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-file-text-o"
-                                context="{'search_default_document_type_id': active_id}">
+                                context="{'search_default_document_type_id': id}">
                             <field name="document_count" widget="statinfo" string="Documents"/>
                         </button>
                     </div>
@@ -92,9 +92,9 @@
                 <filter name="non_critical" string="Non Critiques" domain="[('is_critical', '=', False)]"/>
                 <separator/>
                 <filter name="archived" string="Archivés" domain="[('active', '=', False)]"/>
-                <group expand="0" string="Grouper par">
+                <!-- <group expand="0" string="Grouper par">
                     <filter name="group_critical" string="Criticité" context="{'group_by': 'is_critical'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>

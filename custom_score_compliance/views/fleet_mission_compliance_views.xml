@@ -103,16 +103,15 @@
                 <filter name="compliance_ok" string="Conformité OK" 
                         domain="[('compliance_status', '=', 'ok')]"/>
                 <separator/>
-                <filter string="Conflits" name="has_conflict" domain="[('has_conflict','=',True)]"/>
-                <separator/>
-                <group expand="0" string="Regrouper par">
+                <!-- has_conflict is a non-stored computed field, cannot be filtered in domain -->
+                <!-- <group expand="0" string="Regrouper par">
                     <filter string="Conducteur" name="group_driver" context="{'group_by':'driver_id'}"/>
                     <filter string="Véhicule" name="group_vehicle" context="{'group_by':'vehicle_id'}"/>
                     <filter string="Type" name="group_type" context="{'group_by':'mission_type'}"/>
                     <filter string="État" name="group_state" context="{'group_by':'state'}"/>
                     <filter string="Conformité" name="group_compliance" context="{'group_by':'compliance_status'}"/>
                     <filter string="Mois Départ" name="group_month" context="{'group_by':'date_start:month'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>
@@ -226,7 +225,7 @@
                 <separator/>
                 <filter string="Mes Documents" name="my_documents" domain="[('responsible_id','=',uid)]"/>
                 <separator/>
-                <group expand="0" string="Grouper par">
+                <!-- <group expand="0" string="Grouper par">
                     <filter string="Véhicule" name="group_vehicle" context="{'group_by':'vehicle_id'}"/>
                     <filter string="Type Document (Legacy)" name="group_type" context="{'group_by':'document_type'}"/>
                     <filter name="group_type_id" string="Type de Document" 
@@ -235,7 +234,7 @@
                             context="{'group_by': 'is_critical_document'}"/>
                     <filter string="État" name="group_state" context="{'group_by':'state'}"/>
                     <filter string="Responsable" name="group_responsible" context="{'group_by':'responsible_id'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>
