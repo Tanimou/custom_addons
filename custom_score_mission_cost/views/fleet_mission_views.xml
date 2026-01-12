@@ -42,8 +42,8 @@
                         </group>
                     </group>
                     <separator string="Liste des Dépenses"/>
-                    <field name="expense_ids" mode="tree,kanban">
-                        <tree string="Dépenses" editable="bottom"
+                    <field name="expense_ids" mode="list,kanban">
+                        <list string="Dépenses" editable="bottom"
                               decoration-info="state == 'draft'"
                               decoration-warning="state == 'submitted'"
                               decoration-success="state == 'approved'">
@@ -54,7 +54,7 @@
                             <field name="vendor_id" optional="hide"/>
                             <field name="amount" sum="Total"/>
                             <field name="state" widget="badge" readonly="1"/>
-                        </tree>
+                        </list>
                     </field>
                     <group class="oe_subtotal_footer">
                         <field name="total_expenses" widget="monetary" class="oe_subtotal_footer_separator"/>
@@ -106,13 +106,13 @@
                 <filter name="filter_with_expenses" string="Avec Dépenses" domain="[('expense_count', '>', 0)]"/>
                 <filter name="filter_no_expenses" string="Sans Dépenses" domain="[('expense_count', '=', 0)]"/>
                 <separator/>
-                <group expand="0" string="Regrouper par">
+                <!-- <group expand="0" string="Regrouper par">
                     <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
                     <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
                     <filter string="Type" name="group_type" context="{'group_by': 'mission_type'}"/>
                     <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
                     <filter name="group_analytic" string="Compte Analytique" context="{'group_by': 'analytic_account_id'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>

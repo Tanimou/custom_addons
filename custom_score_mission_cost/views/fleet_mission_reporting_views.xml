@@ -144,11 +144,11 @@
     <record id="action_expense_report_by_mission" model="ir.actions.act_window">
         <field name="name">Dépenses par Mission</field>
         <field name="res_model">fleet.mission.expense</field>
-        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_expense_pivot_by_mission')}),
             (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_expense_graph_by_type')}),
-            (0, 0, {'view_mode': 'tree', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
+            (0, 0, {'view_mode': 'list', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
         <field name="context">{'search_default_filter_approved': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -161,11 +161,11 @@
     <record id="action_expense_report_by_vehicle" model="ir.actions.act_window">
         <field name="name">Dépenses par Véhicule</field>
         <field name="res_model">fleet.mission.expense</field>
-        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_expense_pivot_by_vehicle')}),
             (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_expense_graph_by_vehicle')}),
-            (0, 0, {'view_mode': 'tree', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
+            (0, 0, {'view_mode': 'list', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
         <field name="context">{'search_default_group_vehicle': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -178,7 +178,7 @@
     <record id="action_mission_cost_per_km_report" model="ir.actions.act_window">
         <field name="name">Coût / Km par Mission</field>
         <field name="res_model">fleet.mission</field>
-        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_pivot_cost_per_km')}),
             (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_graph_cost_per_km')})]"/>
@@ -198,11 +198,11 @@
     <record id="action_expense_report_by_analytic" model="ir.actions.act_window">
         <field name="name">Dépenses par Projet</field>
         <field name="res_model">fleet.mission.expense</field>
-        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'pivot', 'view_id': ref('fleet_mission_expense_pivot_by_analytic')}),
             (0, 0, {'view_mode': 'graph', 'view_id': ref('fleet_mission_expense_graph_by_type')}),
-            (0, 0, {'view_mode': 'tree', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
+            (0, 0, {'view_mode': 'list', 'view_id': ref('fleet_mission_expense_view_tree')})]"/>
         <field name="domain">[('analytic_account_id', '!=', False)]</field>
         <field name="context">{'search_default_group_analytic': 1}</field>
         <field name="help" type="html">

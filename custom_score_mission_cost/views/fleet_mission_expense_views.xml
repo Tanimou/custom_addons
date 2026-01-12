@@ -8,7 +8,7 @@
         <field name="name">fleet.mission.expense.view.tree</field>
         <field name="model">fleet.mission.expense</field>
         <field name="arch" type="xml">
-            <tree string="Dépenses Mission" 
+            <list string="Dépenses Mission" 
                   decoration-info="state == 'draft'"
                   decoration-warning="state == 'submitted'"
                   decoration-success="state == 'approved'"
@@ -29,7 +29,7 @@
                        decoration-success="state == 'approved'"
                        decoration-danger="state == 'rejected'"/>
                 <field name="analytic_account_id" optional="hide"/>
-            </tree>
+            </list>
         </field>
     </record>
     
@@ -136,7 +136,7 @@
                         domain="[('date', '>=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
                                  ('date', '&lt;', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
                 <separator/>
-                <group expand="0" string="Regrouper par">
+                <!-- <group expand="0" string="Regrouper par">
                     <filter name="group_mission" string="Mission" context="{'group_by': 'mission_id'}"/>
                     <filter name="group_vehicle" string="Véhicule" context="{'group_by': 'vehicle_id'}"/>
                     <filter name="group_type" string="Type" context="{'group_by': 'expense_type'}"/>
@@ -144,7 +144,7 @@
                     <filter name="group_state" string="État" context="{'group_by': 'state'}"/>
                     <filter name="group_date" string="Date" context="{'group_by': 'date:month'}"/>
                     <filter name="group_analytic" string="Compte Analytique" context="{'group_by': 'analytic_account_id'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>
@@ -179,7 +179,7 @@
     <record id="action_fleet_mission_expense" model="ir.actions.act_window">
         <field name="name">Dépenses Mission</field>
         <field name="res_model">fleet.mission.expense</field>
-        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="view_mode">list,form,pivot,graph</field>
         <field name="search_view_id" ref="fleet_mission_expense_view_search"/>
         <field name="context">{}</field>
         <field name="help" type="html">
