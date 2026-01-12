@@ -9,7 +9,7 @@
     <record id="view_fleet_vehicle_model_category_form_target" model="ir.ui.view">
         <field name="name">fleet.vehicle.model.category.form.target</field>
         <field name="model">fleet.vehicle.model.category</field>
-        <field name="inherit_id" ref="fleet.view_fleet_vehicle_model_category_form"/>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_model_category_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='sequence']" position="after">
                 <separator string="Cible consommation carburant"/>
@@ -39,9 +39,9 @@
     <record id="view_fleet_vehicle_model_category_tree_target" model="ir.ui.view">
         <field name="name">fleet.vehicle.model.category.tree.target</field>
         <field name="model">fleet.vehicle.model.category</field>
-        <field name="inherit_id" ref="fleet.view_fleet_vehicle_model_category_tree"/>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_model_category_view_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='sequence']" position="after">
+            <xpath expr="//field[@name='name']" position="after">
                 <field name="target_consumption_l100km" optional="show"/>
                 <field name="vehicle_count" optional="show"/>
                 <field name="summary_alert_count" 
@@ -51,24 +51,21 @@
         </field>
     </record>
 
-    <!-- SEARCH VIEW: Add target filter -->
+    <!-- SEARCH VIEW: New search view for category (native fleet has none) -->
     <record id="view_fleet_vehicle_model_category_search_target" model="ir.ui.view">
         <field name="name">fleet.vehicle.model.category.search.target</field>
         <field name="model">fleet.vehicle.model.category</field>
-        <field name="inherit_id" ref="fleet.view_fleet_vehicle_model_category_search"/>
         <field name="arch" type="xml">
-            <xpath expr="//search" position="inside">
+            <search string="Catégories de véhicules">
+                <field name="name"/>
                 <filter name="has_target" 
                         string="Avec cible définie"
                         domain="[('target_consumption_l100km', '>', 0)]"/>
                 <filter name="no_target" 
                         string="Sans cible définie"
                         domain="['|', ('target_consumption_l100km', '=', False), ('target_consumption_l100km', '=', 0)]"/>
-                <separator/>
-                <filter name="has_alerts"
-                        string="Avec alertes"
-                        domain="[('summary_alert_count', '>', 0)]"/>
-            </xpath>
+                <!-- summary_alert_count is computed/non-stored, cannot be filtered -->
+            </search>
         </field>
     </record>
 

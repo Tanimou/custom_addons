@@ -99,7 +99,7 @@ class FleetFuelMonthlySummaryTarget(models.Model):
         'avg_consumption_per_100km',
         'target_consumption_l100km',
         'distance_traveled',
-        'total_liters',
+        'total_liter',
     )
     def _compute_target_variance(self):
         """
@@ -133,7 +133,7 @@ class FleetFuelMonthlySummaryTarget(models.Model):
         'target_consumption_l100km',
         'target_variance_pct',
         'distance_traveled',
-        'total_liters',
+        'total_liter',
     )
     def _compute_consumption_alert_level(self):
         """
@@ -149,7 +149,7 @@ class FleetFuelMonthlySummaryTarget(models.Model):
             actual = summary.avg_consumption_per_100km
             target = summary.target_consumption_l100km
             distance = summary.distance_traveled
-            liters = summary.total_liters
+            liters = summary.total_liter
             variance_pct = summary.target_variance_pct
             
             # Check for missing data

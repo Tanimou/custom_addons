@@ -47,22 +47,21 @@
             <xpath expr="//field[@name='vehicle_id']" position="after">
                 <field name="category_id" readonly="1" options="{'no_open': True}"/>
             </xpath>
-            <!-- Add target consumption section after budget group -->
-            <xpath expr="//group[@string='Budget &amp; Alertes']" position="after">
-                <group string="Cible consommation">
-                    <field name="target_consumption_l100km" readonly="1"/>
-                    <field name="target_variance_l100km" readonly="1"
-                           decoration-danger="target_variance_l100km > 0"
-                           decoration-success="target_variance_l100km &lt;= 0"/>
-                    <field name="target_variance_pct" readonly="1" widget="percentage"
-                           decoration-danger="target_variance_pct > 20"
-                           decoration-warning="target_variance_pct > 10 and target_variance_pct &lt;= 20"
-                           decoration-success="target_variance_pct &lt;= 0"/>
-                    <field name="consumption_alert_level" widget="badge" readonly="1"/>
-                    <field name="consumption_alert_message" readonly="1"
-                           invisible="not consumption_alert_message"/>
-                    <field name="is_over_target" invisible="1"/>
-                </group>
+            <!-- Add target consumption fields after alert_level (last field in Budget & Alertes group) -->
+            <xpath expr="//field[@name='alert_level']" position="after">
+                <separator string="Cible consommation"/>
+                <field name="target_consumption_l100km" readonly="1"/>
+                <field name="target_variance_l100km" readonly="1"
+                       decoration-danger="target_variance_l100km > 0"
+                       decoration-success="target_variance_l100km &lt;= 0"/>
+                <field name="target_variance_pct" readonly="1" widget="percentage"
+                       decoration-danger="target_variance_pct > 20"
+                       decoration-warning="target_variance_pct > 10 and target_variance_pct &lt;= 20"
+                       decoration-success="target_variance_pct &lt;= 0"/>
+                <field name="consumption_alert_level" widget="badge" readonly="1"/>
+                <field name="consumption_alert_message" readonly="1"
+                       invisible="not consumption_alert_message"/>
+                <field name="is_over_target" invisible="1"/>
             </xpath>
         </field>
     </record>
@@ -103,7 +102,7 @@
                 <filter string="Sous cible" name="filter_under_target"
                         domain="[('is_over_target', '=', False), ('target_consumption_l100km', '>', 0)]"/>
                 <separator/>
-                <group expand="0" string="Grouper par">
+                <!-- <group expand="0" string="Grouper par">
                     <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
                     <filter string="Famille" name="group_category" context="{'group_by': 'category_id'}"/>
                     <filter string="Carte" name="group_card" context="{'group_by': 'card_id'}"/>
@@ -112,7 +111,7 @@
                     <filter string="Alerte budget" name="group_alert" context="{'group_by': 'alert_level'}"/>
                     <filter string="Alerte conso" name="group_conso_alert" context="{'group_by': 'consumption_alert_level'}"/>
                     <filter string="Société" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>

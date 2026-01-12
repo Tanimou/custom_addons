@@ -88,7 +88,7 @@ class FleetVehicleFuelHistory(models.Model):
             ])
             
             vehicle.fuel_expense_count = len(expenses)
-            vehicle.total_fuel_amount = sum(expenses.mapped('amount_total'))
+            vehicle.total_fuel_amount = sum(expenses.mapped('amount'))
             vehicle.total_fuel_liters = sum(expenses.mapped('liter_qty'))
 
     def _compute_active_consumption_alert(self):
@@ -100,7 +100,7 @@ class FleetVehicleFuelHistory(models.Model):
             latest_summary = Summary.search([
                 ('vehicle_id', '=', vehicle.id),
                 ('consumption_alert_level', '!=', False),
-            ], order='year desc, month desc', limit=1)
+            ], order='period_end desc', limit=1)
             
             vehicle.active_consumption_alert = (
                 latest_summary.consumption_alert_level if latest_summary else False

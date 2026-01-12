@@ -4,7 +4,6 @@
         Seed data: Example consumption targets by vehicle category
         These are typical L/100km targets for common vehicle types
     -->
-    <data noupdate="0">
 
         <!-- 
             Note: This data assumes the categories exist from native fleet module.
@@ -12,7 +11,7 @@
         -->
         
         <!-- Example Category: Utility Vehicles (Utilitaires) -->
-        <record id="category_utility_target" model="fleet.vehicle.model.category" noupdate="1">
+        <record id="category_utility_target" model="fleet.vehicle.model.category">
             <field name="name">Utilitaires</field>
             <field name="sequence">10</field>
             <field name="target_consumption_l100km">9.5</field>
@@ -20,7 +19,7 @@
         </record>
 
         <!-- Example Category: Trucks (Poids Lourds) -->
-        <record id="category_truck_target" model="fleet.vehicle.model.category" noupdate="1">
+        <record id="category_truck_target" model="fleet.vehicle.model.category">
             <field name="name">Poids Lourds</field>
             <field name="sequence">20</field>
             <field name="target_consumption_l100km">32.0</field>
@@ -28,7 +27,7 @@
         </record>
 
         <!-- Example Category: Cars (Voitures de service) -->
-        <record id="category_car_target" model="fleet.vehicle.model.category" noupdate="1">
+        <record id="category_car_target" model="fleet.vehicle.model.category">
             <field name="name">Voitures de service</field>
             <field name="sequence">5</field>
             <field name="target_consumption_l100km">7.0</field>
@@ -36,7 +35,7 @@
         </record>
 
         <!-- Example Category: Construction Equipment (Engins de chantier) -->
-        <record id="category_construction_target" model="fleet.vehicle.model.category" noupdate="1">
+        <record id="category_construction_target" model="fleet.vehicle.model.category">
             <field name="name">Engins de chantier</field>
             <field name="sequence">30</field>
             <field name="target_consumption_l100km">45.0</field>
@@ -44,12 +43,11 @@
         </record>
 
         <!-- Example Category: Refrigerated (Frigorifiques) -->
-        <record id="category_refrigerated_target" model="fleet.vehicle.model.category" noupdate="1">
+        <record id="category_refrigerated_target" model="fleet.vehicle.model.category">
             <field name="name">Frigorifiques</field>
             <field name="sequence">15</field>
             <field name="target_consumption_l100km">12.0</field>
             <field name="target_consumption_notes">Cible pour véhicules frigorifiques. Inclut surconsommation du groupe froid (~20% additionnels).</field>
         </record>
 
-    </data>
 </odoo>
