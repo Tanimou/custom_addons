@@ -11,37 +11,37 @@
         <field name="priority">20</field>
         <field name="arch" type="xml">
             
-            <!-- Add downtime smart button -->
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button class="oe_stat_button" type="object" 
-                        name="action_view_technician_time"
-                        icon="fa-clock-o"
-                        invisible="technician_count == 0">
-                    <field name="total_technician_hours" widget="statinfo" string="Heures Tech."/>
-                </button>
+            <!-- Add button box at top of sheet -->
+            <xpath expr="//sheet" position="inside">
+                <div name="button_box" class="oe_button_box" style="position: absolute; top: 0; right: 0;">
+                    <button class="oe_stat_button" type="object" 
+                            name="action_view_technician_time"
+                            icon="fa-clock-o"
+                            invisible="technician_count == 0">
+                        <field name="total_technician_hours" widget="statinfo" string="Heures Tech."/>
+                    </button>
+                </div>
             </xpath>
             
-            <!-- Add downtime fields in a dedicated group -->
-            <xpath expr="//group[@name='dates']" position="after">
-                <group name="downtime_kpis" string="KPIs Temps d'arrêt">
-                    <field name="downtime_hours" readonly="1" widget="float_time"/>
-                    <field name="downtime_days" readonly="1"/>
-                    <field name="total_technician_hours" readonly="1" widget="float_time"/>
-                    <field name="technician_count" readonly="1"/>
-                </group>
+            <!-- Add downtime fields after odometer field -->
+            <xpath expr="//field[@name='odometer']" position="after">
+                <field name="downtime_hours" readonly="1" widget="float_time" string="Temps d'arrêt (h)"/>
+                <field name="downtime_days" readonly="1"/>
+                <field name="total_technician_hours" readonly="1" widget="float_time"/>
+                <field name="technician_count" readonly="1" invisible="1"/>
             </xpath>
             
             <!-- Add technician time notebook page -->
             <xpath expr="//notebook" position="inside">
                 <page string="Temps Techniciens" name="technician_time">
-                    <field name="technician_time_ids" mode="tree,form">
-                        <tree string="Temps Techniciens" editable="bottom">
+                    <field name="technician_time_ids" mode="list,form">
+                        <list string="Temps Techniciens" editable="bottom">
                             <field name="date"/>
                             <field name="technician_id"/>
                             <field name="work_type"/>
                             <field name="hours" sum="Total"/>
                             <field name="description" optional="show"/>
-                        </tree>
+                        </list>
                         <form string="Temps Technicien">
                             <group>
                                 <group>
@@ -81,7 +81,7 @@
         </field>
     </record>
     
-    <!-- Extend intervention search to filter by downtime -->
+    <!-- Extend intervention search to add downtime group-by -->
     <record id="fleet_maintenance_intervention_view_search_downtime" model="ir.ui.view">
         <field name="name">fleet.maintenance.intervention.view.search.downtime</field>
         <field name="model">fleet.maintenance.intervention</field>
@@ -89,21 +89,13 @@
         <field name="priority">20</field>
         <field name="arch" type="xml">
             
-            <!-- Add typology filters -->
-            <xpath expr="//filter[@name='filter_done']" position="after">
+            <!-- Add high downtime filter after existing filters -->
+            <xpath expr="//filter[@name='has_po']" position="after">
                 <separator/>
-                <filter name="filter_curative" string="Curative" domain="[('intervention_type', '=', 'curative')]"/>
-                <filter name="filter_preventive" string="Préventive" domain="[('intervention_type', '=', 'preventive')]"/>
-            </xpath>
-            
-            <!-- Add group by options -->
-            <xpath expr="//group[@string='Regrouper par']" position="inside">
-                <filter name="group_typology" string="Typologie" context="{'group_by': 'intervention_type'}"/>
+                <filter name="filter_high_downtime" string="Arrêt > 8h" domain="[('downtime_hours', '>', 8)]"/>
             </xpath>
             
         </field>
     </record>
-    
-    <!-- Add method to intervention for viewing technician time -->
     
 </odoo>

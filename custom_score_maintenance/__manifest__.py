@@ -31,9 +31,9 @@ FR Coverage: FR-019, FR-020, FR-021, FR-022
     'data': [
         # Security
         'security/ir.model.access.csv',
-        # Views
-        'views/fleet_maintenance_intervention_views.xml',
+        # Views - load technician time first (O2M target)
         'views/fleet_maintenance_technician_time_views.xml',
+        'views/fleet_maintenance_intervention_views.xml',
         'views/fleet_maintenance_reporting_views.xml',
         'views/fleet_maintenance_productivity_reporting_views.xml',
     ],

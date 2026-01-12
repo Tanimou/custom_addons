@@ -62,7 +62,7 @@
     <record id="action_technician_productivity_report" model="ir.actions.act_window">
         <field name="name">Productivité Techniciens</field>
         <field name="res_model">fleet.maintenance.technician.time</field>
-        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="search_view_id" ref="fleet_maintenance_technician_time_view_search"/>
         <field name="context">{'search_default_filter_this_month': 1}</field>
         <field name="help" type="html">
@@ -92,7 +92,7 @@
     <record id="action_intervention_productivity_report" model="ir.actions.act_window">
         <field name="name">Productivité Interventions</field>
         <field name="res_model">fleet.maintenance.intervention</field>
-        <field name="view_mode">pivot,graph,tree</field>
+        <field name="view_mode">pivot,graph,list</field>
         <field name="search_view_id" ref="custom_fleet_maintenance.fleet_maintenance_intervention_view_search"/>
         <field name="context">{'search_default_filter_done': 1}</field>
         <field name="help" type="html">

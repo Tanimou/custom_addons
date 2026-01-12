@@ -8,7 +8,7 @@
         <field name="name">fleet.maintenance.technician.time.view.tree</field>
         <field name="model">fleet.maintenance.technician.time</field>
         <field name="arch" type="xml">
-            <tree string="Temps Techniciens" default_order="date desc">
+            <list string="Temps Techniciens" default_order="date desc">
                 <field name="date"/>
                 <field name="intervention_id"/>
                 <field name="vehicle_id" optional="show"/>
@@ -24,7 +24,7 @@
                        decoration-success="intervention_state == 'done'"
                        decoration-danger="intervention_state == 'cancelled'"
                        optional="show"/>
-            </tree>
+            </list>
         </field>
     </record>
     
@@ -82,13 +82,13 @@
                 <filter name="filter_curative" string="Curative" domain="[('intervention_type', '=', 'curative')]"/>
                 <filter name="filter_preventive" string="Préventive" domain="[('intervention_type', '=', 'preventive')]"/>
                 <separator/>
-                <group expand="0" string="Regrouper par">
+                <!-- <group expand="0" string="Regrouper par">
                     <filter name="group_technician" string="Technicien" context="{'group_by': 'technician_id'}"/>
                     <filter name="group_intervention" string="Intervention" context="{'group_by': 'intervention_id'}"/>
                     <filter name="group_vehicle" string="Véhicule" context="{'group_by': 'vehicle_id'}"/>
                     <filter name="group_date" string="Date" context="{'group_by': 'date:month'}"/>
                     <filter name="group_work_type" string="Type de Travail" context="{'group_by': 'work_type'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>
@@ -123,7 +123,7 @@
     <record id="action_fleet_maintenance_technician_time" model="ir.actions.act_window">
         <field name="name">Temps Techniciens</field>
         <field name="res_model">fleet.maintenance.technician.time</field>
-        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="view_mode">list,form,pivot,graph</field>
         <field name="search_view_id" ref="fleet_maintenance_technician_time_view_search"/>
         <field name="context">{'search_default_filter_this_month': 1}</field>
         <field name="help" type="html">
@@ -140,15 +140,15 @@
     <record id="action_fleet_maintenance_technician_time_my" model="ir.actions.act_window">
         <field name="name">Mon Temps</field>
         <field name="res_model">fleet.maintenance.technician.time</field>
-        <field name="view_mode">tree,form,pivot</field>
+        <field name="view_mode">list,form,pivot</field>
         <field name="search_view_id" ref="fleet_maintenance_technician_time_view_search"/>
         <field name="context">{'search_default_filter_my_time': 1, 'search_default_filter_this_month': 1}</field>
     </record>
     
-    <!-- Menu under SCORE > Maintenance -->
+    <!-- Menu under Fleet > Maintenance -->
     <menuitem id="menu_fleet_maintenance_technician_time"
               name="Temps Techniciens"
-              parent="custom_fleet_maintenance.menu_fleet_maintenance"
+              parent="custom_fleet_maintenance.menu_fleet_maintenance_root"
               action="action_fleet_maintenance_technician_time"
               sequence="30"/>
 
