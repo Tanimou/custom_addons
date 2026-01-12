@@ -37,16 +37,5 @@
             ]</field>
         </record>
         
-        <!-- Operational Status History: Multi-company (via vehicle) -->
-        <record id="rule_fleet_vehicle_operational_status_history_company" model="ir.rule">
-            <field name="name">Operational Status History: Multi-company</field>
-            <field name="model_id" ref="model_fleet_vehicle_operational_status_history"/>
-            <field name="domain_force">[
-                '|',
-                ('vehicle_id.company_id', '=', False),
-                ('vehicle_id.company_id', 'in', company_ids)
-            ]</field>
-        </record>
-        
     </data>
 </odoo>

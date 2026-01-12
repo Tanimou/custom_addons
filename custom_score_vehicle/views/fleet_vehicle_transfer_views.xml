@@ -168,13 +168,13 @@
                 <separator/>
                 <filter string="Mes Transferts" name="my_transfers" domain="[('responsible_id', '=', uid)]"/>
                 <separator/>
-                <group expand="0" string="Regrouper par">
+                <!-- <group expand="0" string="Regrouper par">
                     <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
                     <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Source" name="group_src" context="{'group_by': 'location_src_id'}"/>
                     <filter string="Destination" name="group_dest" context="{'group_by': 'location_dest_id'}"/>
                     <filter string="Date prévue" name="group_date_planned" context="{'group_by': 'date_planned:month'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>

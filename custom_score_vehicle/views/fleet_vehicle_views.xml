@@ -121,7 +121,7 @@
         <field name="inherit_id" ref="fleet.fleet_vehicle_view_search"/>
         <field name="priority">50</field>
         <field name="arch" type="xml">
-            <xpath expr="//filter[@name='model_id']" position="after">
+            <xpath expr="//filter[@name='groupby_status']" position="after">
                 <filter string="Par Provenance" name="group_provenance" context="{'group_by': 'provenance'}"/>
                 <filter string="Par Emplacement" name="group_location" context="{'group_by': 'current_location_id'}"/>
             </xpath>

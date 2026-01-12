@@ -60,12 +60,12 @@
                 <filter string="Cette Année" name="this_year"
                         domain="[('date_start', '>=', (context_today() - relativedelta(day=1, month=1)).strftime('%Y-%m-%d'))]"/>
                 <separator/>
-                <group expand="0" string="Regrouper par">
+                <!-- <group expand="0" string="Regrouper par">
                     <filter string="Conducteur" name="group_driver" context="{'group_by': 'driver_id'}"/>
                     <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
                     <filter string="Mois" name="group_month" context="{'group_by': 'date_start:month'}"/>
                     <filter string="Trimestre" name="group_quarter" context="{'group_by': 'date_start:quarter'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>

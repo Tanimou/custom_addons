@@ -201,13 +201,13 @@
                         domain="[('date', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
                 <filter name="this_year" string="Cette Année"
                         domain="[('date', '&gt;=', (context_today() - relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Grouper par">
+                <!-- <group expand="0" string="Grouper par">
                     <filter name="group_vehicle" string="Véhicule" context="{'group_by': 'vehicle_id'}"/>
                     <filter name="group_type" string="Type de Frais" context="{'group_by': 'expense_type_id'}"/>
                     <filter name="group_vendor" string="Fournisseur" context="{'group_by': 'vendor_id'}"/>
                     <filter name="group_state" string="État" context="{'group_by': 'state'}"/>
                     <filter name="group_month" string="Mois" context="{'group_by': 'date:month'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>

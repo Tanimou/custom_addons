@@ -143,19 +143,19 @@ msgid "Reception Expenses"
 msgstr "Frais de réception"
 
 #. module: custom_score_vehicle
-#: code:addons/custom_score_vehicle/models/fleet_vehicle.py
+#: code:addons/custom_score_vehicle/models/fleet_vehicle.py:0
 #, python-format
 msgid "VIN %s is already used by another vehicle."
 msgstr "Le VIN %s est déjà utilisé par un autre véhicule."
 
 #. module: custom_score_vehicle
-#: code:addons/custom_score_vehicle/models/fleet_vehicle.py
+#: code:addons/custom_score_vehicle/models/fleet_vehicle.py:0
 #, python-format
 msgid "License plate %s is already used by another vehicle."
 msgstr "L'immatriculation %s est déjà utilisée par un autre véhicule."
 
 #. module: custom_score_vehicle
-#: code:addons/custom_score_vehicle/models/fleet_vehicle_registration_case.py
+#: code:addons/custom_score_vehicle/models/fleet_vehicle_registration_case.py:0
 #, python-format
 msgid "A rejection reason is required when rejecting a registration case."
 msgstr "Un motif de rejet est requis lors du rejet d'un dossier d'immatriculation."

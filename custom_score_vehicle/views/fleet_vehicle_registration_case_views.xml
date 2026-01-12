@@ -136,11 +136,11 @@
                 <filter string="Validés" name="validated" domain="[('state', '=', 'validated')]"/>
                 <filter string="Rejetés" name="rejected" domain="[('state', '=', 'rejected')]"/>
                 <separator/>
-                <group expand="0" string="Regrouper par">
+                <!-- <group expand="0" string="Regrouper par">
                     <filter string="Véhicule" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
                     <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Date création" name="group_create_date" context="{'group_by': 'create_date:month'}"/>
-                </group>
+                </group> -->
             </search>
         </field>
     </record>
