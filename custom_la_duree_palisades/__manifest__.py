@@ -1,6 +1,6 @@
 {
     'name': 'Personnalisation Stock',
-    'version': '1.1.0',
+    'version': '1.3.0',
     'summary': 'Ce module permet de personnaliser les inventaires et le POS',
     'description': 'ce module permet de personnaliser les inventaires et le POS',
     'sequence': 50,
@@ -12,6 +12,8 @@
         'sale',
         'stock',
         'point_of_sale',
+        'pos_self_order',
+        'pos_restaurant',
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -20,6 +22,7 @@
         'views/employee_credit_limit_view.xml',
         'views/pos_payment_method_inherit_views.xml',
         'views/stock_scrap_loss_view.xml',
+        'views/res_config_settings_views.xml',
         'wizard/product_select_wizard_views.xml',
         'wizard/stock_scrap_loss_report_wizard_view.xml',
         'reports/stock_scrap_loss_report_template.xml',
@@ -28,6 +31,12 @@
         'pos_self_order.assets': [
             'custom_la_duree_palisades/static/src/js/preset_info_popup_patch.js',
             'custom_la_duree_palisades/static/src/xml/preset_info_popup_inherit.xml',
+        ],
+        'point_of_sale._assets_pos': [
+            'custom_la_duree_palisades/static/src/js/navbar_self_order_badge.js',
+            'custom_la_duree_palisades/static/src/xml/navbar_self_order_badge.xml',
+            'custom_la_duree_palisades/static/src/js/ticket_screen_pickup_status.js',
+            'custom_la_duree_palisades/static/src/xml/ticket_screen_pickup_status.xml',
         ],
     },
     'license': 'LGPL-3',

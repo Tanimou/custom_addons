@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    
+    <!-- 
+        Self-Order Notification Text for Orders Button
+        Shows "(X payé)" text when there are new paid self-order commands
+    -->
+    <t t-name="custom_la_duree_palisades.NavbarSelfOrderBadge" t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        
+        <!-- Replace button to add notification text -->
+        <xpath expr="//button[hasclass('orders-button')]" position="replace">
+            <button class="orders-button btn btn-lg btn-light lh-lg" 
+                    t-att-class="{'active': mainButton === 'order'}" 
+                    t-on-click="onOrdersButtonClick">
+                <t t-if="!ui.isSmall">
+                    <span>Commandes</span>
+                    <span t-if="selfOrderBadgeCount > 0" class="ms-1 text-danger fw-bold">
+                        (<t t-esc="selfOrderBadgeCount"/> payé)
+                    </span>
+                </t>
+                <i t-else="" class="fa fa-fw fa-book" t-att-class="{'fa-lg' : !ui.isSmall}"/>
+            </button>
+        </xpath>
+        
+    </t>
+    
+</templates>
