@@ -10,7 +10,21 @@
     <!-- Héritage du template ConfirmationPage pour changer le message -->
     <t t-inherit="pos_self_order.ConfirmationPage" t-inherit-mode="extension">
         <xpath expr="//h1[@class='mb-0']" position="replace">
-            <h1 class="mb-0">Nous préparons votre commande au comptoir de la durée palisades à ITC</h1>
+            <h1 class="mb-0">Nous préparons votre commande au comptoir de LADUREE à ITC</h1>
         </xpath>
+                <xpath expr="//div[@class='d-flex flex-column align-items-center w-100 w-md-auto']" position="replace">
+            <div class="d-flex flex-column align-items-center w-100 w-md-auto">
+                <span role="button" t-if="selfOrder.showDownloadButton(confirmedOrder) and confirmedOrder.uiState.receiptReady" t-on-click="() => this.selfOrder.downloadReceipt(this.confirmedOrder)" class="mb-4" style="text-wrap: pretty; font-size: 1.2em; font-weight: bold;">
+                    Télécharger votre ticket ici
+                </span>
+                <button class="btn btn-lg btn-primary w-100 w-md-auto" t-on-click="backToHome">
+                    <span t-if="!confirmedOrder?.uiState?.receiptReady" class="spinner-border"/>
+                    <t t-elif="this.selfOrder.config.self_ordering_mode === 'kiosk'">Close</t>
+                    <t t-else="">Ok</t>
+                </button>
+            </div>
+        </xpath>
+
     </t>
+
 </templates>
