@@ -48,3 +48,38 @@ class PosConfig(models.Model):
                         "liste des préréglages disponibles Self-Order.",
                         config.self_order_default_preset_id.name
                     ))
+
+    @api.model
+    def _load_pos_self_data_read(self, records, config):
+        """Override to map self-order preset fields to native preset fields.
+        
+        The frontend JavaScript uses `config.use_presets`, `config.default_preset_id`,
+        and `config.available_preset_ids` to determine preset behavior. However, our
+        custom module uses separate self-order specific fields.
+        
+        This override maps the custom self-order fields to the native fields when
+        loading data for the self-order interface, so the frontend sees the correct
+        configuration without needing JavaScript modifications.
+        
+        Args:
+            records: The pos.config records to read
+            config: The pos.config record for which data is being loaded
+            
+        Returns:
+            list: The read records with self-order preset fields mapped to native fields
+        """
+        result = super()._load_pos_self_data_read(records, config)
+        
+        if not result:
+            return result
+        
+        # Map self-order preset configuration to native fields for frontend
+        # This makes the frontend see the self-order specific configuration
+        for record in result:
+            if config.self_order_use_presets:
+                # Override native preset fields with self-order specific values
+                record['use_presets'] = config.self_order_use_presets
+                record['default_preset_id'] = config.self_order_default_preset_id.id if config.self_order_default_preset_id else False
+                record['available_preset_ids'] = config.self_order_available_preset_ids.ids if config.self_order_available_preset_ids else []
+        
+        return result
