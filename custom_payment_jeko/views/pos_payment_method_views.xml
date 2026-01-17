@@ -7,6 +7,10 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='use_payment_terminal']" position="after">
                 <!-- Jeko Soundbox -->
+                <field name="provider_id" 
+                        invisible="use_payment_terminal != 'jeko_soundbox'" 
+                        required="use_payment_terminal == 'jeko_soundbox'"
+                        password="True"/>
                 <field name="jeko_soundbox_store_id" 
                         invisible="use_payment_terminal != 'jeko_soundbox'" 
                         required="use_payment_terminal == 'jeko_soundbox'"

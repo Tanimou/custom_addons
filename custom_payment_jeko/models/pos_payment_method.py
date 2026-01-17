@@ -15,7 +15,9 @@ class PosPaymentMethod(models.Model):
 
     # ========== JEKO SOUNDBOX FIELDS ==========
     jeko_soundbox_store_id = fields.Char(
+        related='provider_id.jeko_store_id',
         string='Jeko Store ID',
+        readonly=False,
         help="The Jeko store UUID for this payment method"
     )
     jeko_soundbox_device_id = fields.Char(
@@ -34,6 +36,12 @@ class PosPaymentMethod(models.Model):
     )
     jeko_soundbox_latest_response = fields.Json(
         help='Used to buffer the latest asynchronous notification from Jeko webhook'
+    )
+    provider_id = fields.Many2one(
+        comodel_name='payment.provider',
+        string='Payment Provider',
+        domain=[('code', '=', 'jeko')],
+        help="The Jeko payment provider associated with this payment method"
     )
 
     def _is_write_forbidden(self, fields):
