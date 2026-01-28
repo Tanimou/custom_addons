@@ -41,6 +41,12 @@
         'views/sale_order_views.xml',
         'views/stock_warehouse_orderpoint_view.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'custom_stock/static/src/js/product_card_patch.js',
+            'custom_stock/static/src/xml/product_card_patch.xml',
+        ],
+    },
     'license': 'AGPL-3',
     'installable': True,
     'auto_install': False,
