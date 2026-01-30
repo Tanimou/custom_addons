@@ -83,28 +83,27 @@
                 </div>
                 <div style="display: table-cell; width: 50%; vertical-align: top; text-align: center; padding: 0 10px;">
                     <!-- Services description (centre) -->
-                    <div style="font-size: 8pt; color: #333; line-height: 1.4;">
+                    <!-- <div style="font-size: 8pt; color: #333; line-height: 1.4;">
                         <strong>BILLETTERIE- HOTELS - ASSURANCES VOYAGES - ASSISTANCE VISA</strong><br/>
                         <strong>CIRCUITS TOURISTIQUES - EPARGNE VOYAGES - LOCATION DE VOITURE - LOCATION DE JET PRIVE</strong>
-                    </div>
+                    </div> -->
                 </div>
-                <div style="display: table-cell; width: 20%; vertical-align: top; text-align: right;">
-                    <!-- Badge IATA / Accreditation (droite) -->
+                <!-- <div style="display: table-cell; width: 20%; vertical-align: top; text-align: right;">
                     <t t-set="iata_badge" t-value="order._get_iata_badge_base64()"/>
                     <img t-if="iata_badge" t-att-src="image_data_uri(iata_badge)"
                          style="max-height: 70px; max-width: 140px;"
                          alt="IATA Accredited Agent"/>
-                </div>
+                </div> -->
             </div>
             
             <!-- Red separator line -->
-            <hr style="border: none; border-top: 2px solid black; margin: 5px 0 10px 0;"/>
+            <hr style="border: none; border-top: 2px solid black; color : #c00;margin: 5px 0 10px 0;"/>
             
             <!-- Tagline rouge - Dynamic from company or default -->
-            <div style="text-align: center; color: #c00; font-style: italic; font-size: 11pt; margin: 10px 0 20px 0;">
+            <!-- <div style="text-align: center; color: #c00; font-style: italic; font-size: 11pt; margin: 10px 0 20px 0;">
                 <t t-if="company.report_header" t-out="company.report_header"/>
                 <t t-else="1">Agence de voyages 100% Digitale</t>
-            </div>
+            </div> -->
             
             <!-- ========================================== -->
             <!-- DATE (alignee a droite)                   -->
