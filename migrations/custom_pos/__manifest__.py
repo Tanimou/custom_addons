@@ -20,7 +20,7 @@
     'website': "https://www.partenairesucces.com/",
     'depends': ['sale', 'point_of_sale', 'account', 'pos_loyalty'],
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'security/security.xml',
         'data/ir_sequence_data.xml',
         'report/prelevement_ticket_report.xml',
@@ -30,6 +30,7 @@
         'views/pos_config_inherit_views.xml',
         'views/pos_payment_method_inherit_views.xml',
         'views/pos_session_inherit_views.xml',
+        'views/pos_order_promo_report_views.xml',
     ],
     'images': ['static/description/banner.png'],
     'license': 'AGPL-3',
