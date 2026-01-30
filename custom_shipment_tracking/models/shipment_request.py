@@ -1292,7 +1292,7 @@ class SaleOrderShipmentExtension(models.Model):
         except Exception:
             return False
 
-    def _get_footer_image_base64(self):
+    def _get_cachet_icare_image_base64(self):
         """Returns the footer image as base64 for use in PDF reports.
         
         This method reads the static footer image file and converts it to base64
@@ -1302,7 +1302,21 @@ class SaleOrderShipmentExtension(models.Model):
 
         from odoo.tools.misc import file_open
         try:
-            with file_open('custom_shipment_tracking/static/pied_de_page.png', 'rb') as f:
+            with file_open('custom_shipment_tracking/static/cachet_icare_voyage2.jpeg', 'rb') as f:
+                return base64.b64encode(f.read())
+        except Exception:
+            return False
+    def _get_cachet_myred_image_base64(self):
+        """Returns the footer image as base64 for use in PDF reports.
+        
+        This method reads the static footer image file and converts it to base64
+        so it can be rendered in wkhtmltopdf using image_data_uri().
+        """
+        import base64
+
+        from odoo.tools.misc import file_open
+        try:
+            with file_open('custom_shipment_tracking/static/myredtravel_cachet2.jpeg', 'rb') as f:
                 return base64.b64encode(f.read())
         except Exception:
             return False

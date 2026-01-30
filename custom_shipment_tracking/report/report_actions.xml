@@ -58,20 +58,70 @@
 
 
     <!-- ========================================== -->
-    <!-- REPORT ACTION - Proforma Invoice          -->
+    <!-- REPORT ACTION - Proforma Invoice (ICARE)  -->
     <!-- (Style ICARE Voyages / FACTURE PRO AGILLY)-->
-    <!-- For Sale Orders - appears in Print menu   -->
+    <!-- For Sale Orders - report definition only  -->
     <!-- ========================================== -->
     <record id="action_report_sale_order_proforma_invoice" model="ir.actions.report">
-        <field name="name">Facture Proforma</field>
+        <field name="name">Facture Proforma (ICARE GROUPE)</field>
         <field name="model">sale.order</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">custom_shipment_tracking.report_sale_order_proforma_invoice</field>
         <field name="report_file">custom_shipment_tracking.report_sale_order_proforma_invoice</field>
         <field name="print_report_name">'Proforma_%s' % object.name.replace('/', '_')</field>
+        <field name="binding_model_id" eval="False"/>
+        <field name="paperformat_id" ref="paperformat_proforma_invoice"/>
+    </record>
+
+    <!-- Server Action to print ICARE Proforma - shows only when active company is NOT MYRED -->
+    <record id="action_server_print_proforma_icare" model="ir.actions.server">
+        <field name="name">Facture Proforma (ICARE GROUPE)</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
         <field name="binding_model_id" ref="sale.model_sale_order"/>
         <field name="binding_type">report</field>
+        <field name="binding_view_types">form,list</field>
+        <field name="state">code</field>
+        <field name="code">
+# Only show for non-MYRED active company (company switcher)
+if records and 'myred' not in (env.company.name or '').lower():
+    action = env.ref('custom_shipment_tracking.action_report_sale_order_proforma_invoice').report_action(records)
+else:
+    action = {'type': 'ir.actions.act_window_close'}
+        </field>
+    </record>
+
+
+    <!-- ========================================== -->
+    <!-- REPORT ACTION - Proforma Invoice MYRED    -->
+    <!-- (Style MYRED TRAVELS branding)            -->
+    <!-- For Sale Orders - report definition only  -->
+    <!-- ========================================== -->
+    <record id="action_report_sale_order_proforma_myred" model="ir.actions.report">
+        <field name="name">Facture Proforma (MYRED TRAVELS)</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_shipment_tracking.report_sale_order_proforma_myred</field>
+        <field name="report_file">custom_shipment_tracking.report_sale_order_proforma_myred</field>
+        <field name="print_report_name">'Proforma_MYRED_%s' % object.name.replace('/', '_')</field>
+        <field name="binding_model_id" eval="False"/>
         <field name="paperformat_id" ref="paperformat_proforma_invoice"/>
+    </record>
+
+    <!-- Server Action to print MYRED Proforma - shows only when active company is MYRED -->
+    <record id="action_server_print_proforma_myred" model="ir.actions.server">
+        <field name="name">Facture Proforma (MYRED TRAVELS)</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">form,list</field>
+        <field name="state">code</field>
+        <field name="code">
+# Only show for MYRED TRAVELS active company (company switcher)
+if records and 'myred' in (env.company.name or '').lower():
+    action = env.ref('custom_shipment_tracking.action_report_sale_order_proforma_myred').report_action(records)
+else:
+    action = {'type': 'ir.actions.act_window_close'}
+        </field>
     </record>
 
 </odoo>

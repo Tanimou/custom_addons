@@ -2,46 +2,57 @@
 <odoo>
 
     <!-- ========================================== -->
-    <!-- FACTURE PROFORMA REPORT - QWeb Template   -->
+    <!-- FACTURE PROFORMA REPORT - MYRED TRAVELS   -->
     <!-- For Sale Orders (Devis)                   -->
-    <!-- Modèle basé sur FACTURE PRO AGILLY        -->
+    <!-- Modèle basé sur MYRED TRAVELS branding    -->
     <!-- ========================================== -->
 
-    <!-- Minimal external layout for proforma - empty header, custom footer -->
-    <template id="external_layout_proforma">
+    <!-- Minimal external layout for MYRED proforma - empty header, custom footer -->
+    <template id="external_layout_proforma_myred">
         <div class="header"/>
         <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
             <t t-out="0"/>
         </div>
-        <!-- Custom footer with company info - wkhtmltopdf compatible -->
+        <!-- Custom footer with MYRED TRAVELS company info - wkhtmltopdf compatible -->
         <div class="footer" style="border-top: 3px solid #c00;">
-            <table style="width: 100%; font-size: 7pt; color: #333; line-height: 1.5; font-family: Arial, sans-serif;">
+            <table style="width: 100%; font-size: 7pt; color: #333; line-height: 1.4; font-family: Arial, sans-serif;">
                 <tr>
-                    <td style="padding: 5px 10px; text-align: center;">
-                        <strong style="color: #c00;">GROUPE ICARE</strong><br/>
-                        Abidjan – Plateau, Avenue Noguès, Im GRUBER, 2ème étage, porte 5<br/>
-                        RCCM : CI-ABJ-2017-B-20097, CC 1735696V, Adresse, 12 BP 173 Abidjan 12, Tél :(+225) 27 20 32 51 22/ 27 20 24 43 34 / 01 03 86 40 40<br/>
-                        Intitulé du compte : GROUPE ICARE, Banque : BICICI, / Devise : XOF Code Banque : IBAN : CI93 CI00 6015 5301 0387 2000 74<br/>
-                        RIB 79, Code SWIFT (BIC) : BICICIABXXX | www.icare-voyages.com / reservation@icare-voyages.com
+                    <!-- Logo colibri à gauche -->
+                    <!-- <td style="width: 60px; vertical-align: middle; padding: 5px;">
+                        <img src="/custom_shipment_tracking/static/myredtravel_logo.png"
+                             style="max-height: 45px; max-width: 50px;"
+                             alt="MyRed Travels"/>
+                    </td> -->
+                    <!-- Contenu du pied de page -->
+                    <td style="padding: 5px 10px; color: #c00">
+                        <div style="text-align: right; font-style: italic; font-weight: bold; margin-bottom: 3px;">
+                            Agence de voyages 100% Digitale
+                        </div>
+                        <div style="text-align: center; color: #c00;">
+                            Agence de voyages du Groupe Icare / Siège social : Abidjan - Plateau Av Nogues Im. Gruber 2e étage porte 6<br/>
+                            RCCM : CI-ABJ-2017-B-20097 - N° CC 17 35 696 / 01 BP 6949 Abidjan 01<br/>
+                            (+225) 27 20 27 47 12 / 05 56 16 28 28 / 01 03 86 39 39 / +336 65 970 969<br/>
+                            E-mail: contact@myredtravels.com / Site web: www.myredtravels.com
+                        </div>
                     </td>
                 </tr>
             </table>
         </div>
     </template>
 
-    <!-- External Report Template -->
-    <template id="report_sale_order_proforma_invoice">
+    <!-- External Report Template for MYRED TRAVELS -->
+    <template id="report_sale_order_proforma_myred">
         <t t-foreach="docs" t-as="order">
             <t t-set="o" t-value="order"/>
             <t t-set="company" t-value="order.company_id"/>
-            <t t-call="custom_shipment_tracking.external_layout_proforma">
-                <t t-call="custom_shipment_tracking.report_sale_order_proforma_invoice_document"/>
+            <t t-call="custom_shipment_tracking.external_layout_proforma_myred">
+                <t t-call="custom_shipment_tracking.report_sale_order_proforma_myred_document"/>
             </t>
         </t>
     </template>
 
-    <!-- Single Proforma Invoice Document -->
-    <template id="report_sale_order_proforma_invoice_document">
+    <!-- Single Proforma Invoice Document for MYRED TRAVELS -->
+    <template id="report_sale_order_proforma_myred_document">
         <t t-set="company" t-value="order.company_id"/>
         <t t-set="partner" t-value="order.partner_id"/>
         
@@ -54,11 +65,11 @@
              t-att-data-oe-id="order and order.id">
             
             <!-- ========================================== -->
-            <!-- HEADER - Logo + Services + IATA           -->
+            <!-- HEADER - Logo MYRED + Services + IATA     -->
             <!-- ========================================== -->
             <div style="display: table; width: 100%; margin-bottom: 10px;">
                 <div style="display: table-cell; width: 30%; vertical-align: top;">
-                    <!-- Logo entreprise (gauche) -->
+                    <!-- Logo MYRED TRAVELS (gauche) - hardcoded -->
                     <t t-if="company.logo">
                         <img t-att-src="'data:image/png;base64,' + company.logo.decode('utf-8')"
                              style="max-height: 60px; max-width: 180px;"
@@ -89,10 +100,10 @@
             <!-- Red separator line -->
             <hr style="border: none; border-top: 2px solid black; margin: 5px 0 10px 0;"/>
             
-            <!-- Tagline rouge - Dynamic from company or partner -->
+            <!-- Tagline rouge - Dynamic from company or default -->
             <div style="text-align: center; color: #c00; font-style: italic; font-size: 11pt; margin: 10px 0 20px 0;">
                 <t t-if="company.report_header" t-out="company.report_header"/>
-                <t t-else="1">Hello World, Sublime côte d'Ivoire</t>
+                <t t-else="1">Agence de voyages 100% Digitale</t>
             </div>
             
             <!-- ========================================== -->
@@ -186,27 +197,6 @@
                         </t>
                     </t>
                     
-                    <!-- Subtotal HT
-                    <tr style="border-top: 1px solid #333;">
-                        <td colspan="4" style="padding: 10px 8px; text-align: right; font-weight: bold;">
-                            Sous-total HT
-                        </td>
-                        <td style="padding: 10px 8px; text-align: right; font-weight: bold;">
-                            <t t-out="'{:,.0f}'.format(order.amount_untaxed)"/>
-                        </td>
-                    </tr>
-                    
-                    <t t-if="order.amount_tax > 0">
-                        <tr>
-                            <td colspan="4" style="padding: 10px 8px; text-align: right;">
-                                Taxes
-                            </td>
-                            <td style="padding: 10px 8px; text-align: right;">
-                                <t t-out="'{:,.0f}'.format(order.amount_tax)"/>
-                            </td>
-                        </tr>
-                    </t> -->
-                    
                     <!-- Ligne TOTAL -->
                     <tr style="background-color: #e8e8e8; border-top: 2px solid #333;">
                         <td colspan="4" style="padding: 10px 8px; text-align: center; font-weight: bold; font-size: 12pt;">
@@ -257,15 +247,15 @@
             </div>
             
             <!-- ========================================== -->
-            <!-- SECTION SIGNATURE                         -->
+            <!-- SECTION SIGNATURE - MYRED TRAVELS CACHET  -->
             <!-- ========================================== -->
             <div style="text-align: right; margin-bottom: 40px;">
                 <div style="font-weight: bold; font-size: 11pt; color: #c00; margin-bottom: 10px;">
                     La Comptabilite
                 </div>
-                <!-- Espace pour signature et cachet -->
+                <!-- Espace pour signature et cachet MYRED TRAVELS -->
                 <div style="display: inline-block; text-align: center;">
-                    <t t-set="cachet_image" t-value="order._get_cachet_icare_image_base64()"/>
+                    <t t-set="cachet_image" t-value="order._get_cachet_myred_image_base64()"/>
                     <div t-if="cachet_image" style="margin-top: 10px;">
                         <img t-att-src="image_data_uri(cachet_image)"
                              style="max-width: 180px; max-height: 130px; height: auto;"
@@ -274,15 +264,10 @@
                     <div t-else="1" style="height: 80px;">
                         <!-- Space for manual signature/stamp -->
                     </div>
-                </div>
+                </div>            
             </div>
             
         </main>
-        
-        <!-- ========================================== -->
-        <!-- FOOTER - Sticky footer using wkhtmltopdf  -->
-        <!-- native footer class (repeats on each page)-->
-        <!-- ========================================== -->
             
     </template>
 

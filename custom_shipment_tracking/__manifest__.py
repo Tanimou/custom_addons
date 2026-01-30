@@ -47,6 +47,7 @@ Fonctionnalités principales:
         # Reports (must be loaded BEFORE views that reference them)
         'report/parcel_label_templates.xml',
         'report/proforma_invoice_templates.xml',
+        'report/proforma_invoice_myredtravels.xml',
         'report/report_actions.xml',
         # Views
         'views/res_partner_views.xml',

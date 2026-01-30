@@ -31,6 +31,15 @@
                         invisible="state != 'sale' or shipment_request_count > 0"
                         groups="custom_shipment_tracking.group_shipment_user"/>
             </xpath>
+            
+            <!-- Add "Imprimer Facture Proforma" button in header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_print_proforma_company" 
+                        type="object"
+                        string="Imprimer Facture Proforma"
+                        class="btn-secondary"
+                        icon="fa-print"/>
+            </xpath>
         </field>
     </record>
 

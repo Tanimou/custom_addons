@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from . import (
+    sale_order,
     shipment_document,
     shipment_parcel,
     shipment_parcel_line,
