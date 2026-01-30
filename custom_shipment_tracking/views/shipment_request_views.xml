@@ -56,6 +56,12 @@
                     <button name="action_create_proforma" type="object" string="Créer Proforma" class="btn-secondary" 
                             invisible="proforma_state != 'none' or parcel_count == 0"
                             title="Créer un proforma avec les détails des colis et frais de transport"/>
+                    <!-- Print Document button (Fret: Proforma Cargo, Groupage: Liste de Colisage) -->
+                    <button name="action_print_shipment_document" type="object" 
+                            string="Imprimer Document" 
+                            class="btn-secondary" 
+                            icon="fa-print"
+                            title="Fret: Facture Proforma ICARE CARGO / Groupage: Liste de Colisage"/>
                     <!-- Document buttons - Important for Fret, optional for Groupage -->
                     <button name="action_generate_documents" type="object" string="Générer Documents" class="btn-secondary"
                             invisible="document_count > 0 or shipment_type == 'groupage'"

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- LISTE DE COLISAGE - GROUPAGE              -->
+    <!-- For Shipment Requests (Groupage type)     -->
+    <!-- Based on handwritten colisage form        -->
+    <!-- ========================================== -->
+
+    <!-- Minimal external layout for colisage -->
+    <template id="external_layout_colisage">
+        <div class="header"/>
+        <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-out="0"/>
+        </div>
+        <!-- Footer with disclaimer -->
+        <div class="footer" style="border-top: 1px solid #333; font-size: 7pt; padding-top: 5px;">
+            <div style="text-align: center; color: #666;">
+                ICARE CARGO - Document de colisage - Ce document n'a pas valeur de facture
+            </div>
+        </div>
+    </template>
+
+    <!-- External Report Template for Colisage -->
+    <template id="report_shipment_colisage">
+        <t t-foreach="docs" t-as="shipment">
+            <t t-set="o" t-value="shipment"/>
+            <t t-set="company" t-value="shipment.company_id"/>
+            <t t-call="custom_shipment_tracking.external_layout_colisage">
+                <t t-call="custom_shipment_tracking.report_shipment_colisage_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Single Colisage Document -->
+    <template id="report_shipment_colisage_document">
+        <t t-set="company" t-value="shipment.company_id"/>
+        <t t-set="partner" t-value="shipment.partner_id"/>
+        
+        <!-- Force UTF-8 encoding for wkhtmltopdf -->
+        <meta charset="UTF-8"/>
+        
+        <!-- Main wrapper -->
+        <main style="font-family: Arial, sans-serif; font-size: 10pt; color: #333; padding: 10px;"
+             t-att-data-oe-model="shipment and shipment._name"
+             t-att-data-oe-id="shipment and shipment.id">
+            
+            <!-- ========================================== -->
+            <!-- HEADER - AGENT TRAITANT + TITLE           -->
+            <!-- ========================================== -->
+            <div style="display: table; width: 100%; margin-bottom: 15px;">
+                <div style="display: table-cell; width: 50%; vertical-align: top;">
+                    <div style="font-weight: bold; margin-bottom: 5px;">AGENT TRAITANT :</div>
+                    <div style="border-bottom: 1px solid #333; min-height: 20px; margin-bottom: 10px;">
+                        <t t-out="shipment.create_uid.name or ''"/>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>DATE :</strong> <t t-out="time.strftime('%d/%m/%y')"/>
+                    </div>
+                </div>
+                <div style="display: table-cell; width: 50%; vertical-align: top; text-align: center;">
+                    <div style="font-size: 16pt; font-weight: bold; text-decoration: underline; margin-bottom: 15px;">
+                        LISTE DE COLISAGE
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- CLIENT INFO SECTION                       -->
+            <!-- ========================================== -->
+            <div style="display: table; width: 100%; margin-bottom: 20px; border: 1px solid #333; padding: 10px;">
+                <div style="display: table-row;">
+                    <div style="display: table-cell; width: 50%; vertical-align: top; padding-right: 10px;">
+                        <div style="margin-bottom: 8px;">
+                            <strong>EXPEDITEUR :</strong> 
+                            <span style="border-bottom: 1px dotted #333;">
+                                <t t-out="company.name or 'ICARE CARGO'"/>
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong>N°CNI :</strong> 
+                            <span style="border-bottom: 1px dotted #333; min-width: 100px; display: inline-block;">
+                                _________________
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong>TEL :</strong> 
+                            <span style="border-bottom: 1px dotted #333;">
+                                <t t-out="company.phone or ''"/>
+                            </span>
+                        </div>
+                    </div>
+                    <div style="display: table-cell; width: 50%; vertical-align: top; padding-left: 10px; border-left: 1px solid #ccc;">
+                        <div style="margin-bottom: 8px;">
+                            <strong>DESTINATAIRE :</strong> 
+                            <span style="border-bottom: 1px dotted #333;">
+                                <t t-out="partner.name or ''"/>
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong>CODE CLIENT :</strong> 
+                            <span style="border-bottom: 1px dotted #333;">
+                                <t t-out="shipment.main_parcel_number or partner.ref or ''"/>
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong>TEL :</strong> 
+                            <span style="border-bottom: 1px dotted #333;">
+                                <t t-out="partner.phone or partner.mobile or ''"/>
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong>INFO :</strong> 
+                            <span style="border-bottom: 1px dotted #333;">
+                                <t t-out="shipment.destination_city or ''"/>
+                                <t t-if="shipment.destination_city and shipment.destination_country_id">, </t>
+                                <t t-out="shipment.destination_country_id.name or ''"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- COLISAGE TABLE                            -->
+            <!-- ========================================== -->
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #333;">
+                <thead>
+                    <tr style="background-color: #f0f0f0;">
+                        <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 12%;">Nombres<br/>de COLIS</th>
+                        <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 10%;">EMBAL<br/>LAGE</th>
+                        <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 38%;">NATURE DU COLIS</th>
+                        <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 15%;">POIDS</th>
+                        <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 25%;">MONTANT A<br/>PAYER</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Loop through parcels -->
+                    <t t-set="total_weight" t-value="0"/>
+                    <t t-set="total_value" t-value="0"/>
+                    <t t-foreach="shipment.parcel_ids" t-as="parcel">
+                        <tr>
+                            <td style="border: 1px solid #333; padding: 8px; text-align: center;">
+                                01
+                            </td>
+                            <td style="border: 1px solid #333; padding: 8px; text-align: center;">
+                                C
+                            </td>
+                            <td style="border: 1px solid #333; padding: 8px;">
+                                <t t-out="parcel.content_description or parcel.product_summary or 'Marchandises'"/>
+                            </td>
+                            <td style="border: 1px solid #333; padding: 8px; text-align: center;">
+                                <t t-out="'{:.0f}'.format(parcel.weight)"/>Kg
+                            </td>
+                            <td style="border: 1px solid #333; padding: 8px; text-align: right;">
+                                <t t-if="parcel.declared_value">
+                                    <t t-out="'{:,.0f}'.format(parcel.declared_value)"/>
+                                </t>
+                                <t t-elif="parcel.total_value">
+                                    <t t-out="'{:,.0f}'.format(parcel.total_value)"/>
+                                </t>
+                            </td>
+                        </tr>
+                        <t t-set="total_weight" t-value="total_weight + parcel.weight"/>
+                        <t t-set="total_value" t-value="total_value + (parcel.declared_value or parcel.total_value or 0)"/>
+                    </t>
+                    
+                    <!-- Empty rows if less than 10 parcels -->
+                    <t t-set="remaining_rows" t-value="max(0, 10 - len(shipment.parcel_ids))"/>
+                    <t t-foreach="range(remaining_rows)" t-as="i">
+                        <tr style="height: 30px;">
+                            <td style="border: 1px solid #333; padding: 8px;"></td>
+                            <td style="border: 1px solid #333; padding: 8px;"></td>
+                            <td style="border: 1px solid #333; padding: 8px;"></td>
+                            <td style="border: 1px solid #333; padding: 8px;"></td>
+                            <td style="border: 1px solid #333; padding: 8px;"></td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+            
+            <!-- ========================================== -->
+            <!-- TOTALS SECTION                            -->
+            <!-- ========================================== -->
+            <div style="display: table; width: 100%; margin-bottom: 20px;">
+                <div style="display: table-cell; width: 60%; vertical-align: middle;">
+                    <div style="font-size: 14pt; font-weight: bold; border: 2px solid #333; display: inline-block; padding: 10px 20px;">
+                        <t t-out="'{:02d}'.format(len(shipment.parcel_ids))"/> Colis
+                    </div>
+                    <span style="font-size: 12pt; margin-left: 20px;">TOTAL</span>
+                </div>
+                <div style="display: table-cell; width: 40%; vertical-align: middle; text-align: right;">
+                    <div style="font-size: 14pt; font-weight: bold; border: 2px solid #333; display: inline-block; padding: 10px 20px;">
+                        <t t-out="'{:.0f}'.format(total_weight)"/>Kg
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- VALEUR DES COLIS SECTION                  -->
+            <!-- ========================================== -->
+            <div style="border: 2px solid #333; padding: 10px; margin-bottom: 20px;">
+                <div style="display: table; width: 100%;">
+                    <div style="display: table-cell; width: 30%; vertical-align: middle;">
+                        <strong style="font-size: 11pt;">VALEUR DES COLIS</strong>
+                    </div>
+                    <div style="display: table-cell; width: 70%; vertical-align: middle;">
+                        <div style="border-bottom: 1px dotted #333; min-height: 20px; padding: 5px;">
+                            <t t-if="total_value">
+                                <t t-out="'{:,.0f}'.format(total_value)"/> XOF
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- DISCLAIMER / CONDITIONS                   -->
+            <!-- ========================================== -->
+            <div style="font-size: 8pt; color: #666; border-top: 1px solid #ccc; padding-top: 10px; margin-top: 20px;">
+                <strong>IMPORTANT :</strong> EN CAS D'AVARIE ET DE FAUSSE DÉCLARATION, LA RESPONSABILITÉ DE L'EXPÉDITEUR EST ENGAGÉE.
+                <br/>
+                Le destinataire doit vérifier l'état des colis à la réception. Toute réclamation doit être faite dans les 24h suivant la livraison.
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- SIGNATURES SECTION                        -->
+            <!-- ========================================== -->
+            <div style="display: table; width: 100%; margin-top: 30px;">
+                <div style="display: table-cell; width: 50%; text-align: center; vertical-align: top;">
+                    <div style="margin-bottom: 10px; font-weight: bold;">Signature Expéditeur</div>
+                    <div style="border-bottom: 1px solid #333; height: 60px; margin: 0 20px;"></div>
+                </div>
+                <div style="display: table-cell; width: 50%; text-align: center; vertical-align: top;">
+                    <div style="margin-bottom: 10px; font-weight: bold;">Signature Agent</div>
+                    <div style="border-bottom: 1px solid #333; height: 60px; margin: 0 20px;"></div>
+                </div>
+            </div>
+            
+        </main>
+            
+    </template>
+
+</odoo>

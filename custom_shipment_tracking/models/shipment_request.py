@@ -565,6 +565,23 @@ class ShipmentRequest(models.Model):
             'target': 'new',
         }
 
+    def action_print_shipment_document(self):
+        """Print the appropriate document based on shipment_type.
+        
+        - Fret: Proforma Invoice ICARE CARGO (with 2 tables: consumables + services)
+        - Groupage: Liste de Colisage (parcel listing)
+        """
+        self.ensure_one()
+        
+        if self.shipment_type == 'fret':
+            # Print Proforma ICARE CARGO
+            report_action = self.env.ref('custom_shipment_tracking.action_report_shipment_proforma_cargo')
+        else:
+            # Print Liste de Colisage
+            report_action = self.env.ref('custom_shipment_tracking.action_report_shipment_colisage')
+        
+        return report_action.report_action(self)
+
     # region Proforma / Invoice Methods
     def _get_transport_product(self):
         """Get or create the transport service product for invoicing."""

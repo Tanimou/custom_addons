@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ========================================== -->
+    <!-- FACTURE PROFORMA ICARE CARGO              -->
+    <!-- For Shipment Requests (Fret type)         -->
+    <!-- 2 tables: Consumables + Services          -->
+    <!-- ========================================== -->
+
+    <!-- Minimal external layout for cargo proforma -->
+    <template id="external_layout_proforma_cargo">
+        <div class="header"  t-att-data-oe-model="shipment and shipment._name"
+             t-att-data-oe-id="shipment and shipment.id">
+            <!-- ========================================== -->
+            <!-- HEADER - Logo + ICARE CARGO Title         -->
+            <!-- ========================================== -->
+            <div style="display: table; width: 100%; margin-bottom: 10px;">
+                <div style="display: table-cell; width: 30%; vertical-align: top;">
+                    <!-- Logo entreprise (gauche) -->
+                    <t t-if="company.logo">
+                        <img t-att-src="'data:image/png;base64,' + company.logo.decode('utf-8')"
+                             style="max-height: 60px; max-width: 180px;"
+                             alt="Logo"/>
+                    </t>
+                    <t t-else="1">
+                        <div style="font-size: 18pt; font-weight: bold; color: #1a5276;">
+                            ICARE CARGO
+                        </div>
+                    </t>
+                </div>
+                <div style="display: table-cell; width: 50%; vertical-align: top; text-align: center; padding: 0 10px;">
+                    <!-- Services description (centre) -->
+                    <div style="font-size: 8pt; color: #333; line-height: 1.4;">
+                        <strong>FRET AERIEN - FRET MARITIME - TRANSIT DOUANIER</strong><br/>
+                        <strong>GROUPAGE - LOGISTIQUE - DÉMÉNAGEMENT</strong>
+                    </div>
+                </div>
+                <div style="display: table-cell; width: 20%; vertical-align: top; text-align: right;">
+                    <!-- Badge or secondary logo -->
+                    <div style="font-size: 8pt; color: #666;">
+                        Expédition: <strong><t t-out="shipment.name"/></strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dark blue separator line -->
+            <hr style="border: none; border-top: 2px solid #1a5276; margin: 5px 0 10px 0;"/>
+            
+            <!-- Tagline -->
+            <div style="text-align: center; color: #1a5276; font-style: italic; font-size: 11pt; margin: 10px 0 20px 0;">
+                Votre partenaire logistique de confiance
+            </div>
+            </div>
+        <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-out="0"/>
+        </div>
+        <!-- Custom footer with ICARE CARGO info -->
+        <div class="footer" style="border-top: 3px solid #1a5276;">
+            <table style="width: 100%; font-size: 7pt; color: #333; line-height: 1.5; font-family: Arial, sans-serif;">
+                <tr>
+                    <td style="padding: 5px 10px; text-align: center;">
+                        <strong style="color: #1a5276;">ICARE CARGO</strong><br/>
+                        Abidjan – Plateau, Avenue Noguès, Im GRUBER, 2ème étage, porte 5<br/>
+                        RCCM : CI-ABJ-2017-B-20097, CC 1735696V, Adresse, 12 BP 173 Abidjan 12, Tél :(+225) 27 20 32 51 22/ 27 20 24 43 34 / 01 03 86 40 40<br/>
+                        www.icare-cargo.com / cargo@icare-groupe.com
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <!-- External Report Template for Cargo Proforma -->
+    <template id="report_shipment_proforma_cargo">
+        <t t-foreach="docs" t-as="shipment">
+            <t t-set="o" t-value="shipment"/>
+            <t t-set="company" t-value="shipment.company_id"/>
+            <t t-call="custom_shipment_tracking.external_layout_proforma_cargo">
+                <t t-call="custom_shipment_tracking.report_shipment_proforma_cargo_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Single Proforma Invoice Document for Cargo -->
+    <template id="report_shipment_proforma_cargo_document">
+        <t t-set="company" t-value="shipment.company_id"/>
+        <t t-set="partner" t-value="shipment.partner_id"/>
+        
+        <!-- Collect all order lines from linked sale orders -->
+        <t t-set="all_lines" t-value="shipment.sale_order_ids.mapped('order_line').filtered(lambda l: not l.display_type)"/>
+        <t t-set="consu_lines" t-value="all_lines.filtered(lambda l: l.product_id.type == 'consu')"/>
+        <t t-set="service_lines" t-value="all_lines.filtered(lambda l: l.product_id.type == 'service')"/>
+        
+        <!-- Force UTF-8 encoding for wkhtmltopdf -->
+        <meta charset="UTF-8"/>
+        
+        <!-- Main wrapper -->
+        <main style="font-family: Arial, sans-serif; font-size: 10pt; color: #333;"
+             t-att-data-oe-model="shipment and shipment._name"
+             t-att-data-oe-id="shipment and shipment.id">
+            
+            
+            
+            <!-- ========================================== -->
+            <!-- DATE (alignee a droite)                   -->
+            <!-- ========================================== -->
+            <div style="text-align: right; margin-bottom: 20px;">
+                <t t-out="company.city or 'Abidjan'"/>, le <t t-out="time.strftime('%d %B %Y')"/>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- TITRE + CLIENT BOX                        -->
+            <!-- ========================================== -->
+            <div style="display: table; width: 100%; margin-bottom: 15px;">
+                <div style="display: table-cell; width: 50%; vertical-align: top;">
+                    <!-- Titre FACTURE PROFORMA CARGO -->
+                    <div style="font-size: 14pt; font-weight: bold; text-decoration: underline; margin-bottom: 10px; color: #1a5276;">
+                        FACTURE PROFORMA - FRET
+                    </div>
+                    <!-- Reference -->
+                    <div style="margin-bottom: 5px;">
+                        <span style="text-decoration: underline;">N° Expédition</span> : <t t-out="shipment.name"/>
+                    </div>
+                    <div style="margin-bottom: 5px;" t-if="shipment.main_parcel_number">
+                        <span style="text-decoration: underline;">N° Colis principal</span> : <t t-out="shipment.main_parcel_number"/>
+                    </div>
+                    <div style="margin-bottom: 5px;" t-if="shipment.lta_number">
+                        <span style="text-decoration: underline;">N° LTA</span> : <t t-out="shipment.lta_number"/>
+                    </div>
+                </div>
+                <div style="display: table-cell; width: 50%; vertical-align: top; text-align: right;">
+                    <!-- Boite CLIENT (droite, bordure) -->
+                    <div style="display: inline-block; border: 2px solid #1a5276; padding: 8px 15px; font-size: 12pt;">
+                        <strong>CLIENT : </strong><t t-out="partner.name"/>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Destination info -->
+            <div style="margin-bottom: 20px; padding: 10px; background-color: #f5f5f5; border-left: 4px solid #1a5276;">
+                <div style="font-weight: bold; margin-bottom: 5px;">Destination:</div>
+                <div>
+                    <t t-out="shipment.destination_city or ''"/>
+                    <t t-if="shipment.destination_city and shipment.destination_country_id">, </t>
+                    <t t-out="shipment.destination_country_id.name or ''"/>
+                </div>
+                <div t-if="shipment.transport_mode">
+                    Mode: <t t-if="shipment.transport_mode == 'air'">Aérien</t><t t-if="shipment.transport_mode == 'sea'">Maritime</t>
+                    <t t-if="shipment.airline_name"> - <t t-out="shipment.airline_name"/></t>
+                </div>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- TABLE 1: PRODUITS CONSOMMABLES           -->
+            <!-- ========================================== -->
+            <t t-if="consu_lines">
+                <div style="font-size: 12pt; font-weight: bold; margin: 20px 0 10px 0; color: #1a5276; border-bottom: 1px solid #1a5276; padding-bottom: 5px;">
+                    MARCHANDISES (Produits Consommables)
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #1a5276; color: white;">
+                            <th style="padding: 8px; text-align: center; width: 5%;">No</th>
+                            <th style="padding: 8px; text-align: left; width: 45%;">Désignation</th>
+                            <th style="padding: 8px; text-align: center; width: 18%;">Prix Unitaire</th>
+                            <th style="padding: 8px; text-align: center; width: 8%;">Qté</th>
+                            <th style="padding: 8px; text-align: right; width: 18%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="line_number" t-value="1"/>
+                        <t t-set="consu_total" t-value="0"/>
+                        <t t-foreach="consu_lines" t-as="line">
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 10px 8px; text-align: center; vertical-align: top;">
+                                    <t t-out="line_number"/>
+                                </td>
+                                <td style="padding: 10px 8px; vertical-align: top;">
+                                    <strong><t t-out="line.product_id.name"/></strong>
+                                    <t t-if="line.name and line.name != line.product_id.name">
+                                        <div style="font-size: 9pt; color: #666; margin-top: 4px;">
+                                            <t t-out="line.name"/>
+                                        </div>
+                                    </t>
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
+                                    <t t-out="'{:,.0f}'.format(line.price_unit)"/>
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
+                                    <t t-out="'{:,.2f}'.format(line.product_uom_qty)"/>
+                                </td>
+                                <td style="padding: 10px 8px; text-align: right; vertical-align: middle;">
+                                    <t t-out="'{:,.0f}'.format(line.price_subtotal)"/>
+                                </td>
+                            </tr>
+                            <t t-set="line_number" t-value="line_number + 1"/>
+                            <t t-set="consu_total" t-value="consu_total + line.price_subtotal"/>
+                        </t>
+                        <!-- Subtotal Consumables -->
+                        <tr style="background-color: #e8f4fc; border-top: 2px solid #1a5276;">
+                            <td colspan="4" style="padding: 10px 8px; text-align: right; font-weight: bold;">
+                                Sous-total Marchandises
+                            </td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold;">
+                                <t t-out="'{:,.0f}'.format(consu_total)"/> <t t-out="shipment.sale_order_ids[:1].currency_id.symbol or 'XOF'"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </t>
+            
+            <!-- ========================================== -->
+            <!-- TABLE 2: SERVICES                         -->
+            <!-- ========================================== -->
+            <t t-if="service_lines">
+                <div style="font-size: 12pt; font-weight: bold; margin: 20px 0 10px 0; color: #1a5276; border-bottom: 1px solid #1a5276; padding-bottom: 5px;">
+                    SERVICES (Frais de transport, douane, etc.)
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #2e86ab; color: white;">
+                            <th style="padding: 8px; text-align: center; width: 5%;">No</th>
+                            <th style="padding: 8px; text-align: left; width: 45%;">Désignation</th>
+                            <th style="padding: 8px; text-align: center; width: 18%;">Prix Unitaire</th>
+                            <th style="padding: 8px; text-align: center; width: 8%;">Qté</th>
+                            <th style="padding: 8px; text-align: right; width: 18%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="line_number" t-value="1"/>
+                        <t t-set="service_total" t-value="0"/>
+                        <t t-foreach="service_lines" t-as="line">
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 10px 8px; text-align: center; vertical-align: top;">
+                                    <t t-out="line_number"/>
+                                </td>
+                                <td style="padding: 10px 8px; vertical-align: top;">
+                                    <strong><t t-out="line.product_id.name"/></strong>
+                                    <t t-if="line.name and line.name != line.product_id.name">
+                                        <div style="font-size: 9pt; color: #666; margin-top: 4px;">
+                                            <t t-out="line.name"/>
+                                        </div>
+                                    </t>
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
+                                    <t t-out="'{:,.0f}'.format(line.price_unit)"/>
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
+                                    <t t-out="'{:,.2f}'.format(line.product_uom_qty)"/>
+                                </td>
+                                <td style="padding: 10px 8px; text-align: right; vertical-align: middle;">
+                                    <t t-out="'{:,.0f}'.format(line.price_subtotal)"/>
+                                </td>
+                            </tr>
+                            <t t-set="line_number" t-value="line_number + 1"/>
+                            <t t-set="service_total" t-value="service_total + line.price_subtotal"/>
+                        </t>
+                        <!-- Subtotal Services -->
+                        <tr style="background-color: #d4edff; border-top: 2px solid #2e86ab;">
+                            <td colspan="4" style="padding: 10px 8px; text-align: right; font-weight: bold;">
+                                Sous-total Services
+                            </td>
+                            <td style="padding: 10px 8px; text-align: right; font-weight: bold;">
+                                <t t-out="'{:,.0f}'.format(service_total)"/> <t t-out="shipment.sale_order_ids[:1].currency_id.symbol or 'XOF'"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </t>
+            
+            <!-- ========================================== -->
+            <!-- GRAND TOTAL                               -->
+            <!-- ========================================== -->
+            <t t-set="grand_total" t-value="sum(shipment.sale_order_ids.mapped('amount_total'))"/>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr style="background-color: #1a5276; color: white;">
+                    <td colspan="4" style="padding: 12px; text-align: center; font-weight: bold; font-size: 14pt;">
+                        TOTAL GÉNÉRAL TTC
+                    </td>
+                    <td style="padding: 12px; text-align: right; font-weight: bold; font-size: 14pt; width: 20%;">
+                        <t t-out="'{:,.0f}'.format(grand_total)"/> <t t-out="shipment.sale_order_ids[:1].currency_id.symbol or 'XOF'"/>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- ========================================== -->
+            <!-- SECTION MONTANT EN LETTRES                -->
+            <!-- ========================================== -->
+            <div style="margin-bottom: 20px;">
+                <div style="text-decoration: underline; font-weight: bold; margin-bottom: 5px;">
+                    ARRETE LA PRESENTE FACTURE PROFORMA A LA SOMME DE :
+                </div>
+                <div style="font-weight: bold; font-size: 10pt;">
+                    (<t t-out="shipment.sale_order_ids[:1]._amount_to_text(grand_total) if shipment.sale_order_ids else ''"/>)
+                </div>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- SECTION PAIEMENT                          -->
+            <!-- ========================================== -->
+            <div style="margin-bottom: 15px;">
+                <div>
+                    Tout paiement par chèque doit être libellé à l'ordre de "<t t-out="company.name"/>"
+                </div>
+            </div>
+            
+            <!-- Boite des coordonnees bancaires -->
+            <div style="border: 1px solid #1a5276; padding: 10px; margin-bottom: 30px; font-size: 9pt; max-width: 400px;">
+                <t t-if="company.partner_id.bank_ids">
+                    <t t-set="bank" t-value="company.partner_id.bank_ids[0]"/>
+                    <div><strong>Intitulé du compte :</strong> <t t-out="company.name"/>,</div>
+                    <div><strong>Banque :</strong> <t t-out="bank.bank_id.name if bank.bank_id else '-'"/>,</div>
+                    <div><strong>IBAN :</strong> <t t-out="bank.acc_number or '-'"/>,</div>
+                </t>
+                <t t-else="1">
+                    <div><strong>Intitulé du compte :</strong> <t t-out="company.name"/>,</div>
+                    <div><strong>Banque :</strong> -,</div>
+                    <div><strong>IBAN :</strong> -,</div>
+                </t>
+            </div>
+            
+            <!-- ========================================== -->
+            <!-- SECTION SIGNATURE                         -->
+            <!-- ========================================== -->
+            <div style="text-align: right; margin-bottom: 40px;">
+                <div style="font-weight: bold; font-size: 11pt; color: #1a5276; margin-bottom: 10px;">
+                    La Direction
+                </div>
+                <!-- Espace pour signature et cachet -->
+                <div style="display: inline-block; text-align: center;">
+                    <t t-set="cachet_image" t-value="shipment.sale_order_ids[:1]._get_cachet_icare_image_base64() if shipment.sale_order_ids else False"/>
+                    <div t-if="cachet_image" style="margin-top: 10px;">
+                        <img t-att-src="image_data_uri(cachet_image)"
+                             style="max-width: 180px; max-height: 130px; height: auto;"
+                             alt="Cachet"/>
+                    </div>
+                    <div t-else="1" style="height: 80px;">
+                        <!-- Space for manual signature/stamp -->
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+            
+    </template>
+
+</odoo>

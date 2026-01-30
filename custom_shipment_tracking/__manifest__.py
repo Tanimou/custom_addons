@@ -48,6 +48,8 @@ Fonctionnalités principales:
         'report/parcel_label_templates.xml',
         'report/proforma_invoice_templates.xml',
         'report/proforma_invoice_myredtravels.xml',
+        'report/proforma_invoice_cargo.xml',
+        'report/colisage_report.xml',
         'report/report_actions.xml',
         # Views
         'views/res_partner_views.xml',

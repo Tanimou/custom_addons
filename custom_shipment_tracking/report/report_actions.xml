@@ -56,6 +56,26 @@
         <field name="dpi">96</field>
     </record>
 
+    <!-- ========================================== -->
+    <!-- REPORT PAPERFORMAT - Cargo with Header    -->
+    <!-- (Larger header spacing for cargo reports) -->
+    <!-- ========================================== -->
+    <record id="paperformat_proforma_cargo" model="report.paperformat">
+        <field name="name">Format Facture Proforma Cargo (A4)</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_width">210</field>
+        <field name="page_height">297</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">25</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">5</field>
+        <field name="dpi">96</field>
+    </record>
+
 
     <!-- ========================================== -->
     <!-- REPORT ACTION - Proforma Invoice (ICARE)  -->
@@ -122,6 +142,36 @@ if records and 'myred' in (env.company.name or '').lower():
 else:
     action = {'type': 'ir.actions.act_window_close'}
         </field>
+    </record>
+
+
+    <!-- ========================================== -->
+    <!-- REPORT ACTIONS - SHIPMENT REQUEST         -->
+    <!-- Proforma Cargo (Fret) + Colisage (Groupage)-->
+    <!-- ========================================== -->
+    
+    <!-- REPORT ACTION - Proforma Invoice ICARE CARGO (Fret) -->
+    <record id="action_report_shipment_proforma_cargo" model="ir.actions.report">
+        <field name="name">Facture Proforma ICARE CARGO (Fret)</field>
+        <field name="model">shipment.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_shipment_tracking.report_shipment_proforma_cargo</field>
+        <field name="report_file">custom_shipment_tracking.report_shipment_proforma_cargo</field>
+        <field name="print_report_name">'Proforma_Cargo_%s' % object.name.replace('/', '_')</field>
+        <field name="binding_model_id" eval="False"/>
+        <field name="paperformat_id" ref="paperformat_proforma_cargo"/>
+    </record>
+
+    <!-- REPORT ACTION - Liste de Colisage (Groupage) -->
+    <record id="action_report_shipment_colisage" model="ir.actions.report">
+        <field name="name">Liste de Colisage (Groupage)</field>
+        <field name="model">shipment.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_shipment_tracking.report_shipment_colisage</field>
+        <field name="report_file">custom_shipment_tracking.report_shipment_colisage</field>
+        <field name="print_report_name">'Colisage_%s' % object.name.replace('/', '_')</field>
+        <field name="binding_model_id" eval="False"/>
+        <field name="paperformat_id" ref="paperformat_proforma_invoice"/>
     </record>
 
 </odoo>
