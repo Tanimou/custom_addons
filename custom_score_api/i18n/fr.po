@@ -28,25 +28,25 @@ msgid "REST API for SCORE Logistics Suite integration"
 msgstr "API REST pour l'intégration de la suite SCORE Logistique"
 
 #. module: custom_score_api
-#: code:addons/custom_score_api/controllers/api.py
+#: code:addons/custom_score_api/controllers/api.py:0
 #, python-format
 msgid "Vehicle not found"
 msgstr "Véhicule non trouvé"
 
 #. module: custom_score_api
-#: code:addons/custom_score_api/controllers/api.py
+#: code:addons/custom_score_api/controllers/api.py:0
 #, python-format
 msgid "Mission not found"
 msgstr "Mission non trouvée"
 
 #. module: custom_score_api
-#: code:addons/custom_score_api/controllers/api.py
+#: code:addons/custom_score_api/controllers/api.py:0
 #, python-format
 msgid "Access denied"
 msgstr "Accès refusé"
 
 #. module: custom_score_api
-#: code:addons/custom_score_api/controllers/api.py
+#: code:addons/custom_score_api/controllers/api.py:0
 #, python-format
 msgid "Invalid request"
 msgstr "Requête invalide"

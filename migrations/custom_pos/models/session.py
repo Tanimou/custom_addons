@@ -467,10 +467,24 @@ class PosSession(models.Model):
         # Verify what was saved
         _logger.info("  - New prelevement_especes_amount: %s", self.prelevement_especes_amount)
         
+        
+        # Detailed logging to debug
+        _logger.info("\ud83d\udd0d save_cash_count_for_prelevement called:")
+        _logger.info("  - Session ID: %s", self.id)
+        _logger.info("  - Counted cash received: %s (type: %s)", counted_cash, type(counted_cash))
+        _logger.info("  - Current prelevement_especes_amount: %s", self.prelevement_especes_amount)
+        
+        # Save to our dedicated Float field (not Monetary to avoid conversion issues)
+        self.prelevement_especes_amount = float(counted_cash)
+        
+        # Verify what was saved
+        _logger.info("  - New prelevement_especes_amount: %s", self.prelevement_especes_amount)
+        
         return {
             'success': True,
             'session_id': self.id,
             'counted_cash': counted_cash,
+            'saved_value': self.prelevement_especes_amount,
             'saved_value': self.prelevement_especes_amount,
         }
 
@@ -582,8 +596,10 @@ class PosSession(models.Model):
         # ============================================
         # Espèces: What user entered as cash count at closing (Nbre=1 by default)
         # Use our dedicated field to avoid Monetary conversion issues
+        # Use our dedicated field to avoid Monetary conversion issues
         prelevements_especes = {
             'count': 1,
+            'total': self.prelevement_especes_amount or 0.0,
             'total': self.prelevement_especes_amount or 0.0,
         }
         
@@ -688,11 +704,95 @@ class PosSession(models.Model):
                 'total': data['total'],
             })
         
+        # ============================================
+        # SECTION 6: Ecart de caisse (Cash Gap)
+        # ============================================
+        # Gap = Counted (prelevement) - Transactions (encaissements)
+        # Positive gap = "en trop" (more cash counted than transactions)
+        # Negative gap = "en moins" (less cash counted than transactions)
+        
+        # Espèces: user's counted cash (prélèvement) - total cash transactions (encaissements)
+        ecart_especes = prelevements_especes['total'] - especes['total']
+        
+        # Chèques: prelevement vs encaissement (normally 0)
+        ecart_cheques = prelevements_cheques['total'] - cheques['total']
+        
+        # Cartes: prelevement vs encaissement (normally 0)
+        ecart_cartes = prelevements_cartes['total'] - cartes['total']
+        
+        # Titres de paiements: prelevement vs encaissement (normally 0)
+        ecart_titres = prelevements_titres['total'] - titres['total']
+        
+        ecart_caisse = {
+            'especes': ecart_especes,
+            'cheques': ecart_cheques,
+            'cartes': ecart_cartes,
+            'titres': ecart_titres,
+        }
+        
+        # ============================================
+        # SECTION 7: Répartition de la TVA (Tax breakdown)
+        # ============================================
+        # Group order lines by tax percentage and calculate:
+        # - CA HT (Chiffre d'Affaires Hors Taxes) = price_subtotal
+        # - TVA (Tax amount) = price_subtotal_incl - price_subtotal
+        # - TOTAL = price_subtotal_incl
+        
+        # Get all order lines from this session's orders
+        all_order_lines = self.order_ids.mapped('lines')
+        
+        # Dictionary to group by tax percentage
+        # Key: tax percentage (float), Value: {ca_ht, tva, total}
+        tax_breakdown = {}
+        
+        for line in all_order_lines:
+            # Skip combo child lines to avoid double counting
+            if line.combo_parent_id:
+                continue
+                
+            # Get the tax percentage (assuming single tax per line)
+            # If no tax, it's 0%
+            if line.tax_ids:
+                # Sum all tax percentages if multiple taxes (rare case)
+                tax_percent = sum(line.tax_ids.mapped('amount'))
+            else:
+                tax_percent = 0.0
+            
+            # Round to avoid floating point issues (e.g., 18.0 not 18.000001)
+            tax_percent = round(tax_percent, 2)
+            
+            # Calculate amounts
+            ca_ht = line.price_subtotal
+            total = line.price_subtotal_incl
+            tva = total - ca_ht
+            
+            # Add to breakdown
+            if tax_percent not in tax_breakdown:
+                tax_breakdown[tax_percent] = {'ca_ht': 0.0, 'tva': 0.0, 'total': 0.0}
+            
+            tax_breakdown[tax_percent]['ca_ht'] += ca_ht
+            tax_breakdown[tax_percent]['tva'] += tva
+            tax_breakdown[tax_percent]['total'] += total
+        
+        # Convert to sorted list of dicts for template iteration
+        # Sort by tax percentage ascending (0%, 9%, 18%, ...)
+        repartition_tva = []
+        for tax_percent in sorted(tax_breakdown.keys()):
+            data = tax_breakdown[tax_percent]
+            repartition_tva.append({
+                'tax_percent': tax_percent,
+                'ca_ht': data['ca_ht'],
+                'tva': data['tva'],
+                'total': data['total'],
+            })
+        
         return {
             'ventes_en_compte': ventes_en_compte,
             'fond_de_caisse_initial': fond_de_caisse_initial,
             'encaissements_comptants': encaissements_comptants,
             'prelevements': prelevements,
+            'ecart_caisse': ecart_caisse,
+            'repartition_tva': repartition_tva,
             'ecart_caisse': ecart_caisse,
             'repartition_tva': repartition_tva,
         }

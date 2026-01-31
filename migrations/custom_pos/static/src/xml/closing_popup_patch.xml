@@ -20,6 +20,7 @@
         </xpath>
         
         <!-- 3. Replace Cash Count input with a read-only version (no auto-fill button) -->
+        <!-- 3. Replace Cash Count input with a read-only version (no auto-fill button) -->
         <xpath expr="//div[hasclass('mb-3')][.//Input[contains(@class, 'cash-input')]]" position="replace">
             <div t-if="pos.config.cash_control" class="mb-3">
                 <label class="form-label">Comptage de caisse</label>
@@ -34,6 +35,7 @@
                     <button class="icon fa fa-money btn btn-secondary" 
                             t-on-click="openDetailsPopup" 
                             title="Comptage des billets"/>
+                    <!-- Auto-fill button REMOVED per user request -->
                     <!-- Auto-fill button REMOVED per user request -->
                 </div>
             </div>

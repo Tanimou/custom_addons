@@ -6,40 +6,38 @@
     -->
 
     <!-- ============================================================
-         MISSION COST PIVOT/GRAPH (FR-015, FR-026)
+         MISSION ANALYSIS PIVOT/GRAPH (FR-015, FR-026)
          ============================================================ -->
     
-    <!-- Mission Cost Pivot View -->
+    <!-- Mission Analysis Pivot View -->
     <record id="view_score_mission_cost_pivot" model="ir.ui.view">
         <field name="name">score.mission.cost.pivot</field>
         <field name="model">fleet.mission</field>
         <field name="arch" type="xml">
-            <pivot string="Analyse des coûts mission">
+            <pivot string="Analyse des missions">
                 <field name="vehicle_id" type="row"/>
-                <field name="start_date" interval="month" type="col"/>
-                <field name="total_expenses" type="measure"/>
+                <field name="date_start" interval="month" type="col"/>
                 <field name="distance_km" type="measure"/>
-                <field name="cost_per_km" type="measure"/>
+                <field name="duration_hours" type="measure"/>
             </pivot>
         </field>
     </record>
 
-    <!-- Mission Cost Graph View -->
+    <!-- Mission Analysis Graph View -->
     <record id="view_score_mission_cost_graph" model="ir.ui.view">
         <field name="name">score.mission.cost.graph</field>
         <field name="model">fleet.mission</field>
         <field name="arch" type="xml">
-            <graph string="Évolution des coûts mission" type="line">
-                <field name="start_date" interval="month"/>
-                <field name="total_expenses" type="measure"/>
-                <field name="cost_per_km" type="measure"/>
+            <graph string="Évolution des missions" type="line">
+                <field name="date_start" interval="month"/>
+                <field name="distance_km" type="measure"/>
             </graph>
         </field>
     </record>
 
-    <!-- Mission Cost Action -->
+    <!-- Mission Analysis Action -->
     <record id="action_score_mission_cost_analysis" model="ir.actions.act_window">
-        <field name="name">Analyse coûts mission</field>
+        <field name="name">Analyse missions</field>
         <field name="res_model">fleet.mission</field>
         <field name="view_mode">pivot,graph,tree</field>
         <field name="view_ids" eval="[(5, 0, 0),
@@ -49,8 +47,8 @@
         <field name="context">{
             'search_default_group_by_vehicle': 1,
             'pivot_row_groupby': ['vehicle_id'],
-            'pivot_column_groupby': ['start_date:month'],
-            'pivot_measures': ['total_expenses', 'cost_per_km']
+            'pivot_column_groupby': ['date_start:month'],
+            'pivot_measures': ['distance_km']
         }</field>
     </record>
 
@@ -133,30 +131,31 @@
          MAINTENANCE KPI PIVOT/GRAPH (FR-019, FR-020, FR-021)
          ============================================================ -->
 
-    <!-- Maintenance Downtime Pivot -->
+    <!-- Maintenance Cost Pivot -->
     <record id="view_score_maintenance_downtime_pivot" model="ir.ui.view">
         <field name="name">score.maintenance.downtime.pivot</field>
         <field name="model">fleet.maintenance.intervention</field>
         <field name="arch" type="xml">
-            <pivot string="Analyse indisponibilité">
+            <pivot string="Analyse coûts maintenance">
                 <field name="vehicle_id" type="row"/>
                 <field name="intervention_type" type="row"/>
                 <field name="scheduled_start" interval="month" type="col"/>
-                <field name="downtime_hours" type="measure"/>
-                <field name="downtime_days" type="measure"/>
-                <field name="total_technician_hours" type="measure"/>
+                <field name="total_amount" type="measure"/>
+                <field name="actual_total_amount" type="measure"/>
+                <field name="labor_amount" type="measure"/>
+                <field name="part_amount" type="measure"/>
             </pivot>
         </field>
     </record>
 
-    <!-- Maintenance Downtime Graph -->
+    <!-- Maintenance Cost Graph -->
     <record id="view_score_maintenance_downtime_graph" model="ir.ui.view">
         <field name="name">score.maintenance.downtime.graph</field>
         <field name="model">fleet.maintenance.intervention</field>
         <field name="arch" type="xml">
-            <graph string="Indisponibilité par type" type="bar">
+            <graph string="Coûts par type" type="bar">
                 <field name="intervention_type"/>
-                <field name="downtime_hours" type="measure"/>
+                <field name="total_amount" type="measure"/>
             </graph>
         </field>
     </record>
@@ -185,8 +184,6 @@
                 <field name="category_id" type="row"/>
                 <field name="maintenance_state" type="col"/>
                 <field name="mission_count" type="measure"/>
-                <field name="total_downtime_hours" type="measure"/>
-                <field name="fuel_expense_count" type="measure"/>
             </pivot>
         </field>
     </record>

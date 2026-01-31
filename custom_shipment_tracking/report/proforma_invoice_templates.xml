@@ -243,10 +243,10 @@
             
             <!-- Boite des coordonnees bancaires -->
             <div style="border: 1px solid #333; padding: 10px; margin-bottom: 30px; font-size: 9pt; max-width: 400px;">
-                <t t-if="company.partner_id.bank_ids">
-                    <t t-set="bank" t-value="company.partner_id.bank_ids[0]"/>
+                <t t-set="bank" t-value="company.partner_id.bank_ids.filtered('bank_id')[:1]"/>
+                <t t-if="bank">
                     <div><strong>Intitule du compte :</strong> <t t-out="company.name"/>,</div>
-                    <div><strong>Banque :</strong> <t t-out="bank.bank_id.name if bank.bank_id else '-'"/>,</div>
+                    <div><strong>Banque :</strong> <t t-out="bank.bank_id.name"/>,</div>
                     <div><strong>IBAN :</strong> <t t-out="bank.acc_number or '-'"/>,</div>
                 </t>
                 <t t-else="1">

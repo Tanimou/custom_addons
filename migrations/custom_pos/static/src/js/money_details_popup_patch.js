@@ -10,6 +10,11 @@
  * - Direct amount is CUMULATIVE (adds to stored total, not replace)
  * - Negative values are not allowed
  * - Value persists even after clicking "Ignorer" (cancel)
+ * 
+ * Features:
+ * - Direct amount is CUMULATIVE (adds to stored total, not replace)
+ * - Negative values are not allowed
+ * - Value persists even after clicking "Ignorer" (cancel)
  */
 
 import { MoneyDetailsPopup } from "@point_of_sale/app/components/popups/money_details_popup/money_details_popup";
@@ -21,6 +26,8 @@ console.log("🔵 money_details_popup_patch.js LOADED");
 
 // Store accumulated total globally so it persists between popup opens (even after cancel)
 let _accumulatedTotal = 0;
+// Store accumulated total globally so it persists between popup opens (even after cancel)
+let _accumulatedTotal = 0;
 
 patch(MoneyDetailsPopup.prototype, {
     /**
@@ -30,11 +37,14 @@ patch(MoneyDetailsPopup.prototype, {
         super.setup();
         // Direct amount starts at 0 (user types amount to ADD to accumulated total)
         this.state.directAmount = "";
+        // Direct amount starts at 0 (user types amount to ADD to accumulated total)
+        this.state.directAmount = "";
         // Get the action service for printing
         this.actionService = useService("action");
     },
 
     /**
+     * Override computeTotal to include the accumulated total and current input
      * Override computeTotal to include the accumulated total and current input
      */
     computeTotal(moneyDetails = this.state.moneyDetails) {
@@ -46,7 +56,11 @@ patch(MoneyDetailsPopup.prototype, {
         
         // Add current direct amount input (what user is typing right now)
         const currentDirectAmount = parseFloat(this.state.directAmount) || 0;
+        // Add current direct amount input (what user is typing right now)
+        const currentDirectAmount = parseFloat(this.state.directAmount) || 0;
         
+        // Total = coins/notes + accumulated total + current input
+        return coinsNotesTotal + _accumulatedTotal + currentDirectAmount;
         // Total = coins/notes + accumulated total + current input
         return coinsNotesTotal + _accumulatedTotal + currentDirectAmount;
     },
@@ -81,6 +95,9 @@ patch(MoneyDetailsPopup.prototype, {
         // Add accumulated direct amount to notes
         if (_accumulatedTotal > 0) {
             moneyDetailsNotes += "\t" + _t("Direct: %s\n", this.env.utils.formatCurrency(_accumulatedTotal));
+        // Add accumulated direct amount to notes
+        if (_accumulatedTotal > 0) {
+            moneyDetailsNotes += "\t" + _t("Direct: %s\n", this.env.utils.formatCurrency(_accumulatedTotal));
         }
         if (moneyDetailsNotes) {
             moneyDetailsNotes += _t(
@@ -112,14 +129,17 @@ patch(MoneyDetailsPopup.prototype, {
             const sessionId = this.pos.session.id;
             const countedCash = this.computeTotal();
             
+            
             console.log("🖨️ Printing Prélèvement ticket for session:", sessionId, "Amount:", countedCash);
 
             // First, save the counted cash amount to the database
+            const saveResult = await this.pos.data.call(
             const saveResult = await this.pos.data.call(
                 "pos.session",
                 "save_cash_count_for_prelevement",
                 [sessionId, countedCash]
             );
+            console.log("✅ Cash count saved to database. Result:", saveResult);
             console.log("✅ Cash count saved to database. Result:", saveResult);
 
             // Build the report URL directly for PDF download
@@ -167,12 +187,20 @@ patch(MoneyDetailsPopup.prototype, {
      * Handle direct amount input change
      * - Only positive numbers allowed
      * - Value persists immediately (for persistence even after cancel)
+     * - Only positive numbers allowed
+     * - Value persists immediately (for persistence even after cancel)
      */
     onDirectAmountInput(ev) {
+        // Allow only numbers and decimal point (no minus sign = no negative values)
         // Allow only numbers and decimal point (no minus sign = no negative values)
         let value = ev.target.value.replace(/[^0-9.,]/g, "");
         // Replace comma with dot for decimal
         value = value.replace(",", ".");
+        // Ensure it's not negative (already handled by not allowing minus, but double-check)
+        const numValue = parseFloat(value) || 0;
+        if (numValue < 0) {
+            value = "0";
+        }
         // Ensure it's not negative (already handled by not allowing minus, but double-check)
         const numValue = parseFloat(value) || 0;
         if (numValue < 0) {
